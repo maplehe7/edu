@@ -6,7 +6,6 @@
   "framework": "0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",
   "data": "6697b6deba8b617c67b69c55dcd07cb1.data.unityweb",
   "wasm": "b3397c29f6878557c1c614cbf9e196ea.wasm.unityweb",
-  "loading_gif": "loading-screen.gif",
   "required_function_count": 2,
   "window_root_count": 6,
   "window_callable_chain_count": 21,

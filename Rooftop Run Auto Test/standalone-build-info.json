@@ -1,17 +1,16 @@
-﻿{
-    "output_dir":  "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test",
-    "index_html":  "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test\\index.html",
-    "required_functions_file":  "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test\\required-functions.json",
-    "loader":  "Rooftop Run Web 1.0.3 b2.loader.js",
-    "framework":  "Rooftop Run Web 1.0.3 b2.framework.js",
-    "data":  "Rooftop Run Web 1.0.3 b2.data",
-    "wasm":  "Rooftop Run Web 1.0.3 b2.wasm",
-    "required_function_count":  101,
-    "used_br_assets":  false,
-    "used_compressed_assets":  false,
-    "mode":  "direct_urls",
-    "progress_file":  "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test\\.standalone-progress.json",
-    "loading_gif":  "loading-screen.gif",
-    "window_root_count":  71,
-    "window_callable_chain_count":  71
+{
+  "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test",
+  "index_html": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test\\index.html",
+  "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test\\required-functions.json",
+  "loader": "Rooftop Run Web 1.0.3 b2.loader.js",
+  "framework": "Rooftop Run Web 1.0.3 b2.framework.js",
+  "data": "Rooftop Run Web 1.0.3 b2.data",
+  "wasm": "Rooftop Run Web 1.0.3 b2.wasm",
+  "required_function_count": 101,
+  "window_root_count": 71,
+  "window_callable_chain_count": 71,
+  "used_br_assets": false,
+  "used_compressed_assets": false,
+  "mode": "direct_urls",
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run Auto Test\\.standalone-progress.json"
 }

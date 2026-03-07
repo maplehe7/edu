@@ -178,30 +178,6 @@
         transform: scale(1.015);
       }
     }
-    @keyframes loadingGifDrift {
-      0% {
-        transform: scale(1.03) translate3d(-1.2%, -0.8%, 0);
-      }
-      100% {
-        transform: scale(1.08) translate3d(1.2%, 1.2%, 0);
-      }
-    }
-    #loadingGif {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.34;
-      filter: saturate(1.04) brightness(0.82);
-      mix-blend-mode: screen;
-      transform: scale(1.03);
-      animation: loadingGifDrift 18s ease-in-out infinite alternate;
-      z-index: 2;
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
-    }
     #loadingCenter {
       position: relative;
       z-index: 5;
@@ -213,6 +189,20 @@
       padding: 0;
       text-align: center;
       text-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+    #loadingTitle {
+      margin: 0 0 8px;
+      padding-left: 0.28em;
+      font-size: clamp(3rem, 10vw, 6.4rem);
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      line-height: 0.88;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.98), rgba(171, 239, 255, 0.98), rgba(110, 189, 255, 0.98));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
     }
     #launchPanel {
       display: flex;
@@ -281,9 +271,8 @@
     }
     #playNote {
       color: rgba(255, 255, 255, 0.62);
-      font-size: 11px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.04em;
       text-align: center;
       line-height: 1.35;
     }
@@ -295,6 +284,7 @@
       text-shadow: 0 2px 18px rgba(0, 0, 0, 0.38);
     }
     #progressTrack {
+      display: none;
       width: 100%;
       height: 8px;
       border-radius: 999px;
@@ -302,6 +292,9 @@
       background: rgba(255, 255, 255, 0.10);
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.28);
+    }
+    #progressTrack.is-visible {
+      display: block;
     }
     #progressFill {
       width: 0%;
@@ -348,8 +341,7 @@
     @media (prefers-reduced-motion: reduce) {
       .grain,
       .nebula,
-      #progressFill,
-      #loadingGif {
+      #progressFill {
         animation: none !important;
       }
     }
@@ -366,15 +358,15 @@
         <div class="overlay"></div>
         <div class="grain"></div>
       </div>
-      <img id="loadingGif" src="loading-screen.gif" alt="" aria-hidden="true" draggable="false" />
       <div id="loadingCenter">
+        <h1 id="loadingTitle">Ocean</h1>
         <div id="launchPanel">
           <button id="playBtn" type="button">Click To Play</button>
           <div id="launchMenu">
             <button id="launchFullscreenBtn" class="launchOption" type="button">Launch In Fullscreen (New Tab)</button>
             <button id="launchFrameBtn" class="launchOption" type="button">Launch In Frame</button>
           </div>
-          <div id="playNote">No ads | Saves your progress</div>
+          <div id="playNote">Saves to local storage</div>
         </div>
         <div id="progressTrack" aria-hidden="true">
           <div id="progressFill"></div>
@@ -1133,6 +1125,7 @@
       const canvas = document.getElementById("unity-canvas");
       const loadingScreen = document.getElementById("loadingScreen");
       const progressFill = document.getElementById("progressFill");
+      const progressTrack = document.getElementById("progressTrack");
       const launchPanel = document.getElementById("launchPanel");
       const playBtn = document.getElementById("playBtn");
       const launchMenu = document.getElementById("launchMenu");
@@ -1162,6 +1155,13 @@
         return percent;
       }
 
+      function setProgressVisibility(isVisible) {
+        if (!progressTrack) {
+          return;
+        }
+        progressTrack.classList.toggle("is-visible", Boolean(isVisible));
+      }
+
       function dismissLoadingScreen() {
         if (loadingScreenDismissed || !loadingScreen) {
           return;
@@ -1187,6 +1187,7 @@
         if (launchMenu) {
           launchMenu.classList.remove("visible");
         }
+        setProgressVisibility(false);
         setProgress(0);
       }
 
@@ -1269,6 +1270,7 @@
         if (launchPanel) {
           launchPanel.classList.add("is-hidden");
         }
+        setProgressVisibility(true);
         setProgress(0);
         setStatus("Loading 0%");
 
@@ -1316,6 +1318,7 @@
         });
       }
 
+      setProgressVisibility(false);
       setProgress(0);
       setStatus("Click play to start");
 

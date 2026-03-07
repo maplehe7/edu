@@ -1,0 +1,44 @@
+{
+  "count": 2,
+  "functions": [
+    "getUserMedia",
+    "unityStringify"
+  ],
+  "window_root_count": 6,
+  "window_roots": [
+    "CrazyGames",
+    "Crazygames",
+    "UnitySDK",
+    "crazySdkInitOptions",
+    "getUserMedia",
+    "unityStringify"
+  ],
+  "window_callable_chain_count": 25,
+  "window_callable_chains": [
+    "CrazyGames.SDK.ad.hasAdblock",
+    "CrazyGames.SDK.ad.requestAd",
+    "CrazyGames.SDK.addInitCallback",
+    "CrazyGames.SDK.banner.requestOverlayBanners",
+    "CrazyGames.SDK.game.gameplayStart",
+    "CrazyGames.SDK.game.gameplayStop",
+    "CrazyGames.SDK.game.happytime",
+    "CrazyGames.SDK.game.hideInviteButton",
+    "CrazyGames.SDK.game.inviteLink",
+    "CrazyGames.SDK.game.showInviteButton",
+    "CrazyGames.SDK.syncUnityGameData",
+    "CrazyGames.SDK.user.addAuthListener",
+    "CrazyGames.SDK.user.addScore",
+    "CrazyGames.SDK.user.getUser",
+    "CrazyGames.SDK.user.getUserToken",
+    "CrazyGames.SDK.user.getXsollaUserToken",
+    "CrazyGames.SDK.user.showAccountLinkPrompt",
+    "CrazyGames.SDK.user.showAuthPrompt",
+    "UnitySDK.ensureLoaded",
+    "UnitySDK.lockPointer",
+    "UnitySDK.onSdkScriptLoaded",
+    "UnitySDK.unlockPointer",
+    "UnitySDK.urlParamsToJson",
+    "getUserMedia",
+    "unityStringify"
+  ]
+}

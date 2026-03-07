@@ -32,9 +32,6 @@ REQUEST_HEADERS = {
     "Accept": "*/*",
     "Accept-Language": "en-US,en;q=0.9",
 }
-LOADING_GIF_SOURCE = Path(__file__).resolve().parent / "unnamed.gif"
-LOADING_GIF_OUTPUT_NAME = "loading-screen.gif"
-
 @dataclass
 class DownloadedAssets:
     loader_name: str
@@ -74,14 +71,6 @@ def save_json_file(path: Path, payload: dict) -> None:
     temp_path = path.with_suffix(path.suffix + ".tmp")
     temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     temp_path.replace(path)
-
-
-def copy_loading_gif(output_dir: Path) -> str:
-    if not LOADING_GIF_SOURCE.exists():
-        raise FetchError(f"Required loading GIF not found: {LOADING_GIF_SOURCE}")
-    destination = output_dir / LOADING_GIF_OUTPUT_NAME
-    shutil.copyfile(LOADING_GIF_SOURCE, destination)
-    return destination.name
 
 
 def normalize_url(url: str) -> str:
@@ -718,7 +707,6 @@ def generate_index_html(
     required_functions: Sequence[str],
     window_roots: Sequence[str],
     window_callable_chains: Sequence[str],
-    loading_gif_name: str,
 ) -> str:
     fn_list_js = json.dumps(list(required_functions), ensure_ascii=False)
     window_roots_js = json.dumps(list(window_roots), ensure_ascii=False)
@@ -728,8 +716,6 @@ def generate_index_html(
     data_name_js = json.dumps(assets.data_name, ensure_ascii=False)
     framework_name_js = json.dumps(assets.framework_name, ensure_ascii=False)
     wasm_name_js = json.dumps(assets.wasm_name, ensure_ascii=False)
-    loading_gif_name_js = json.dumps(loading_gif_name, ensure_ascii=False)
-
     decompression_fallback_line = (
         "  config.decompressionFallback = true;\n" if assets.used_br_assets else ""
     )
@@ -914,30 +900,6 @@ def generate_index_html(
         transform: scale(1.015);
       }}
     }}
-    @keyframes loadingGifDrift {{
-      0% {{
-        transform: scale(1.03) translate3d(-1.2%, -0.8%, 0);
-      }}
-      100% {{
-        transform: scale(1.08) translate3d(1.2%, 1.2%, 0);
-      }}
-    }}
-    #loadingGif {{
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.34;
-      filter: saturate(1.04) brightness(0.82);
-      mix-blend-mode: screen;
-      transform: scale(1.03);
-      animation: loadingGifDrift 18s ease-in-out infinite alternate;
-      z-index: 2;
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
-    }}
     #loadingCenter {{
       position: relative;
       z-index: 5;
@@ -949,6 +911,20 @@ def generate_index_html(
       padding: 0;
       text-align: center;
       text-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }}
+    #loadingTitle {{
+      margin: 0 0 8px;
+      padding-left: 0.28em;
+      font-size: clamp(3rem, 10vw, 6.4rem);
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      line-height: 0.88;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.98), rgba(171, 239, 255, 0.98), rgba(110, 189, 255, 0.98));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
     }}
     #launchPanel {{
       display: flex;
@@ -1017,9 +993,8 @@ def generate_index_html(
     }}
     #playNote {{
       color: rgba(255, 255, 255, 0.62);
-      font-size: 11px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.04em;
       text-align: center;
       line-height: 1.35;
     }}
@@ -1031,6 +1006,7 @@ def generate_index_html(
       text-shadow: 0 2px 18px rgba(0, 0, 0, 0.38);
     }}
     #progressTrack {{
+      display: none;
       width: 100%;
       height: 8px;
       border-radius: 999px;
@@ -1038,6 +1014,9 @@ def generate_index_html(
       background: rgba(255, 255, 255, 0.10);
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.28);
+    }}
+    #progressTrack.is-visible {{
+      display: block;
     }}
     #progressFill {{
       width: 0%;
@@ -1084,8 +1063,7 @@ def generate_index_html(
     @media (prefers-reduced-motion: reduce) {{
       .grain,
       .nebula,
-      #progressFill,
-      #loadingGif {{
+      #progressFill {{
         animation: none !important;
       }}
     }}
@@ -1102,15 +1080,15 @@ def generate_index_html(
         <div class="overlay"></div>
         <div class="grain"></div>
       </div>
-      <img id="loadingGif" src={loading_gif_name_js} alt="" aria-hidden="true" draggable="false" />
       <div id="loadingCenter">
+        <h1 id="loadingTitle">Ocean</h1>
         <div id="launchPanel">
           <button id="playBtn" type="button">Click To Play</button>
           <div id="launchMenu">
             <button id="launchFullscreenBtn" class="launchOption" type="button">Launch In Fullscreen (New Tab)</button>
             <button id="launchFrameBtn" class="launchOption" type="button">Launch In Frame</button>
           </div>
-          <div id="playNote">No ads | Saves your progress</div>
+          <div id="playNote">Saves to local storage</div>
         </div>
         <div id="progressTrack" aria-hidden="true">
           <div id="progressFill"></div>
@@ -1869,6 +1847,7 @@ def generate_index_html(
       const canvas = document.getElementById("unity-canvas");
       const loadingScreen = document.getElementById("loadingScreen");
       const progressFill = document.getElementById("progressFill");
+      const progressTrack = document.getElementById("progressTrack");
       const launchPanel = document.getElementById("launchPanel");
       const playBtn = document.getElementById("playBtn");
       const launchMenu = document.getElementById("launchMenu");
@@ -1898,6 +1877,13 @@ def generate_index_html(
         return percent;
       }}
 
+      function setProgressVisibility(isVisible) {{
+        if (!progressTrack) {{
+          return;
+        }}
+        progressTrack.classList.toggle("is-visible", Boolean(isVisible));
+      }}
+
       function dismissLoadingScreen() {{
         if (loadingScreenDismissed || !loadingScreen) {{
           return;
@@ -1923,6 +1909,7 @@ def generate_index_html(
         if (launchMenu) {{
           launchMenu.classList.remove("visible");
         }}
+        setProgressVisibility(false);
         setProgress(0);
       }}
 
@@ -2005,6 +1992,7 @@ def generate_index_html(
         if (launchPanel) {{
           launchPanel.classList.add("is-hidden");
         }}
+        setProgressVisibility(true);
         setProgress(0);
         setStatus("Loading 0%");
 
@@ -2052,6 +2040,7 @@ def generate_index_html(
         }});
       }}
 
+      setProgressVisibility(false);
       setProgress(0);
       setStatus("Click play to start");
 
@@ -2287,14 +2276,12 @@ def main(argv: Sequence[str]) -> int:
     required_functions = framework_analysis.required_functions
 
     product_name = slugify_name(output_dir.name).replace("-", " ")
-    loading_gif_name = copy_loading_gif(output_dir)
     index_content = generate_index_html(
         product_name,
         assets,
         required_functions,
         framework_analysis.window_roots,
         framework_analysis.window_callable_chains,
-        loading_gif_name,
     )
     validate_required_function_coverage(index_content, required_functions)
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
@@ -2322,7 +2309,6 @@ def main(argv: Sequence[str]) -> int:
         "framework": assets.framework_name,
         "data": assets.data_name,
         "wasm": assets.wasm_name,
-        "loading_gif": loading_gif_name,
         "required_function_count": len(required_functions),
         "window_root_count": len(framework_analysis.window_roots),
         "window_callable_chain_count": len(framework_analysis.window_callable_chains),
