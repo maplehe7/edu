@@ -11,12 +11,9 @@
   "window_callable_chain_count": 0,
   "used_br_assets": true,
   "used_compressed_assets": true,
-  "build_kind": "legacy_json",
-  "mode": "entry_auto",
-  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json",
-  "legacy_asset_names": {
-    "dataUrl": "GeometryDashLite.data.unityweb",
-    "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb",
-    "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.unityweb"
-  }
+  "build_kind": "modern",
+  "mode": "direct_urls",
+  "source_page_url": "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/",
+  "source_url_spoof_enabled": false,
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json"
 }

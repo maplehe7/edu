@@ -1,41 +1,17 @@
 {
-  "build_kind": "legacy_json",
   "candidate_urls": {
     "loader": [
       "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/UnityLoader.js"
     ],
-    "dataUrl": [
+    "framework": [
+      "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.framework.unityweb"
+    ],
+    "data": [
       "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.data.unityweb"
     ],
-    "wasmCodeUrl": [
+    "wasm": [
       "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.code.unityweb"
-    ],
-    "wasmFrameworkUrl": [
-      "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.framework.unityweb"
     ]
-  },
-  "legacy_config": {
-    "companyName": "DefaultCompany",
-    "productName": "GeometryDashLife",
-    "productVersion": "0.1",
-    "dataUrl": "GeometryDashLite.data.unityweb",
-    "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb",
-    "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.unityweb",
-    "graphicsAPI": [
-      "WebGL 2.0",
-      "WebGL 1.0"
-    ],
-    "webglContextAttributes": {
-      "preserveDrawingBuffer": false
-    },
-    "splashScreenStyle": "Dark",
-    "backgroundColor": "#231F20",
-    "cacheControl": {
-      "default": "must-revalidate"
-    },
-    "developmentBuild": false,
-    "multithreading": false,
-    "unityVersion": "2019.4.24f1"
   },
   "assets": {
     "loader": {
@@ -43,20 +19,20 @@
       "url": "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/UnityLoader.js",
       "size": 160031
     },
-    "dataUrl": {
+    "framework": {
+      "filename": "GeometryDashLite.wasm.framework.unityweb",
+      "url": "https://raw.githubusercontent.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.framework.unityweb",
+      "size": 88060
+    },
+    "data": {
       "filename": "GeometryDashLite.data.unityweb",
       "url": "https://raw.githubusercontent.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.data.unityweb",
       "size": 25106751
     },
-    "wasmCodeUrl": {
+    "wasm": {
       "filename": "GeometryDashLite.wasm.code.unityweb",
       "url": "https://raw.githubusercontent.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.code.unityweb",
       "size": 5785630
-    },
-    "wasmFrameworkUrl": {
-      "filename": "GeometryDashLite.wasm.framework.unityweb",
-      "url": "https://raw.githubusercontent.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.framework.unityweb",
-      "size": 88060
     }
   },
   "completed": true,
@@ -73,13 +49,10 @@
     "window_callable_chain_count": 0,
     "used_br_assets": true,
     "used_compressed_assets": true,
-    "build_kind": "legacy_json",
-    "mode": "entry_auto",
-    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json",
-    "legacy_asset_names": {
-      "dataUrl": "GeometryDashLite.data.unityweb",
-      "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb",
-      "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.unityweb"
-    }
+    "build_kind": "modern",
+    "mode": "direct_urls",
+    "source_page_url": "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/",
+    "source_url_spoof_enabled": false,
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json"
   }
 }

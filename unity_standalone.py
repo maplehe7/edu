@@ -1124,6 +1124,16 @@ def generate_index_html(
     body {{
       background: var(--bg);
     }}
+    html[data-ocean-fullscreen-lock="1"],
+    html[data-ocean-fullscreen-lock="1"] body,
+    body[data-ocean-fullscreen-lock="1"] {{
+      overflow: hidden !important;
+      overscroll-behavior: none;
+    }}
+    html[data-ocean-fullscreen-lock="1"] #container,
+    html[data-ocean-fullscreen-lock="1"] #loadingScreen {{
+      touch-action: none;
+    }}
     #container {{
       position: fixed;
       inset: 0;
@@ -1478,7 +1488,7 @@ def generate_index_html(
         <div id="launchPanel">
           <div id="launchMenu">
             <button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
-            <button id="launchFullscreenBtn" class="launchOption" type="button">Launch In Fullscreen (New Tab)</button>
+            <button id="launchFullscreenBtn" class="launchOption" type="button">LAUNCH FULLSCREEN</button>
           </div>
           <div id="playNote">Saves to local storage</div>
         </div>
@@ -2525,6 +2535,26 @@ def generate_index_html(
       let launchPanelHideTimer = 0;
       let legacyConfigUrl = "";
       let sourceUrlSpoofApplied = false;
+      const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
+      const fullscreenScrollKeys = new Set([
+        " ",
+        "Spacebar",
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
+      const fullscreenScrollCodes = new Set([
+        "Space",
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
 
       if (BUILD_KIND === "legacy_json") {{
         if (canvas) {{
@@ -2588,6 +2618,70 @@ def generate_index_html(
         }}
         window.clearTimeout(launchPanelHideTimer);
         launchPanelHideTimer = 0;
+      }}
+
+      function isFullscreenActive() {{
+        return Boolean(
+          document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement ||
+            document.mozFullScreenElement
+        );
+      }}
+
+      function setFullscreenScrollLock(isLocked) {{
+        const root = document.documentElement;
+        const body = document.body;
+        if (root) {{
+          if (isLocked) {{
+            root.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+          }} else {{
+            root.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+          }}
+        }}
+        if (body) {{
+          if (isLocked) {{
+            body.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+          }} else {{
+            body.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+          }}
+        }}
+        if (isLocked && typeof window.scrollTo === "function") {{
+          window.scrollTo(0, 0);
+        }}
+      }}
+
+      function syncFullscreenScrollLock() {{
+        setFullscreenScrollLock(isFullscreenActive());
+      }}
+
+      function isFullscreenScrollKey(event) {{
+        const key = typeof event.key === "string" ? event.key : "";
+        const code = typeof event.code === "string" ? event.code : "";
+        return fullscreenScrollKeys.has(key) || fullscreenScrollCodes.has(code);
+      }}
+
+      function preventFullscreenScroll(event) {{
+        if (!isFullscreenActive()) {{
+          return;
+        }}
+        if (event.type === "keydown" && !isFullscreenScrollKey(event)) {{
+          return;
+        }}
+        if (event.cancelable) {{
+          event.preventDefault();
+        }}
+      }}
+
+      function enforceFullscreenScrollTop() {{
+        if (
+          !isFullscreenActive() ||
+          (window.scrollX === 0 && window.scrollY === 0) ||
+          typeof window.scrollTo !== "function"
+        ) {{
+          return;
+        }}
+        window.scrollTo(0, 0);
       }}
 
       function buildLocalUrl(relativePath) {{
@@ -2701,11 +2795,45 @@ def generate_index_html(
         setProgress(0);
       }}
 
-      function buildLaunchUrl(mode) {{
-        const targetUrl = new URL(LOCAL_PAGE_URL);
-        targetUrl.searchParams.set("autostart", "1");
-        targetUrl.searchParams.set("launchMode", mode);
-        return targetUrl.toString();
+      function requestFullscreenMode() {{
+        const target = document.documentElement || document.body || canvas || legacyContainer;
+        if (!target) {{
+          return Promise.resolve(false);
+        }}
+        if (
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.msFullscreenElement ||
+          document.mozFullScreenElement
+        ) {{
+          return Promise.resolve(true);
+        }}
+        const request =
+          target.requestFullscreen ||
+          target.webkitRequestFullscreen ||
+          target.webkitRequestFullScreen ||
+          target.msRequestFullscreen ||
+          target.mozRequestFullScreen;
+        if (typeof request !== "function") {{
+          return Promise.resolve(false);
+        }}
+        setFullscreenScrollLock(true);
+        try {{
+          return Promise.resolve(request.call(target))
+            .then(function () {{
+              syncFullscreenScrollLock();
+              return true;
+            }})
+            .catch(function (err) {{
+              setFullscreenScrollLock(false);
+              console.warn("Fullscreen request failed:", err);
+              return false;
+            }});
+        }} catch (err) {{
+          setFullscreenScrollLock(false);
+          console.warn("Fullscreen request failed:", err);
+          return Promise.resolve(false);
+        }}
       }}
 
       function consumeAutoStartFlag() {{
@@ -2722,19 +2850,13 @@ def generate_index_html(
         return shouldAutoStart;
       }}
 
-      function openFullscreenTab() {{
-        const popup = window.open("", "_blank");
-        if (!popup || popup.closed) {{
-          setStatus("New tab blocked. Choose launch in frame.");
-          return;
-        }}
-        try {{
-          popup.opener = null;
-        }} catch (err) {{
-          // Ignore opener hardening failures.
-        }}
-        popup.location.replace(buildLaunchUrl("fullscreen"));
-        setStatus("Opened fullscreen in a new tab");
+      function startFullscreenGame() {{
+        requestFullscreenMode().then(function (enabled) {{
+          if (!enabled && !started) {{
+            setStatus("Fullscreen unavailable here. Launching here.");
+          }}
+        }});
+        startGame();
       }}
 
       function ensureStorageAccess() {{
@@ -2917,7 +3039,16 @@ def generate_index_html(
       setProgress(0);
       setStatus("Choose how you want to launch");
 
-      launchFullscreenBtn.addEventListener("click", openFullscreenTab);
+      window.addEventListener("wheel", preventFullscreenScroll, {{ passive: false }});
+      window.addEventListener("touchmove", preventFullscreenScroll, {{ passive: false }});
+      window.addEventListener("keydown", preventFullscreenScroll, {{ passive: false }});
+      window.addEventListener("scroll", enforceFullscreenScrollTop, {{ passive: true }});
+      window.addEventListener("fullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("mozfullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
+
+      launchFullscreenBtn.addEventListener("click", startFullscreenGame);
       launchFrameBtn.addEventListener("click", startGame);
 
       if (consumeAutoStartFlag()) {{

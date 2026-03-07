@@ -301,6 +301,26 @@
   let fakeProgressTimer = 0;
   let fakeProgressValue = 0;
   let handoffPollTimer = 0;
+  const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
+  const fullscreenScrollKeys = new Set([
+    " ",
+    "Spacebar",
+    "ArrowUp",
+    "ArrowDown",
+    "PageUp",
+    "PageDown",
+    "Home",
+    "End",
+  ]);
+  const fullscreenScrollCodes = new Set([
+    "Space",
+    "ArrowUp",
+    "ArrowDown",
+    "PageUp",
+    "PageDown",
+    "Home",
+    "End",
+  ]);
 
   function setStatus(text) {
     status.textContent = text;
@@ -341,6 +361,70 @@
     }
     window.clearInterval(handoffPollTimer);
     handoffPollTimer = 0;
+  }
+
+  function isFullscreenActive() {
+    return Boolean(
+      document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement ||
+        document.mozFullScreenElement
+    );
+  }
+
+  function setFullscreenScrollLock(isLocked) {
+    const root = document.documentElement;
+    const body = document.body;
+    if (root) {
+      if (isLocked) {
+        root.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+      } else {
+        root.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+      }
+    }
+    if (body) {
+      if (isLocked) {
+        body.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+      } else {
+        body.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+      }
+    }
+    if (isLocked && typeof window.scrollTo === "function") {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function syncFullscreenScrollLock() {
+    setFullscreenScrollLock(isFullscreenActive());
+  }
+
+  function isFullscreenScrollKey(event) {
+    const key = typeof event.key === "string" ? event.key : "";
+    const code = typeof event.code === "string" ? event.code : "";
+    return fullscreenScrollKeys.has(key) || fullscreenScrollCodes.has(code);
+  }
+
+  function preventFullscreenScroll(event) {
+    if (!isFullscreenActive()) {
+      return;
+    }
+    if (event.type === "keydown" && !isFullscreenScrollKey(event)) {
+      return;
+    }
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+  }
+
+  function enforceFullscreenScrollTop() {
+    if (
+      !isFullscreenActive() ||
+      (window.scrollX === 0 && window.scrollY === 0) ||
+      typeof window.scrollTo !== "function"
+    ) {
+      return;
+    }
+    window.scrollTo(0, 0);
   }
 
   function dismissLoadingScreen() {
@@ -409,11 +493,45 @@
     }, 120);
   }
 
-  function buildLaunchUrl(mode) {
-    const targetUrl = new URL(window.location.href);
-    targetUrl.searchParams.set("autostart", "1");
-    targetUrl.searchParams.set("launchMode", mode);
-    return targetUrl.toString();
+  function requestFullscreenMode() {
+    const target = document.documentElement || document.body || gameFrame;
+    if (!target) {
+      return Promise.resolve(false);
+    }
+    if (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.msFullscreenElement ||
+      document.mozFullScreenElement
+    ) {
+      return Promise.resolve(true);
+    }
+    const request =
+      target.requestFullscreen ||
+      target.webkitRequestFullscreen ||
+      target.webkitRequestFullScreen ||
+      target.msRequestFullscreen ||
+      target.mozRequestFullScreen;
+    if (typeof request !== "function") {
+      return Promise.resolve(false);
+    }
+    setFullscreenScrollLock(true);
+    try {
+      return Promise.resolve(request.call(target))
+        .then(function () {
+          syncFullscreenScrollLock();
+          return true;
+        })
+        .catch(function (err) {
+          setFullscreenScrollLock(false);
+          console.warn("Fullscreen request failed:", err);
+          return false;
+        });
+    } catch (err) {
+      setFullscreenScrollLock(false);
+      console.warn("Fullscreen request failed:", err);
+      return Promise.resolve(false);
+    }
   }
 
   function consumeAutoStartFlag() {
@@ -430,19 +548,13 @@
     return shouldAutoStart;
   }
 
-  function openFullscreenTab() {
-    const popup = window.open("", "_blank");
-    if (!popup || popup.closed) {
-      setStatus("New tab blocked. Choose launch here.");
-      return;
-    }
-    try {
-      popup.opener = null;
-    } catch (err) {
-      // Ignore opener hardening failures.
-    }
-    popup.location.replace(buildLaunchUrl("fullscreen"));
-    setStatus("Opened fullscreen in a new tab");
+  function startFullscreenGame() {
+    requestFullscreenMode().then(function (enabled) {
+      if (!enabled && !started) {
+        setStatus("Fullscreen unavailable here. Launching here.");
+      }
+    });
+    startGame();
   }
 
   function startGame() {
@@ -488,7 +600,16 @@
   setProgress(0);
   setStatus("Choose how you want to launch");
 
-  launchFullscreenBtn.addEventListener("click", openFullscreenTab);
+  window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
+  window.addEventListener("touchmove", preventFullscreenScroll, { passive: false });
+  window.addEventListener("keydown", preventFullscreenScroll, { passive: false });
+  window.addEventListener("scroll", enforceFullscreenScrollTop, { passive: true });
+  window.addEventListener("fullscreenchange", syncFullscreenScrollLock);
+  window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);
+  window.addEventListener("mozfullscreenchange", syncFullscreenScrollLock);
+  window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
+
+  launchFullscreenBtn.addEventListener("click", startFullscreenGame);
   launchFrameBtn.addEventListener("click", startGame);
 
   if (consumeAutoStartFlag()) {

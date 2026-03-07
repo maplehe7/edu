@@ -32,6 +32,18 @@ body {
   background: var(--bg);
 }
 
+html[data-ocean-fullscreen-lock="1"],
+html[data-ocean-fullscreen-lock="1"] body,
+body[data-ocean-fullscreen-lock="1"] {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+html[data-ocean-fullscreen-lock="1"] #game_frame,
+html[data-ocean-fullscreen-lock="1"] #loadingScreen {
+  touch-action: none;
+}
+
 #game_frame {
   position: fixed;
   inset: 0;
