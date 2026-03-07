@@ -33,6 +33,16 @@
     body {
       background: var(--bg);
     }
+    html[data-ocean-fullscreen-lock="1"],
+    html[data-ocean-fullscreen-lock="1"] body,
+    body[data-ocean-fullscreen-lock="1"] {
+      overflow: hidden !important;
+      overscroll-behavior: none;
+    }
+    html[data-ocean-fullscreen-lock="1"] #container,
+    html[data-ocean-fullscreen-lock="1"] #loadingScreen {
+      touch-action: none;
+    }
     #container {
       position: fixed;
       inset: 0;
@@ -406,7 +416,7 @@
       const EMPTY = "";
       const ZERO = "0";
       const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
-      const SOURCE_PAGE_URL = "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/";
+      const SOURCE_PAGE_URL = "https://script.google.com/macros/s/AKfycbydNb9Y8FIM3D0vcweKtYCYbjJcSXghedO6MN0aWbP5qIwamjjSkBDirvuMHR_6sc4/exec";
       const ENABLE_SOURCE_URL_SPOOF = false;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
@@ -1405,15 +1415,15 @@
   <script>
     (function () {
       const PRODUCT_NAME = "GD Lite";
-      const BUILD_KIND = "modern";
+      const BUILD_KIND = "legacy_json";
       const BUILD_DIR = "Build";
       const LOADER_FILE = "UnityLoader.js";
       const DATA_FILE = "GeometryDashLite.data.unityweb";
       const FRAMEWORK_FILE = "GeometryDashLite.wasm.framework.unityweb";
       const WASM_FILE = "GeometryDashLite.wasm.code.unityweb";
-      const LEGACY_CONFIG = {};
+      const LEGACY_CONFIG = {"companyName": "DefaultCompany", "productName": "GeometryDashLife", "productVersion": "0.1", "dataUrl": "GeometryDashLite.data.unityweb", "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb", "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.unityweb", "graphicsAPI": ["WebGL 2.0", "WebGL 1.0"], "webglContextAttributes": {"preserveDrawingBuffer": false}, "splashScreenStyle": "Dark", "backgroundColor": "#231F20", "cacheControl": {"default": "must-revalidate"}, "developmentBuild": false, "multithreading": false, "unityVersion": "2019.4.24f1"};
       const SOURCE_PAGE_URL =
-        window.__unityStandaloneSourcePageUrl || "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/";
+        window.__unityStandaloneSourcePageUrl || "https://script.google.com/macros/s/AKfycbydNb9Y8FIM3D0vcweKtYCYbjJcSXghedO6MN0aWbP5qIwamjjSkBDirvuMHR_6sc4/exec";
       const ENABLE_SOURCE_URL_SPOOF = false;
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
@@ -1434,6 +1444,34 @@
       let launchPanelHideTimer = 0;
       let legacyConfigUrl = "";
       let sourceUrlSpoofApplied = false;
+      const requestedLaunchMode = (function () {
+        try {
+          return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
+        } catch (err) {
+          return "";
+        }
+      })();
+      const forceFullscreenScrollLock = requestedLaunchMode === "fullscreen";
+      const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
+      const fullscreenScrollKeys = new Set([
+        " ",
+        "Spacebar",
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
+      const fullscreenScrollCodes = new Set([
+        "Space",
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
 
       if (BUILD_KIND === "legacy_json") {
         if (canvas) {
@@ -1497,6 +1535,81 @@
         }
         window.clearTimeout(launchPanelHideTimer);
         launchPanelHideTimer = 0;
+      }
+
+      function isFullscreenActive() {
+        return Boolean(
+          document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement ||
+            document.mozFullScreenElement
+        );
+      }
+
+      function shouldLockFullscreenScroll() {
+        return forceFullscreenScrollLock || isFullscreenActive();
+      }
+
+      function setFullscreenScrollLock(isLocked) {
+        const root = document.documentElement;
+        const body = document.body;
+        if (root) {
+          if (isLocked) {
+            root.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+          } else {
+            root.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+          }
+        }
+        if (body) {
+          if (isLocked) {
+            body.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+          } else {
+            body.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+          }
+        }
+        if (isLocked && typeof window.scrollTo === "function") {
+          window.scrollTo(0, 0);
+        }
+      }
+
+      function syncFullscreenScrollLock() {
+        setFullscreenScrollLock(shouldLockFullscreenScroll());
+      }
+
+      function isFullscreenScrollKey(event) {
+        const key = typeof event.key === "string" ? event.key : "";
+        const code = typeof event.code === "string" ? event.code : "";
+        return fullscreenScrollKeys.has(key) || fullscreenScrollCodes.has(code);
+      }
+
+      function preventFullscreenScroll(event) {
+        if (!shouldLockFullscreenScroll()) {
+          return;
+        }
+        if (event.type === "keydown" && !isFullscreenScrollKey(event)) {
+          return;
+        }
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+      }
+
+      function enforceFullscreenScrollTop() {
+        if (
+          !shouldLockFullscreenScroll() ||
+          (window.scrollX === 0 && window.scrollY === 0) ||
+          typeof window.scrollTo !== "function"
+        ) {
+          return;
+        }
+        window.scrollTo(0, 0);
+      }
+
+      function buildLaunchUrl(mode) {
+        const targetUrl = new URL(LOCAL_PAGE_URL);
+        targetUrl.searchParams.set("autostart", "1");
+        targetUrl.searchParams.set("launchMode", mode);
+        return targetUrl.toString();
       }
 
       function buildLocalUrl(relativePath) {
@@ -1632,16 +1745,20 @@
         if (typeof request !== "function") {
           return Promise.resolve(false);
         }
+        setFullscreenScrollLock(true);
         try {
           return Promise.resolve(request.call(target))
             .then(function () {
+              syncFullscreenScrollLock();
               return true;
             })
             .catch(function (err) {
+              setFullscreenScrollLock(false);
               console.warn("Fullscreen request failed:", err);
               return false;
             });
         } catch (err) {
+          setFullscreenScrollLock(false);
           console.warn("Fullscreen request failed:", err);
           return Promise.resolve(false);
         }
@@ -1662,12 +1779,17 @@
       }
 
       function startFullscreenGame() {
-        requestFullscreenMode().then(function (enabled) {
-          if (!enabled && !started) {
-            setStatus("Fullscreen unavailable here. Launching here.");
-          }
-        });
-        startGame();
+        const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
+        if (!popup || popup.closed) {
+          setStatus("New tab blocked. Allow popups or use launch here.");
+          return;
+        }
+        try {
+          popup.opener = null;
+        } catch (err) {
+          // Ignore opener hardening failures.
+        }
+        setStatus("Opened fullscreen in a new tab");
       }
 
       function ensureStorageAccess() {
@@ -1850,6 +1972,16 @@
       setProgressVisibility(false);
       setProgress(0);
       setStatus("Choose how you want to launch");
+
+      window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
+      window.addEventListener("touchmove", preventFullscreenScroll, { passive: false });
+      window.addEventListener("keydown", preventFullscreenScroll, { passive: false });
+      window.addEventListener("scroll", enforceFullscreenScrollTop, { passive: true });
+      window.addEventListener("fullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("mozfullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
+      syncFullscreenScrollLock();
 
       launchFullscreenBtn.addEventListener("click", startFullscreenGame);
       launchFrameBtn.addEventListener("click", startGame);

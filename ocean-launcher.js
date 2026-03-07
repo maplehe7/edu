@@ -301,6 +301,14 @@
   let fakeProgressTimer = 0;
   let fakeProgressValue = 0;
   let handoffPollTimer = 0;
+  const requestedLaunchMode = (function () {
+    try {
+      return new URL(window.location.href).searchParams.get("launchMode") || "";
+    } catch (err) {
+      return "";
+    }
+  })();
+  const forceFullscreenScrollLock = requestedLaunchMode === "fullscreen";
   const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
   const fullscreenScrollKeys = new Set([
     " ",
@@ -372,6 +380,10 @@
     );
   }
 
+  function shouldLockFullscreenScroll() {
+    return forceFullscreenScrollLock || isFullscreenActive();
+  }
+
   function setFullscreenScrollLock(isLocked) {
     const root = document.documentElement;
     const body = document.body;
@@ -395,7 +407,7 @@
   }
 
   function syncFullscreenScrollLock() {
-    setFullscreenScrollLock(isFullscreenActive());
+    setFullscreenScrollLock(shouldLockFullscreenScroll());
   }
 
   function isFullscreenScrollKey(event) {
@@ -405,7 +417,7 @@
   }
 
   function preventFullscreenScroll(event) {
-    if (!isFullscreenActive()) {
+    if (!shouldLockFullscreenScroll()) {
       return;
     }
     if (event.type === "keydown" && !isFullscreenScrollKey(event)) {
@@ -418,13 +430,20 @@
 
   function enforceFullscreenScrollTop() {
     if (
-      !isFullscreenActive() ||
+      !shouldLockFullscreenScroll() ||
       (window.scrollX === 0 && window.scrollY === 0) ||
       typeof window.scrollTo !== "function"
     ) {
       return;
     }
     window.scrollTo(0, 0);
+  }
+
+  function buildLaunchUrl(mode) {
+    const targetUrl = new URL(window.location.href);
+    targetUrl.searchParams.set("autostart", "1");
+    targetUrl.searchParams.set("launchMode", mode);
+    return targetUrl.toString();
   }
 
   function dismissLoadingScreen() {
@@ -549,12 +568,17 @@
   }
 
   function startFullscreenGame() {
-    requestFullscreenMode().then(function (enabled) {
-      if (!enabled && !started) {
-        setStatus("Fullscreen unavailable here. Launching here.");
-      }
-    });
-    startGame();
+    const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
+    if (!popup || popup.closed) {
+      setStatus("New tab blocked. Allow popups or use launch here.");
+      return;
+    }
+    try {
+      popup.opener = null;
+    } catch (err) {
+      // Ignore opener hardening failures.
+    }
+    setStatus("Opened fullscreen in a new tab");
   }
 
   function startGame() {
@@ -608,6 +632,7 @@
   window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);
   window.addEventListener("mozfullscreenchange", syncFullscreenScrollLock);
   window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
+  syncFullscreenScrollLock();
 
   launchFullscreenBtn.addEventListener("click", startFullscreenGame);
   launchFrameBtn.addEventListener("click", startGame);

@@ -806,6 +806,107 @@ def build_asset_candidate_urls_from_direct(
     }
 
 
+def build_legacy_asset_candidate_urls_from_direct(
+    loader_url: str,
+    framework_url: str,
+    data_url: str,
+    wasm_url: str,
+) -> dict[str, list[str]]:
+    return {
+        "loader": [remove_query_and_fragment(normalize_url(loader_url))],
+        "dataUrl": [remove_query_and_fragment(normalize_url(data_url))],
+        "wasmCodeUrl": [remove_query_and_fragment(normalize_url(wasm_url))],
+        "wasmFrameworkUrl": [remove_query_and_fragment(normalize_url(framework_url))],
+    }
+
+
+def infer_legacy_config_from_direct_urls(
+    loader_url: str,
+    framework_url: str,
+    data_url: str,
+    wasm_url: str,
+    existing_legacy_config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if isinstance(existing_legacy_config, dict) and existing_legacy_config:
+        return json.loads(json.dumps(existing_legacy_config))
+
+    product_name = basename_from_url(data_url).split(".", 1)[0] or "Unity Game"
+    return {
+        "companyName": "DefaultCompany",
+        "productName": product_name,
+        "productVersion": "1.0.0",
+        "dataUrl": basename_from_url(data_url),
+        "wasmCodeUrl": basename_from_url(wasm_url),
+        "wasmFrameworkUrl": basename_from_url(framework_url),
+        "graphicsAPI": ["WebGL 2.0", "WebGL 1.0"],
+        "webglContextAttributes": {
+            "preserveDrawingBuffer": False,
+        },
+        "splashScreenStyle": "Dark",
+        "backgroundColor": "#231F20",
+        "cacheControl": {
+            "default": "must-revalidate",
+        },
+        "developmentBuild": False,
+        "multithreading": False,
+    }
+
+
+def resolve_direct_build(
+    loader_url: str,
+    framework_url: str,
+    data_url: str,
+    wasm_url: str,
+    progress_file: Path,
+) -> tuple[str, dict[str, list[str]], dict[str, Any]]:
+    existing_progress = load_json_file(progress_file)
+    existing_legacy_config = (
+        existing_progress.get("legacy_config")
+        if existing_progress.get("build_kind") == "legacy_json"
+        and isinstance(existing_progress.get("legacy_config"), dict)
+        else None
+    )
+
+    loader_name = basename_from_url(loader_url).lower()
+    framework_name = basename_from_url(framework_url).lower()
+    wasm_name = basename_from_url(wasm_url).lower()
+    looks_legacy = bool(existing_legacy_config) or (
+        loader_name == "unityloader.js"
+        or ".wasm.framework" in framework_name
+        or ".wasm.code" in wasm_name
+    )
+
+    if looks_legacy:
+        legacy_config = infer_legacy_config_from_direct_urls(
+            loader_url=loader_url,
+            framework_url=framework_url,
+            data_url=data_url,
+            wasm_url=wasm_url,
+            existing_legacy_config=existing_legacy_config,
+        )
+        return (
+            "legacy_json",
+            build_legacy_asset_candidate_urls_from_direct(
+                loader_url=loader_url,
+                framework_url=framework_url,
+                data_url=data_url,
+                wasm_url=wasm_url,
+            ),
+            legacy_config,
+        )
+
+    return (
+        "modern",
+        build_asset_candidate_urls_from_direct(
+            loader_url=loader_url,
+            framework_url=framework_url,
+            data_url=data_url,
+            wasm_url=wasm_url,
+        ),
+        {},
+    )
+
+
 def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
     raw_text = framework_path.read_text(encoding="utf-8", errors="ignore")
 
@@ -2535,6 +2636,14 @@ def generate_index_html(
       let launchPanelHideTimer = 0;
       let legacyConfigUrl = "";
       let sourceUrlSpoofApplied = false;
+      const requestedLaunchMode = (function () {{
+        try {{
+          return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
+        }} catch (err) {{
+          return "";
+        }}
+      }})();
+      const forceFullscreenScrollLock = requestedLaunchMode === "fullscreen";
       const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
       const fullscreenScrollKeys = new Set([
         " ",
@@ -2629,6 +2738,10 @@ def generate_index_html(
         );
       }}
 
+      function shouldLockFullscreenScroll() {{
+        return forceFullscreenScrollLock || isFullscreenActive();
+      }}
+
       function setFullscreenScrollLock(isLocked) {{
         const root = document.documentElement;
         const body = document.body;
@@ -2652,7 +2765,7 @@ def generate_index_html(
       }}
 
       function syncFullscreenScrollLock() {{
-        setFullscreenScrollLock(isFullscreenActive());
+        setFullscreenScrollLock(shouldLockFullscreenScroll());
       }}
 
       function isFullscreenScrollKey(event) {{
@@ -2662,7 +2775,7 @@ def generate_index_html(
       }}
 
       function preventFullscreenScroll(event) {{
-        if (!isFullscreenActive()) {{
+        if (!shouldLockFullscreenScroll()) {{
           return;
         }}
         if (event.type === "keydown" && !isFullscreenScrollKey(event)) {{
@@ -2675,13 +2788,20 @@ def generate_index_html(
 
       function enforceFullscreenScrollTop() {{
         if (
-          !isFullscreenActive() ||
+          !shouldLockFullscreenScroll() ||
           (window.scrollX === 0 && window.scrollY === 0) ||
           typeof window.scrollTo !== "function"
         ) {{
           return;
         }}
         window.scrollTo(0, 0);
+      }}
+
+      function buildLaunchUrl(mode) {{
+        const targetUrl = new URL(LOCAL_PAGE_URL);
+        targetUrl.searchParams.set("autostart", "1");
+        targetUrl.searchParams.set("launchMode", mode);
+        return targetUrl.toString();
       }}
 
       function buildLocalUrl(relativePath) {{
@@ -2851,12 +2971,17 @@ def generate_index_html(
       }}
 
       function startFullscreenGame() {{
-        requestFullscreenMode().then(function (enabled) {{
-          if (!enabled && !started) {{
-            setStatus("Fullscreen unavailable here. Launching here.");
-          }}
-        }});
-        startGame();
+        const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
+        if (!popup || popup.closed) {{
+          setStatus("New tab blocked. Allow popups or use launch here.");
+          return;
+        }}
+        try {{
+          popup.opener = null;
+        }} catch (err) {{
+          // Ignore opener hardening failures.
+        }}
+        setStatus("Opened fullscreen in a new tab");
       }}
 
       function ensureStorageAccess() {{
@@ -3047,6 +3172,7 @@ def generate_index_html(
       window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);
       window.addEventListener("mozfullscreenchange", syncFullscreenScrollLock);
       window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
+      syncFullscreenScrollLock();
 
       launchFullscreenBtn.addEventListener("click", startFullscreenGame);
       launchFrameBtn.addEventListener("click", startGame);
@@ -3344,12 +3470,6 @@ def main(argv: Sequence[str]) -> int:
         data_url = normalize_url(args.data_url)
         wasm_url = normalize_url(args.wasm_url)
         root_url = derive_game_root_url(loader_url)
-        candidates = build_asset_candidate_urls_from_direct(
-            loader_url=loader_url,
-            framework_url=framework_url,
-            data_url=data_url,
-            wasm_url=wasm_url,
-        )
         log("Mode: direct asset URLs")
         log(f"Loader URL: {loader_url}")
     else:
@@ -3376,6 +3496,16 @@ def main(argv: Sequence[str]) -> int:
     output_dir = Path(output_name).resolve()
     build_dir = output_dir / "Build"
     progress_file = output_dir / ".standalone-progress.json"
+
+    if direct_mode:
+        build_kind, candidates, legacy_config = resolve_direct_build(
+            loader_url=loader_url,
+            framework_url=framework_url,
+            data_url=data_url,
+            wasm_url=wasm_url,
+            progress_file=progress_file,
+        )
+        log(f"Detected build kind: {build_kind}")
 
     if output_dir.exists():
         if args.overwrite:
