@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import base64
 import html
+import http.client
 import json
 import re
 import shutil
@@ -126,8 +127,10 @@ def normalize_url(url: str) -> str:
     if parsed.scheme not in {"http", "https"}:
         raise FetchError(f"Unsupported URL scheme: {parsed.scheme}")
     path = urllib.parse.quote(urllib.parse.unquote(parsed.path), safe="/:@%+")
+    query = urllib.parse.quote(urllib.parse.unquote(parsed.query), safe="=&:@%+/,;[]-_.~")
+    fragment = urllib.parse.quote(urllib.parse.unquote(parsed.fragment), safe="=&:@%+/,;[]-_.~")
     return urllib.parse.urlunparse(
-        (parsed.scheme, parsed.netloc, path, parsed.params, parsed.query, parsed.fragment)
+        (parsed.scheme, parsed.netloc, path, parsed.params, query, fragment)
     )
 
 
@@ -147,19 +150,58 @@ def derive_game_root_url(input_url: str) -> str:
     return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, root_path, "", "", ""))
 
 
-def fetch_url(url: str, timeout: int = 30) -> tuple[str, bytes, str, str]:
-    request = urllib.request.Request(url, headers=REQUEST_HEADERS)
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            resolved_url = response.geturl()
-            body = response.read()
-            content_type = response.headers.get_content_type() or ""
-            content_encoding = (response.headers.get("Content-Encoding") or "").lower()
-            return resolved_url, body, content_type, content_encoding
-    except urllib.error.HTTPError as exc:
-        raise FetchError(f"{url} -> HTTP {exc.code}") from exc
-    except urllib.error.URLError as exc:
-        raise FetchError(f"{url} -> {exc.reason}") from exc
+def fetch_url(
+    url: str,
+    timeout: int = 30,
+    referer_url: str = "",
+) -> tuple[str, bytes, str, str]:
+    parsed = urllib.parse.urlparse(url)
+    fallback_referer = (
+        urllib.parse.urlunparse((parsed.scheme, parsed.netloc, "/", "", "", ""))
+        if parsed.scheme in {"http", "https"} and parsed.netloc
+        else ""
+    )
+    referer_candidates: list[str] = []
+    if referer_url:
+        referer_candidates.append(referer_url)
+    else:
+        referer_candidates.append("")
+        if fallback_referer:
+            referer_candidates.append(fallback_referer)
+
+    last_error: Exception | None = None
+    for referer_index, request_referer in enumerate(referer_candidates):
+        headers = dict(REQUEST_HEADERS)
+        if request_referer:
+            headers["Referer"] = request_referer
+        request = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                resolved_url = response.geturl()
+                body = response.read()
+                content_type = response.headers.get_content_type() or ""
+                content_encoding = (response.headers.get("Content-Encoding") or "").lower()
+                return resolved_url, body, content_type, content_encoding
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+            if exc.code == 403 and not referer_url and referer_index == 0 and fallback_referer:
+                continue
+            raise FetchError(f"{url} -> HTTP {exc.code}") from exc
+        except http.client.InvalidURL as exc:
+            last_error = exc
+            raise FetchError(f"{url} -> {exc}") from exc
+        except ValueError as exc:
+            last_error = exc
+            raise FetchError(f"{url} -> {exc}") from exc
+        except urllib.error.URLError as exc:
+            last_error = exc
+            raise FetchError(f"{url} -> {exc.reason}") from exc
+
+    if isinstance(last_error, urllib.error.HTTPError):
+        raise FetchError(f"{url} -> HTTP {last_error.code}") from last_error
+    if isinstance(last_error, urllib.error.URLError):
+        raise FetchError(f"{url} -> {last_error.reason}") from last_error
+    raise FetchError(f"{url} -> request failed")
 
 
 def looks_like_html(raw: bytes) -> bool:
@@ -234,10 +276,16 @@ def is_ignored_embedded_url(url: str) -> bool:
         "fonts.gstatic.com",
         "googletagmanager.com",
         "google-analytics.com",
+        "facebook.com/sharer",
         "gstatic.com/",
+        "linkedin.com/share",
         "apis.google.com/js/api.js",
         "lh3.googleusercontent.com",
+        "reddit.com/submit",
         "sites.google.com/u/",
+        "twitter.com/intent",
+        "whatsapp.com/send",
+        "x.com/intent",
     )
     ignored_suffixes = (
         ".css",
@@ -364,21 +412,21 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
             return None
 
         for child_url in extract_embedded_candidate_urls(index_html, index_url):
-            result = inspect_url(child_url, depth + 1)
+            result = inspect_url(child_url, depth + 1, referer_url=index_url)
             if result:
                 return result
 
         errors.append(f"{source} -> fetched but no supported build reference found")
         return None
 
-    def inspect_url(candidate: str, depth: int) -> DetectedEntry | None:
+    def inspect_url(candidate: str, depth: int, referer_url: str = "") -> DetectedEntry | None:
         normalized_candidate = normalize_url(candidate)
         if normalized_candidate in visited_urls:
             return None
         visited_urls.add(normalized_candidate)
 
         try:
-            resolved, raw, _, _ = fetch_url(normalized_candidate)
+            resolved, raw, _, _ = fetch_url(normalized_candidate, referer_url=referer_url)
         except FetchError as exc:
             errors.append(str(exc))
             return None
@@ -401,7 +449,7 @@ def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str
         r"""<iframe[^>]+src=["']([^"']+)["']""",
         r"""data-url=["']([^"']+)["']""",
         r"""(?:const|let|var)\s+[A-Za-z_$][A-Za-z0-9_$]*URL\s*=\s*["'](https?://[^"']+)["']""",
-        r"""(?:src|href)\s*[:=]\s*["'](https?://[^"']+)["']""",
+        r"""(?:src|href)\s*:\s*["'](https?://[^"']+)["']""",
         r"""window\.open\(\s*["'](https?://[^"']+)["']""",
         r"""location(?:\.href)?\s*=\s*["'](https?://[^"']+)["']""",
     )
@@ -422,9 +470,18 @@ def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str
             urls.append(absolute)
             seen.add(absolute)
 
+    parsed_index = urllib.parse.urlparse(index_url)
+
     def url_priority(url: str) -> tuple[int, str]:
         lower = url.lower()
+        parsed_url = urllib.parse.urlparse(url)
         score = 0
+        if (
+            parsed_url.scheme == parsed_index.scheme
+            and parsed_url.netloc == parsed_index.netloc
+            and "/games/" in parsed_url.path.lower()
+        ):
+            score += 140
         if "script.google.com/macros" in lower:
             score += 100
         if "googleusercontent.com/embeds/" in lower:
@@ -815,8 +872,8 @@ def extract_legacy_loader_url(index_html: str, index_url: str, config_url: str) 
     return normalize_url(urllib.parse.urljoin(config_base_url, "UnityLoader.js"))
 
 
-def fetch_json_payload(url: str) -> dict[str, Any]:
-    resolved_url, raw, _, _ = fetch_url(url)
+def fetch_json_payload(url: str, referer_url: str = "") -> dict[str, Any]:
+    resolved_url, raw, _, _ = fetch_url(url, referer_url=referer_url)
     try:
         payload = json.loads(decode_html_body(raw))
     except json.JSONDecodeError as exc:
@@ -883,12 +940,16 @@ def with_filename(base_url: str, filename: str) -> str:
     return urllib.parse.urljoin(base_url, encoded)
 
 
-def download_first_valid(urls: Sequence[str], destination: Path) -> tuple[str, str, str]:
+def download_first_valid(
+    urls: Sequence[str],
+    destination: Path,
+    referer_url: str = "",
+) -> tuple[str, str, str]:
     errors: list[str] = []
 
     for url in urls:
         try:
-            resolved, raw, _, content_encoding = fetch_url(url)
+            resolved, raw, _, content_encoding = fetch_url(url, referer_url=referer_url)
         except FetchError as exc:
             errors.append(str(exc))
             continue
@@ -985,7 +1046,7 @@ def build_asset_candidate_urls(loader_url: str, index_html: str, index_url: str)
 def detect_entry_build(index_url: str, index_html: str) -> DetectedBuild:
     if "UnityLoader.instantiate" in index_html:
         config_url = extract_legacy_config_url(index_html, index_url)
-        legacy_config = fetch_json_payload(config_url)
+        legacy_config = fetch_json_payload(config_url, referer_url=index_url)
         loader_url = extract_legacy_loader_url(index_html, index_url, config_url)
         candidates = build_legacy_asset_candidate_urls(loader_url, legacy_config, config_url)
         return DetectedBuild(
@@ -3594,6 +3655,7 @@ def download_assets(
     output_build_dir: Path,
     candidates: dict[str, list[str]],
     progress_file: Path,
+    referer_url: str = "",
 ) -> DownloadedAssets:
     progress = load_json_file(progress_file)
     if progress.get("candidate_urls") != candidates:
@@ -3620,7 +3682,11 @@ def download_assets(
 
         possible_names = [basename_from_url(url) for url in candidates[kind]]
         destination = output_build_dir / possible_names[0]
-        resolved_url, _, compression_kind = download_first_valid(candidates[kind], destination)
+        resolved_url, _, compression_kind = download_first_valid(
+            candidates[kind],
+            destination,
+            referer_url=referer_url,
+        )
 
         resolved_name = basename_from_url(resolved_url)
         if kind != "loader":
@@ -3675,6 +3741,7 @@ def download_legacy_assets(
     candidates: dict[str, list[str]],
     legacy_config: dict[str, Any],
     progress_file: Path,
+    referer_url: str = "",
 ) -> DownloadedAssets:
     progress = load_json_file(progress_file)
     expected_signature = {
@@ -3714,7 +3781,11 @@ def download_legacy_assets(
 
         possible_names = [basename_from_url(url) for url in candidates[kind]]
         destination = output_build_dir / possible_names[0]
-        resolved_url, _, compression_kind = download_first_valid(candidates[kind], destination)
+        resolved_url, _, compression_kind = download_first_valid(
+            candidates[kind],
+            destination,
+            referer_url=referer_url,
+        )
 
         resolved_name = basename_from_url(resolved_url)
         if kind != "loader":
@@ -3878,7 +3949,7 @@ def decode_data_url_bytes(data_url: str) -> bytes:
     return urllib.parse.unquote_to_bytes(payload)
 
 
-def download_raw_asset(source_url: str, destination: Path) -> str:
+def download_raw_asset(source_url: str, destination: Path, referer_url: str = "") -> str:
     if source_url.startswith("data:"):
         raw = decode_data_url_bytes(source_url)
         if not raw:
@@ -3886,7 +3957,7 @@ def download_raw_asset(source_url: str, destination: Path) -> str:
         destination.write_bytes(raw)
         return "embedded-data-url"
 
-    resolved, raw, _, _ = fetch_url(source_url)
+    resolved, raw, _, _ = fetch_url(source_url, referer_url=referer_url)
     if not raw:
         raise FetchError(f"{source_url} -> empty response")
     if looks_like_html(raw):
@@ -4095,6 +4166,7 @@ def export_eagler_entry(
             resolved_script_url = download_raw_asset(
                 script_file["url"],
                 output_dir / script_file["name"],
+                referer_url=detected_entry.index_url,
             )
         except FetchError:
             if script_index == 0:
@@ -4117,6 +4189,7 @@ def export_eagler_entry(
     assets_resolved_url = download_raw_asset(
         detected_entry.assets_url,
         output_dir / assets_name,
+        referer_url=detected_entry.index_url,
     )
 
     index_content = generate_eagler_index_html(
@@ -4304,9 +4377,20 @@ def main(argv: Sequence[str]) -> int:
     save_json_file(progress_file, progress_payload)
 
     if build_kind == "legacy_json":
-        assets = download_legacy_assets(build_dir, candidates, legacy_config, progress_file)
+        assets = download_legacy_assets(
+            build_dir,
+            candidates,
+            legacy_config,
+            progress_file,
+            referer_url=detected_build.index_url if detected_build is not None else "",
+        )
     else:
-        assets = download_assets(build_dir, candidates, progress_file)
+        assets = download_assets(
+            build_dir,
+            candidates,
+            progress_file,
+            referer_url=detected_build.index_url if detected_build is not None else "",
+        )
 
     analysis_target = (
         build_dir / assets.framework_name

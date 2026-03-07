@@ -336,6 +336,111 @@
     "End",
   ]);
 
+  function ensureStorageAccess(targetDocument) {
+    const storageDocument = targetDocument || document;
+    const hasApi =
+      storageDocument &&
+      typeof storageDocument.hasStorageAccess === "function" &&
+      typeof storageDocument.requestStorageAccess === "function";
+    if (!hasApi) {
+      return Promise.resolve();
+    }
+    return Promise.resolve(storageDocument.hasStorageAccess())
+      .then(function (hasAccess) {
+        if (hasAccess) {
+          return;
+        }
+        return storageDocument.requestStorageAccess().catch(function () {
+          // Continue without blocking launch.
+        });
+      })
+      .catch(function () {
+        // Continue without blocking launch.
+      });
+  }
+
+  function getSameOriginFrameContext(frame) {
+    try {
+      const frameWindow = frame.contentWindow;
+      const frameDocument = frameWindow && frameWindow.document;
+      if (!frameWindow || !frameDocument) {
+        return null;
+      }
+      frameDocument.location.href;
+      return {
+        frameWindow: frameWindow,
+        frameDocument: frameDocument,
+      };
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function suppressEmbeddedLaunchPrompts(frameWindow, frameDocument) {
+    const skipCountdownButton = frameDocument.getElementById("skipCountdown");
+    const mobileLaunchButton = frameDocument.querySelector(
+      "._eaglercraftX_mobile_launch_client"
+    );
+    const handledByButton = Boolean(skipCountdownButton || mobileLaunchButton);
+    if (skipCountdownButton && typeof skipCountdownButton.click === "function") {
+      skipCountdownButton.click();
+    }
+    if (mobileLaunchButton && typeof mobileLaunchButton.click === "function") {
+      mobileLaunchButton.click();
+    }
+    if (handledByButton || typeof frameWindow.main !== "function") {
+      return;
+    }
+    const countdownScreen = frameDocument.getElementById("launch_countdown_screen");
+    const mobilePrompt = frameDocument.querySelector("._eaglercraftX_mobile_press_any_key");
+    if (!countdownScreen && !mobilePrompt) {
+      return;
+    }
+    if (countdownScreen && countdownScreen.parentNode) {
+      countdownScreen.parentNode.removeChild(countdownScreen);
+    }
+    if (mobilePrompt && mobilePrompt.parentNode) {
+      mobilePrompt.parentNode.removeChild(mobilePrompt);
+    }
+    try {
+      frameWindow.main();
+    } catch (err) {
+      console.warn("Embedded launch prompt bypass failed:", err);
+    }
+  }
+
+  function monitorEmbeddedRuntime(frame) {
+    const startedAt = Date.now();
+    const timer = window.setInterval(function () {
+      if (!frame.isConnected) {
+        window.clearInterval(timer);
+        return;
+      }
+      const context = getSameOriginFrameContext(frame);
+      if (!context) {
+        window.clearInterval(timer);
+        return;
+      }
+      suppressEmbeddedLaunchPrompts(context.frameWindow, context.frameDocument);
+      const countdownScreen = context.frameDocument.getElementById("launch_countdown_screen");
+      const mobilePrompt = context.frameDocument.querySelector(
+        "._eaglercraftX_mobile_press_any_key"
+      );
+      if ((!countdownScreen && !mobilePrompt) || Date.now() - startedAt >= 16000) {
+        window.clearInterval(timer);
+      }
+    }, 50);
+  }
+
+  function prepareEmbeddedFrame(frame) {
+    const context = getSameOriginFrameContext(frame);
+    if (!context) {
+      return Promise.resolve();
+    }
+    monitorEmbeddedRuntime(frame);
+    return ensureStorageAccess(context.frameDocument);
+  }
+
   function setStatus(text) {
     status.textContent = text;
   }
@@ -605,7 +710,7 @@
       frame.src = resolvedUrl;
       frame.title = embedTitle;
       frame.loading = "eager";
-      frame.referrerPolicy = "no-referrer";
+      frame.referrerPolicy = "strict-origin-when-cross-origin";
       frame.setAttribute("allowfullscreen", "");
       frame.setAttribute(
         "allow",
@@ -621,7 +726,9 @@
       }
 
       frame.addEventListener("load", function () {
-        settleWith(resolve);
+        prepareEmbeddedFrame(frame).finally(function () {
+          settleWith(resolve);
+        });
       });
       frame.addEventListener("error", function () {
         settleWith(reject, new Error("Embedded game page failed to load"));
@@ -660,6 +767,9 @@
     startFakeProgress();
 
     Promise.resolve()
+      .then(function () {
+        return ensureStorageAccess(document);
+      })
       .then(function () {
         if (startMain) {
           return startMain();

@@ -2,16 +2,16 @@
   "build_kind": "legacy_json",
   "candidate_urls": {
     "loader": [
-      "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/UnityLoader.js"
+      "https://gamecomets.com/games/geometry-dash-lite/Build/UnityLoader.js"
     ],
     "dataUrl": [
-      "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.data.unityweb"
+      "https://gamecomets.com/games/geometry-dash-lite/Build/GeometryDashLite.data.unityweb"
     ],
     "wasmCodeUrl": [
-      "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.code.unityweb"
+      "https://gamecomets.com/games/geometry-dash-lite/Build/GeometryDashLite.wasm.code.unityweb"
     ],
     "wasmFrameworkUrl": [
-      "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.framework.unityweb"
+      "https://gamecomets.com/games/geometry-dash-lite/Build/GeometryDashLite.wasm.framework.unityweb"
     ]
   },
   "legacy_config": {
@@ -40,22 +40,22 @@
   "assets": {
     "loader": {
       "filename": "UnityLoader.js",
-      "url": "https://rawcdn.githack.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/UnityLoader.js",
-      "size": 160031
+      "url": "https://gamecomets.com/games/geometry-dash-lite/Build/UnityLoader.js",
+      "size": 243228
     },
     "dataUrl": {
       "filename": "GeometryDashLite.data.unityweb",
-      "url": "https://raw.githubusercontent.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.data.unityweb",
+      "url": "https://gamecomets.com/games/geometry-dash-lite/Build/GeometryDashLite.data.unityweb",
       "size": 25106751
     },
     "wasmCodeUrl": {
       "filename": "GeometryDashLite.wasm.code.unityweb",
-      "url": "https://raw.githubusercontent.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.code.unityweb",
+      "url": "https://gamecomets.com/games/geometry-dash-lite/Build/GeometryDashLite.wasm.code.unityweb",
       "size": 5785630
     },
     "wasmFrameworkUrl": {
       "filename": "GeometryDashLite.wasm.framework.unityweb",
-      "url": "https://raw.githubusercontent.com/threekho/gdl/d0f49900e902b11c3e0c3656a9c267451ec0a7b6/Build/GeometryDashLite.wasm.framework.unityweb",
+      "url": "https://gamecomets.com/games/geometry-dash-lite/Build/GeometryDashLite.wasm.framework.unityweb",
       "size": 88060
     }
   },
@@ -75,7 +75,7 @@
     "used_compressed_assets": true,
     "build_kind": "legacy_json",
     "mode": "entry_auto",
-    "source_page_url": "https://script.google.com/macros/s/AKfycbydNb9Y8FIM3D0vcweKtYCYbjJcSXghedO6MN0aWbP5qIwamjjSkBDirvuMHR_6sc4/exec",
+    "source_page_url": "https://gamecomets.com/games/geometry-dash-lite/",
     "source_url_spoof_enabled": false,
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json",
     "legacy_asset_names": {

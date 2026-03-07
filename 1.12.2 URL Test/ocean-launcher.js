@@ -281,6 +281,12 @@
   const launchFrameBtn = document.getElementById("launchFrameBtn");
   const status = document.getElementById("status");
   const startMain = typeof window.main === "function" ? window.main.bind(window) : null;
+  const embedUrl =
+    typeof window.OCEAN_EMBED_URL === "string" ? window.OCEAN_EMBED_URL.trim() : "";
+  const embedTitle =
+    typeof window.OCEAN_EMBED_TITLE === "string" && window.OCEAN_EMBED_TITLE.trim()
+      ? window.OCEAN_EMBED_TITLE.trim()
+      : "Game";
 
   if (
     !gameFrame ||
@@ -330,6 +336,111 @@
     "End",
   ]);
 
+  function ensureStorageAccess(targetDocument) {
+    const storageDocument = targetDocument || document;
+    const hasApi =
+      storageDocument &&
+      typeof storageDocument.hasStorageAccess === "function" &&
+      typeof storageDocument.requestStorageAccess === "function";
+    if (!hasApi) {
+      return Promise.resolve();
+    }
+    return Promise.resolve(storageDocument.hasStorageAccess())
+      .then(function (hasAccess) {
+        if (hasAccess) {
+          return;
+        }
+        return storageDocument.requestStorageAccess().catch(function () {
+          // Continue without blocking launch.
+        });
+      })
+      .catch(function () {
+        // Continue without blocking launch.
+      });
+  }
+
+  function getSameOriginFrameContext(frame) {
+    try {
+      const frameWindow = frame.contentWindow;
+      const frameDocument = frameWindow && frameWindow.document;
+      if (!frameWindow || !frameDocument) {
+        return null;
+      }
+      frameDocument.location.href;
+      return {
+        frameWindow: frameWindow,
+        frameDocument: frameDocument,
+      };
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function suppressEmbeddedLaunchPrompts(frameWindow, frameDocument) {
+    const skipCountdownButton = frameDocument.getElementById("skipCountdown");
+    const mobileLaunchButton = frameDocument.querySelector(
+      "._eaglercraftX_mobile_launch_client"
+    );
+    const handledByButton = Boolean(skipCountdownButton || mobileLaunchButton);
+    if (skipCountdownButton && typeof skipCountdownButton.click === "function") {
+      skipCountdownButton.click();
+    }
+    if (mobileLaunchButton && typeof mobileLaunchButton.click === "function") {
+      mobileLaunchButton.click();
+    }
+    if (handledByButton || typeof frameWindow.main !== "function") {
+      return;
+    }
+    const countdownScreen = frameDocument.getElementById("launch_countdown_screen");
+    const mobilePrompt = frameDocument.querySelector("._eaglercraftX_mobile_press_any_key");
+    if (!countdownScreen && !mobilePrompt) {
+      return;
+    }
+    if (countdownScreen && countdownScreen.parentNode) {
+      countdownScreen.parentNode.removeChild(countdownScreen);
+    }
+    if (mobilePrompt && mobilePrompt.parentNode) {
+      mobilePrompt.parentNode.removeChild(mobilePrompt);
+    }
+    try {
+      frameWindow.main();
+    } catch (err) {
+      console.warn("Embedded launch prompt bypass failed:", err);
+    }
+  }
+
+  function monitorEmbeddedRuntime(frame) {
+    const startedAt = Date.now();
+    const timer = window.setInterval(function () {
+      if (!frame.isConnected) {
+        window.clearInterval(timer);
+        return;
+      }
+      const context = getSameOriginFrameContext(frame);
+      if (!context) {
+        window.clearInterval(timer);
+        return;
+      }
+      suppressEmbeddedLaunchPrompts(context.frameWindow, context.frameDocument);
+      const countdownScreen = context.frameDocument.getElementById("launch_countdown_screen");
+      const mobilePrompt = context.frameDocument.querySelector(
+        "._eaglercraftX_mobile_press_any_key"
+      );
+      if ((!countdownScreen && !mobilePrompt) || Date.now() - startedAt >= 16000) {
+        window.clearInterval(timer);
+      }
+    }, 50);
+  }
+
+  function prepareEmbeddedFrame(frame) {
+    const context = getSameOriginFrameContext(frame);
+    if (!context) {
+      return Promise.resolve();
+    }
+    monitorEmbeddedRuntime(frame);
+    return ensureStorageAccess(context.frameDocument);
+  }
+
   function setStatus(text) {
     status.textContent = text;
   }
@@ -369,6 +480,12 @@
     }
     window.clearInterval(handoffPollTimer);
     handoffPollTimer = 0;
+  }
+
+  function clearGameFrame() {
+    while (gameFrame.firstChild) {
+      gameFrame.removeChild(gameFrame.firstChild);
+    }
   }
 
   function isFullscreenActive() {
@@ -581,11 +698,55 @@
     setStatus("Opened fullscreen in a new tab");
   }
 
+  function startEmbeddedGame() {
+    if (!embedUrl) {
+      return Promise.reject(new Error("Embedded game URL is missing"));
+    }
+    return new Promise(function (resolve, reject) {
+      let settled = false;
+      const frame = document.createElement("iframe");
+      const resolvedUrl = new URL(embedUrl, window.location.href).toString();
+      frame.className = "ocean-game-embed";
+      frame.src = resolvedUrl;
+      frame.title = embedTitle;
+      frame.loading = "eager";
+      frame.referrerPolicy = "strict-origin-when-cross-origin";
+      frame.setAttribute("allowfullscreen", "");
+      frame.setAttribute(
+        "allow",
+        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write"
+      );
+
+      function settleWith(fn, value) {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        fn(value);
+      }
+
+      frame.addEventListener("load", function () {
+        prepareEmbeddedFrame(frame).finally(function () {
+          settleWith(resolve);
+        });
+      });
+      frame.addEventListener("error", function () {
+        settleWith(reject, new Error("Embedded game page failed to load"));
+      });
+
+      clearGameFrame();
+      gameFrame.appendChild(frame);
+      window.setTimeout(function () {
+        settleWith(resolve);
+      }, 12000);
+    });
+  }
+
   function startGame() {
     if (started) {
       return;
     }
-    if (!startMain) {
+    if (!startMain && !embedUrl) {
       setStatus("Game bootstrap is missing");
       return;
     }
@@ -607,7 +768,13 @@
 
     Promise.resolve()
       .then(function () {
-        return startMain();
+        return ensureStorageAccess(document);
+      })
+      .then(function () {
+        if (startMain) {
+          return startMain();
+        }
+        return startEmbeddedGame();
       })
       .then(function () {
         waitForGameHandoff();
