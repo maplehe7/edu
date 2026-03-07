@@ -903,17 +903,25 @@ def generate_index_html(
     #loadingCenter {{
       position: relative;
       z-index: 5;
-      width: min(92vw, 520px);
+      width: min(92vw, 560px);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 16px;
-      padding: 0;
+      padding: 0 22px 18px;
+      overflow: visible;
       text-align: center;
       text-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
     }}
+    #loadingTitleGroup {{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }}
     #loadingTitle {{
-      margin: 0 0 8px;
+      margin: 0;
       padding-left: 0.28em;
       font-size: clamp(3rem, 10vw, 6.4rem);
       font-weight: 900;
@@ -926,28 +934,33 @@ def generate_index_html(
       color: transparent;
       filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
     }}
+    #loadingSubtitle {{
+      margin: 0;
+      padding-left: 0.72em;
+      color: rgba(225, 245, 255, 0.78);
+      font-size: clamp(0.72rem, 1.8vw, 0.98rem);
+      font-weight: 700;
+      letter-spacing: 0.72em;
+      line-height: 1;
+    }}
     #launchPanel {{
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
       width: 100%;
-      max-height: 320px;
-      overflow: hidden;
+      padding: 14px 18px 18px;
+      margin: -14px -18px -18px;
+      overflow: visible;
       transition:
         opacity 240ms ease,
-        transform 240ms ease,
-        max-height 240ms ease,
-        margin 240ms ease;
+        transform 240ms ease;
     }}
     #launchPanel.is-hidden {{
       opacity: 0;
       transform: translateY(10px);
-      max-height: 0;
-      margin: 0;
       pointer-events: none;
     }}
-    #playBtn,
     .launchOption {{
       width: 100%;
       padding: 15px 22px;
@@ -969,7 +982,6 @@ def generate_index_html(
         background 180ms ease,
         border-color 180ms ease;
     }}
-    #playBtn:hover,
     .launchOption:hover {{
       transform: translateY(-1px);
       border-color: rgba(88, 200, 255, 0.62);
@@ -979,13 +991,10 @@ def generate_index_html(
         0 0 24px rgba(59, 130, 246, 0.22);
     }}
     #launchMenu {{
-      display: none;
+      display: flex;
       width: 100%;
       flex-direction: column;
       gap: 10px;
-    }}
-    #launchMenu.visible {{
-      display: flex;
     }}
     .launchOption {{
       font-size: 14px;
@@ -1041,9 +1050,9 @@ def generate_index_html(
     }}
     @media (max-width: 640px) {{
       #loadingCenter {{
-        width: min(94vw, 520px);
+        width: min(94vw, 560px);
+        padding: 0 16px 16px;
       }}
-      #playBtn,
       .launchOption {{
         font-size: 13px;
       }}
@@ -1081,9 +1090,11 @@ def generate_index_html(
         <div class="grain"></div>
       </div>
       <div id="loadingCenter">
-        <h1 id="loadingTitle">Ocean</h1>
+        <div id="loadingTitleGroup">
+          <h1 id="loadingTitle">Ocean</h1>
+          <div id="loadingSubtitle">games</div>
+        </div>
         <div id="launchPanel">
-          <button id="playBtn" type="button">Click To Play</button>
           <div id="launchMenu">
             <button id="launchFullscreenBtn" class="launchOption" type="button">Launch In Fullscreen (New Tab)</button>
             <button id="launchFrameBtn" class="launchOption" type="button">Launch In Frame</button>
@@ -1093,7 +1104,7 @@ def generate_index_html(
         <div id="progressTrack" aria-hidden="true">
           <div id="progressFill"></div>
         </div>
-        <div id="status">Click play to start</div>
+        <div id="status">Choose how you want to launch</div>
       </div>
     </div>
   </div>
@@ -1849,14 +1860,13 @@ def generate_index_html(
       const progressFill = document.getElementById("progressFill");
       const progressTrack = document.getElementById("progressTrack");
       const launchPanel = document.getElementById("launchPanel");
-      const playBtn = document.getElementById("playBtn");
-      const launchMenu = document.getElementById("launchMenu");
       const launchFullscreenBtn = document.getElementById("launchFullscreenBtn");
       const launchFrameBtn = document.getElementById("launchFrameBtn");
       const status = document.getElementById("status");
 
       let started = false;
       let loadingScreenDismissed = false;
+      let launchPanelHideTimer = 0;
 
       function setStatus(text) {{
         if (status) {{
@@ -1895,19 +1905,23 @@ def generate_index_html(
         }}, 880);
       }}
 
+      function clearLaunchPanelHideTimer() {{
+        if (!launchPanelHideTimer) {{
+          return;
+        }}
+        window.clearTimeout(launchPanelHideTimer);
+        launchPanelHideTimer = 0;
+      }}
+
       function resetLaunchState() {{
         started = false;
+        clearLaunchPanelHideTimer();
         if (loadingScreen) {{
           loadingScreen.classList.remove("is-loading");
         }}
         if (launchPanel) {{
+          launchPanel.style.display = "";
           launchPanel.classList.remove("is-hidden");
-        }}
-        if (playBtn) {{
-          playBtn.style.display = "";
-        }}
-        if (launchMenu) {{
-          launchMenu.classList.remove("visible");
         }}
         setProgressVisibility(false);
         setProgress(0);
@@ -1932,17 +1946,6 @@ def generate_index_html(
           }}
         }}
         return shouldAutoStart;
-      }}
-
-      function showLaunchOptions() {{
-        if (started) {{
-          return;
-        }}
-        playBtn.style.display = "none";
-        if (launchMenu) {{
-          launchMenu.classList.add("visible");
-        }}
-        setStatus("Choose how you want to launch");
       }}
 
       function openFullscreenTab() {{
@@ -1990,7 +1993,15 @@ def generate_index_html(
           loadingScreen.classList.add("is-loading");
         }}
         if (launchPanel) {{
+          clearLaunchPanelHideTimer();
+          launchPanel.style.display = "";
           launchPanel.classList.add("is-hidden");
+          launchPanelHideTimer = window.setTimeout(function () {{
+            if (launchPanel && launchPanel.classList.contains("is-hidden")) {{
+              launchPanel.style.display = "none";
+            }}
+            launchPanelHideTimer = 0;
+          }}, 240);
         }}
         setProgressVisibility(true);
         setProgress(0);
@@ -2042,9 +2053,8 @@ def generate_index_html(
 
       setProgressVisibility(false);
       setProgress(0);
-      setStatus("Click play to start");
+      setStatus("Choose how you want to launch");
 
-      playBtn.addEventListener("click", showLaunchOptions);
       launchFullscreenBtn.addEventListener("click", openFullscreenTab);
       launchFrameBtn.addEventListener("click", startGame);
 

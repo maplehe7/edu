@@ -60,5 +60,8 @@
     "used_compressed_assets": true,
     "mode": "entry_auto",
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\.standalone-progress.json"
-  }
+  },
+  "mode": "entry_auto",
+  "root_url": "https://www.crazygames.com/game/rooftop-run/",
+  "loader_url": "https://rooftop-run.game-files.crazygames.com/rooftop-run/1/RoofTop%20Web/Build/RoofTop%20Web.loader.js"
 }
