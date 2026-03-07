@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rooftop Run</title>
+  <style>
+    html, body { margin:0; height:100%; overflow:hidden; background:#000; }
+    #unity-container { position:fixed; inset:0; }
+    #unity-canvas { width:100%; height:100%; background:#000; display:block; }
+    #loading {
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      color:white;
+      font-family:Arial;
+    }
+  </style>
+</head>
+<body>
+
+<div id="unity-container">
+  <canvas id="unity-canvas"></canvas>
+  <div id="loading">Loading...</div>
+</div>
+<script>
+(function () {
+
+    console.log("Playgama Bridge STUB loaded (Standalone Mode)");
+
+    /* =========================
+       SAFE DEFAULT HELPERS
+    ========================= */
+
+    const TRUE = "true";
+    const FALSE = "false";
+    const EMPTY = "";
+
+    function noop() {}
+
+    /* =========================
+       ADS (DISABLED)
+    ========================= */
+
+    window.getInterstitialState = () => "0";
+    window.getRewardedPlacement = () => EMPTY;
+    window.getMinimumDelayBetweenInterstitial = () => "0";
+    window.showInterstitial = noop;
+    window.showRewarded = noop;
+    window.showBanner = noop;
+    window.hideBanner = noop;
+    window.setMinimumDelayBetweenInterstitial = noop;
+
+    window.getIsInterstitialSupported = () => FALSE;
+    window.getIsRewardedSupported = () => FALSE;
+    window.getIsBannerSupported = () => FALSE;
+
+    /* =========================
+       STORAGE (LOCALSTORAGE)
+    ========================= */
+
+    window.getIsStorageSupported = () => TRUE;
+    window.getIsStorageAvailable = () => TRUE;
+    window.getStorageDefaultType = () => "local";
+
+    window.setStorageData = (key, value) => {
+        localStorage.setItem(key, value);
+    };
+
+    window.getStorageData = (key) => {
+        return localStorage.getItem(key) || EMPTY;
+    };
+
+    window.deleteStorageData = (key) => {
+        localStorage.removeItem(key);
+    };
+
+    /* =========================
+       PLAYER
+    ========================= */
+
+    window.getPlayerId = () => "offline_player";
+    window.getPlayerName = () => "Player";
+    window.getPlayerPhotos = () => EMPTY;
+    window.getPlayerExtra = () => EMPTY;
+    window.getIsPlayerAuthorized = () => TRUE;
+    window.getIsPlayerAuthorizationSupported = () => FALSE;
+
+    window.authorizePlayer = noop;
+
+    /* =========================
+       PLATFORM
+    ========================= */
+
+    window.getPlatformId = () => "web";
+    window.getPlatformLanguage = () => navigator.language || "en";
+    window.getPlatformPayload = () => EMPTY;
+    window.getPlatformTld = () => "local";
+    window.getDeviceType = () => "desktop";
+    window.getVisibilityState = () => document.visibilityState;
+    window.getIsPlatformAudioEnabled = () => TRUE;
+    window.getIsExternalLinksAllowed = () => TRUE;
+
+    window.sendMessageToPlatform = (msg) => {
+        console.log("Platform message:", msg);
+    };
+
+    /* =========================
+       ACHIEVEMENTS (DISABLED)
+    ========================= */
+
+    window.getIsAchievementsSupported = () => FALSE;
+    window.getIsAchievementsNativePopupSupported = () => FALSE;
+    window.getIsGetAchievementsListSupported = () => FALSE;
+    window.achievementsGetList = noop;
+    window.achievementsUnlock = noop;
+    window.achievementsShowNativePopup = noop;
+
+    /* =========================
+       SOCIAL / COMMUNITY
+    ========================= */
+
+    window.getIsAddToFavoritesSupported = () => FALSE;
+    window.getIsAddToHomeScreenSupported = () => FALSE;
+    window.getIsInviteFriendsSupported = () => FALSE;
+    window.getIsJoinCommunitySupported = () => FALSE;
+    window.getIsShareSupported = () => FALSE;
+    window.getIsCreatePostSupported = () => FALSE;
+    window.getIsRateSupported = () => FALSE;
+
+    window.addToFavorites = noop;
+    window.addToHomeScreen = noop;
+    window.inviteFriends = noop;
+    window.joinCommunity = noop;
+    window.share = noop;
+    window.createPost = noop;
+    window.rate = noop;
+
+    /* =========================
+       LEADERBOARDS (DISABLED)
+    ========================= */
+
+    window.getLeaderboardsType = () => EMPTY;
+    window.leaderboardsGetEntries = noop;
+    window.leaderboardsSetScore = noop;
+    window.leaderboardsShowNativePopup = noop;
+
+    /* =========================
+       PAYMENTS (DISABLED)
+    ========================= */
+
+    window.getIsPaymentsSupported = () => FALSE;
+    window.paymentsGetCatalog = noop;
+    window.paymentsGetPurchases = noop;
+    window.paymentsPurchase = noop;
+    window.paymentsConsumePurchase = noop;
+
+    /* =========================
+       REMOTE CONFIG
+    ========================= */
+
+    window.getIsRemoteConfigSupported = () => FALSE;
+    window.remoteConfigGet = () => EMPTY;
+
+    /* =========================
+       MISC
+    ========================= */
+
+    window.checkAdBlock = () => FALSE;
+    window.getAllGames = noop;
+    window.getGameById = noop;
+    window.getServerTime = () => Date.now().toString();
+
+})();
+</script>
+<script>
+  const buildUrl = "Build";
+
+  const loaderUrl = buildUrl + "/Rooftop Run Web 1.0.3 b2.loader.js";
+
+  const config = {
+    dataUrl: buildUrl + "/Rooftop Run Web 1.0.3 b2.data",
+    frameworkUrl: buildUrl + "/Rooftop Run Web 1.0.3 b2.framework.js",
+    codeUrl: buildUrl + "/Rooftop Run Web 1.0.3 b2.wasm",
+    streamingAssetsUrl: buildUrl + "/StreamingAssets",
+    companyName: "Rooftop Run",
+    productName: "Rooftop Run",
+    productVersion: "1.0.3"
+  };
+
+  const canvas = document.querySelector("#unity-canvas");
+  const loading = document.querySelector("#loading");
+
+  const script = document.createElement("script");
+  script.src = loaderUrl;
+  script.onload = () => {
+    createUnityInstance(canvas, config, (progress) => {
+      loading.innerText = "Loading " + Math.floor(progress * 100) + "%";
+    }).then(() => {
+      loading.style.display = "none";
+    }).catch((message) => {
+      alert(message);
+    });
+  };
+
+  document.body.appendChild(script);
+</script>
+
+</body>
+</html>
