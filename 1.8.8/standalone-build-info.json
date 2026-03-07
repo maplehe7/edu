@@ -1,0 +1,16 @@
+{
+  "output_dir": "C:\\Users\\hello\\Downloads\\edu\\1.8.8",
+  "index_html": "C:\\Users\\hello\\Downloads\\edu\\1.8.8\\index.html",
+  "game_html": "C:\\Users\\hello\\Downloads\\edu\\1.8.8\\game.html",
+  "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\1.8.8\\required-functions.json",
+  "mode": "official_offline_html",
+  "entry_kind": "eaglercraft",
+  "title": "Eaglercraft 1.8.8",
+  "payload_source_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/eaglercraft.1.8.8.html",
+  "launcher_mode": "iframe_embed",
+  "support_files": [
+    "ocean-launcher.css",
+    "ocean-launcher.js"
+  ],
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\1.8.8\\.standalone-progress.json"
+}

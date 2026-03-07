@@ -281,6 +281,12 @@
   const launchFrameBtn = document.getElementById("launchFrameBtn");
   const status = document.getElementById("status");
   const startMain = typeof window.main === "function" ? window.main.bind(window) : null;
+  const embedUrl =
+    typeof window.OCEAN_EMBED_URL === "string" ? window.OCEAN_EMBED_URL.trim() : "";
+  const embedTitle =
+    typeof window.OCEAN_EMBED_TITLE === "string" && window.OCEAN_EMBED_TITLE.trim()
+      ? window.OCEAN_EMBED_TITLE.trim()
+      : "Game";
 
   if (
     !gameFrame ||
@@ -369,6 +375,12 @@
     }
     window.clearInterval(handoffPollTimer);
     handoffPollTimer = 0;
+  }
+
+  function clearGameFrame() {
+    while (gameFrame.firstChild) {
+      gameFrame.removeChild(gameFrame.firstChild);
+    }
   }
 
   function isFullscreenActive() {
@@ -581,11 +593,53 @@
     setStatus("Opened fullscreen in a new tab");
   }
 
+  function startEmbeddedGame() {
+    if (!embedUrl) {
+      return Promise.reject(new Error("Embedded game URL is missing"));
+    }
+    return new Promise(function (resolve, reject) {
+      let settled = false;
+      const frame = document.createElement("iframe");
+      const resolvedUrl = new URL(embedUrl, window.location.href).toString();
+      frame.className = "ocean-game-embed";
+      frame.src = resolvedUrl;
+      frame.title = embedTitle;
+      frame.loading = "eager";
+      frame.referrerPolicy = "no-referrer";
+      frame.setAttribute("allowfullscreen", "");
+      frame.setAttribute(
+        "allow",
+        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write"
+      );
+
+      function settleWith(fn, value) {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        fn(value);
+      }
+
+      frame.addEventListener("load", function () {
+        settleWith(resolve);
+      });
+      frame.addEventListener("error", function () {
+        settleWith(reject, new Error("Embedded game page failed to load"));
+      });
+
+      clearGameFrame();
+      gameFrame.appendChild(frame);
+      window.setTimeout(function () {
+        settleWith(resolve);
+      }, 12000);
+    });
+  }
+
   function startGame() {
     if (started) {
       return;
     }
-    if (!startMain) {
+    if (!startMain && !embedUrl) {
       setStatus("Game bootstrap is missing");
       return;
     }
@@ -607,7 +661,10 @@
 
     Promise.resolve()
       .then(function () {
-        return startMain();
+        if (startMain) {
+          return startMain();
+        }
+        return startEmbeddedGame();
       })
       .then(function () {
         waitForGameHandoff();

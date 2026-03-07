@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+<title>Eaglercraft 1.12.2</title>
+<script type="text/javascript">
+"use strict";
+(function () {
+  var token = "";
+  var queryToken = "";
+
+  function trimValue(value) {
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  function escapeHtmlAttribute(value) {
+    return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  }
+
+  try {
+    queryToken = trimValue(new URLSearchParams(window.location.search).get("jspi_origin_trial"));
+  } catch (err) {}
+
+  try {
+    token = trimValue(window.localStorage.getItem("ocean-jspi-origin-trial-token"));
+  } catch (err) {}
+
+  token = trimValue(window.OCEAN_JSPI_ORIGIN_TRIAL_TOKEN) || queryToken || token;
+  window.OCEAN_JSPI_ORIGIN_TRIAL_TOKEN = token;
+  window.__oceanJspiBootstrap = {
+    expectedOrigin: ""
+  };
+
+  if (token) {
+    document.write(
+      '<meta http-equiv="origin-trial" data-ocean-jspi="1" content="' +
+        escapeHtmlAttribute(token) +
+        '" />'
+    );
+  }
+})();
+</script>
+<script type="text/javascript" src="./ocean-jspi.js"></script>
+<link rel="stylesheet" href="./ocean-launcher.css" />
+</head>
+<body>
+<div id="game_frame"></div>
+<div id="loadingScreen">
+<div id="loadingBackdrop" aria-hidden="true">
+<canvas id="star-canvas"></canvas>
+<canvas id="wave-canvas"></canvas>
+<div class="nebula"></div>
+<div class="overlay"></div>
+<div class="grain"></div>
+</div>
+<div id="loadingCenter">
+<div id="loadingTitleGroup">
+<h1 id="loadingTitle">Ocean</h1>
+<div id="loadingSubtitle">LAUNCHER</div>
+</div>
+<div id="launchPanel">
+<div id="launchMenu">
+<button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
+<button id="launchFullscreenBtn" class="launchOption" type="button">LAUNCH FULLSCREEN</button>
+</div>
+<div id="playNote">Saves to local storage</div>
+</div>
+<div id="progressTrack" aria-hidden="true">
+<div id="progressFill"></div>
+</div>
+<div id="status">Choose how you want to launch</div>
+</div>
+</div>
+<script type="text/javascript" src="./classes.js"></script>
+<script type="text/javascript">
+"use strict";
+(function () {
+  var bootstrapScript = "\"use strict\";\n      window.addEventListener(\"load\", function() {\n        if(window.location.href.indexOf(\"file:\") === 0) {\n          alert(\"HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP\");\n        }else {\n          var relayId = Math.floor(Math.random() * 3);\n          window.eaglercraftXOpts = {\n            demoMode: false,\n            container: \"game_frame\",\n            assetsURI: \"https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/assets.epk\",\n            localesURI: \"lang/\",\n            worldsDB: \"worlds\",\n            servers: [\n                      { addr: \"wss://play.zelz.net\", name: \"ZelzNet\" },\n                { addr: \"wss://mc.arch.lol\", name: \"ArchMC\" },\n                { addr: \"wss://beta.arch.lol\", name: \"§r §r §r §r §4§lArchMC Beta\" },\n                { addr: \"wss://mc.lamplifesteal.xyz\", name: \"LampLifesteal\" },\n                      { addr: \"wss://mc.ricenetwork.xyz\", name: \"Rice Network X BallCraft\" },\n                { addr: \"wss://clever-teaching.com\", name: \"Clever Teaching\" },\n                { addr: \"wss://mc.asspixel.net\", name: \"Asspixel Network\" },\n                { addr: \"wss://vanillamc.tech\", name: \"VanillaMC\" },\n                                  { addr: \"wss://aeon-network.net\", name: \"Aeon Network\" }\n                ]\n          };\n          main();\n        }\n      });";
+  var originalWindowAddEventListener = window.addEventListener;
+  var originalDocumentAddEventListener = document.addEventListener;
+  var originalMain = window.main;
+
+  function createImmediateEvent(type, target) {
+    return {
+      type: type,
+      target: target,
+      currentTarget: target,
+      preventDefault: function () {},
+      stopPropagation: function () {}
+    };
+  }
+
+  function fireImmediately(type, listener, target) {
+    if (typeof listener === "function") {
+      listener.call(target, createImmediateEvent(type, target));
+      return;
+    }
+    if (listener && typeof listener.handleEvent === "function") {
+      listener.handleEvent(createImmediateEvent(type, target));
+    }
+  }
+
+  window.addEventListener = function (type, listener, options) {
+    if (type === "load") {
+      fireImmediately(type, listener, window);
+      return;
+    }
+    return originalWindowAddEventListener.call(this, type, listener, options);
+  };
+
+  if (typeof originalDocumentAddEventListener === "function") {
+    document.addEventListener = function (type, listener, options) {
+      if (type === "DOMContentLoaded" || type === "load") {
+        fireImmediately(type, listener, document);
+        return;
+      }
+      return originalDocumentAddEventListener.call(this, type, listener, options);
+    };
+  }
+
+  window.main = function () {};
+
+  try {
+    (0, eval)(bootstrapScript);
+  } finally {
+    window.addEventListener = originalWindowAddEventListener;
+    if (typeof originalDocumentAddEventListener === "function") {
+      document.addEventListener = originalDocumentAddEventListener;
+    }
+    window.main = originalMain;
+  }
+
+  if (typeof window.eaglercraftXOpts !== "object" || !window.eaglercraftXOpts) {
+    window.eaglercraftXOpts = {};
+  }
+
+  window.eaglercraftXOpts.container = "game_frame";
+  window.eaglercraftXOpts.assetsURI = "./assets.epk";
+  window.eaglercraftXOpts.localesURI = "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/lang/";
+})();
+</script>
+<script src="./ocean-launcher.js"></script>
+</body>
+</html>

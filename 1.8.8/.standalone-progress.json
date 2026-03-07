@@ -1,0 +1,46 @@
+{
+  "mode": "entry_auto",
+  "entry_kind": "eaglercraft",
+  "root_url": "https://sites.google.com/view/drive-u-7-home-10/1-8-8/",
+  "input_url": "https://sites.google.com/view/drive-u-7-home-10/1-8-8",
+  "resolved_entry_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/mcmc.xml",
+  "title": "EaglercraftX",
+  "classes_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/classes.min.js",
+  "script_urls": [
+    "https://cdn.jsdelivr.net/gh/mece188/feh@main/classes.min.js",
+    "https://cdn.jsdelivr.net/gh/mece188/feh@main/fix-webm-duration.js"
+  ],
+  "assets_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/assets.epk",
+  "locales_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/lang/",
+  "completed": true,
+  "summary": {
+    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\1.8.8",
+    "index_html": "C:\\Users\\hello\\Downloads\\edu\\1.8.8\\index.html",
+    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\1.8.8\\required-functions.json",
+    "mode": "entry_auto",
+    "entry_kind": "eaglercraft",
+    "title": "EaglercraftX",
+    "input_url": "https://sites.google.com/view/drive-u-7-home-10/1-8-8",
+    "root_url": "https://sites.google.com/view/drive-u-7-home-10/1-8-8/",
+    "resolved_entry_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/mcmc.xml",
+    "classes_file": "classes.min.js",
+    "classes_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/classes.min.js",
+    "entry_script_files": [
+      "classes.min.js"
+    ],
+    "entry_script_urls": [
+      "https://cdn.jsdelivr.net/gh/mece188/feh@main/classes.min.js"
+    ],
+    "skipped_entry_script_urls": [
+      "https://cdn.jsdelivr.net/gh/mece188/feh@main/fix-webm-duration.js"
+    ],
+    "assets_file": "assets.epk",
+    "assets_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/assets.epk",
+    "locales_url": "https://cdn.jsdelivr.net/gh/mece188/feh@main/lang/",
+    "support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\1.8.8\\.standalone-progress.json"
+  }
+}

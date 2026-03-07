@@ -1173,6 +1173,10 @@
         return loadingScreen.style.display !== "none";
       }
 
+      function isBackdropActive() {
+        return isVisible() && !loadingScreen.classList.contains("is-loading");
+      }
+
       function resizeCanvas(canvas) {
         const nextDpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
         canvas.width = Math.floor(window.innerWidth * nextDpr);
@@ -1304,11 +1308,11 @@
       }
 
       function scheduleShootingStar() {
-        if (reduceMotion || !isVisible()) {
+        if (reduceMotion || !isBackdropActive()) {
           return;
         }
         window.setTimeout(function () {
-          if (!shootingStar && isVisible()) {
+          if (!shootingStar && isBackdropActive()) {
             shootingStar = new ShootingStar();
           }
           scheduleShootingStar();
@@ -1316,7 +1320,7 @@
       }
 
       function animateStars() {
-        if (!isVisible()) {
+        if (!isBackdropActive()) {
           return;
         }
         starCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -1335,7 +1339,7 @@
       }
 
       function smoothMouse() {
-        if (!isVisible()) {
+        if (!isBackdropActive()) {
           return;
         }
         mouse.x += (mouse.tx - mouse.x) * 0.06;
@@ -1344,7 +1348,7 @@
       }
 
       function drawWaves() {
-        if (!isVisible()) {
+        if (!isBackdropActive()) {
           return;
         }
         const width = window.innerWidth;
@@ -1428,6 +1432,7 @@
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
       const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
+      const ROOT = document.documentElement;
 
       const canvas = document.getElementById("unity-canvas");
       const legacyContainer = document.getElementById("unity-legacy-container");
@@ -1443,7 +1448,10 @@
       let loadingScreenDismissed = false;
       let launchPanelHideTimer = 0;
       let legacyConfigUrl = "";
+      let loaderScriptPromise = null;
+      let buildWarmupStarted = false;
       let sourceUrlSpoofApplied = false;
+      const resourceHints = new Set();
       const requestedLaunchMode = (function () {
         try {
           return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
@@ -1490,6 +1498,13 @@
         }
       }
 
+      function setLoadState(value) {
+        if (!ROOT) {
+          return;
+        }
+        ROOT.setAttribute("data-ocean-unity-state", value);
+      }
+
       function setProgress(progress) {
         const numeric = Number(progress);
         const safeProgress = Number.isFinite(numeric) ? Math.min(1, Math.max(0, numeric)) : 0;
@@ -1522,6 +1537,7 @@
         if (loadingScreenDismissed || !loadingScreen) {
           return;
         }
+        setLoadState("ready");
         loadingScreenDismissed = true;
         loadingScreen.classList.add("is-exiting");
         window.setTimeout(function () {
@@ -1612,6 +1628,22 @@
         return targetUrl.toString();
       }
 
+      function isLocalFileLaunch() {
+        try {
+          return new URL(LOCAL_PAGE_URL).protocol === "file:";
+        } catch (err) {
+          return window.location.protocol === "file:";
+        }
+      }
+
+      function showHttpRequiredMessage() {
+        resetLaunchState();
+        setStatus("Use HTTP or HTTPS to run this build");
+        alert(
+          "This Unity build must be served over HTTP or HTTPS. Opening index.html directly from disk can stall at 0%. Use GitHub Pages or run a local web server."
+        );
+      }
+
       function buildLocalUrl(relativePath) {
         const cleanPath = String(relativePath || "").replace(/^\.?\//, "");
         return new URL(cleanPath, LOCAL_PAGE_URL).toString();
@@ -1620,6 +1652,135 @@
       function buildBuildAssetUrl(name) {
         const cleanName = String(name || "").replace(/^\.?\//, "");
         return new URL(cleanName, LOCAL_BUILD_ROOT_URL).toString();
+      }
+
+      function appendResourceHint(url, rel, asValue, fetchPriority) {
+        if (!url || !document.head) {
+          return;
+        }
+        const key = [rel || "", asValue || "", url].join("|");
+        if (resourceHints.has(key)) {
+          return;
+        }
+        resourceHints.add(key);
+        const link = document.createElement("link");
+        link.rel = rel;
+        link.href = url;
+        if (asValue) {
+          link.as = asValue;
+        }
+        if (asValue === "fetch") {
+          link.crossOrigin = "anonymous";
+        }
+        if (fetchPriority && "fetchPriority" in link) {
+          link.fetchPriority = fetchPriority;
+        }
+        document.head.appendChild(link);
+      }
+
+      function ensureLoaderScriptLoaded(loaderUrl) {
+        if (
+          BUILD_KIND === "modern" &&
+          typeof window.createUnityInstance === "function"
+        ) {
+          return Promise.resolve();
+        }
+        if (
+          BUILD_KIND === "legacy_json" &&
+          window.UnityLoader &&
+          typeof window.UnityLoader.instantiate === "function"
+        ) {
+          return Promise.resolve();
+        }
+        if (loaderScriptPromise) {
+          return loaderScriptPromise;
+        }
+
+        loaderScriptPromise = new Promise(function (resolve, reject) {
+          const existing = document.querySelector("script[data-ocean-unity-loader='1']");
+          if (existing) {
+            if (existing.getAttribute("data-ocean-loader-ready") === "1") {
+              resolve();
+              return;
+            }
+            if (existing.getAttribute("data-ocean-loader-error") === "1") {
+              loaderScriptPromise = null;
+              reject(new Error("Failed to load Unity loader script"));
+              return;
+            }
+            existing.addEventListener("load", resolve, { once: true });
+            existing.addEventListener("error", function () {
+              loaderScriptPromise = null;
+              reject(new Error("Failed to load Unity loader script"));
+            }, { once: true });
+            return;
+          }
+
+          const script = document.createElement("script");
+          script.src = loaderUrl;
+          script.async = true;
+          script.setAttribute("data-ocean-unity-loader", "1");
+          script.onload = function () {
+            script.setAttribute("data-ocean-loader-ready", "1");
+            resolve();
+          };
+          script.onerror = function () {
+            script.setAttribute("data-ocean-loader-error", "1");
+            loaderScriptPromise = null;
+            reject(new Error("Failed to load Unity loader script"));
+          };
+          document.body.appendChild(script);
+        });
+
+        return loaderScriptPromise;
+      }
+
+      function buildUnityCacheControl(url) {
+        const cleanUrl = String(url || "").split("?")[0].toLowerCase();
+        const fileName = cleanUrl.split("/").pop() || "";
+        const hashedFile =
+          /^[0-9a-f](8,)[._-]/i.test(fileName) ||
+          /(?:^|[._-])[0-9a-f](8,)(?:[._-]|$)/i.test(fileName);
+        if (
+          hashedFile ||
+          cleanUrl.includes("/streamingassets/") ||
+          cleanUrl.endsWith(".unityweb")
+        ) {
+          return "immutable";
+        }
+        return "must-revalidate";
+      }
+
+      function computeUnityDevicePixelRatio() {
+        const nativeDpr = Number(window.devicePixelRatio) || 1;
+        const cap = requestedLaunchMode === "fullscreen" ? 1.5 : 1.15;
+        return Math.max(1, Math.min(nativeDpr, cap));
+      }
+
+      function warmUnityBuild() {
+        if (buildWarmupStarted || isLocalFileLaunch()) {
+          return;
+        }
+        buildWarmupStarted = true;
+
+        const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
+        const assetUrls = [
+          { url: loaderUrl, as: "script", fetchPriority: "high" },
+          { url: buildBuildAssetUrl(FRAMEWORK_FILE), as: "fetch", fetchPriority: "high" },
+          { url: buildBuildAssetUrl(WASM_FILE), as: "fetch", fetchPriority: "high" },
+          { url: buildBuildAssetUrl(DATA_FILE), as: "fetch", fetchPriority: "high" },
+        ];
+
+        assetUrls.forEach(function (entry) {
+          appendResourceHint(entry.url, "preload", entry.as, entry.fetchPriority);
+          appendResourceHint(entry.url, "prefetch", entry.as, entry.fetchPriority);
+        });
+
+        if (!ENABLE_SOURCE_URL_SPOOF) {
+          ensureLoaderScriptLoaded(loaderUrl).catch(function () {
+            // Ignore loader warmup failures until launch time.
+          });
+        }
       }
 
       function defineGetter(target, key, getter) {
@@ -1721,6 +1882,7 @@
         releaseLegacyConfigUrl();
         setProgressVisibility(false);
         setProgress(0);
+        setLoadState("idle");
       }
 
       function requestFullscreenMode() {
@@ -1779,6 +1941,10 @@
       }
 
       function startFullscreenGame() {
+        if (isLocalFileLaunch()) {
+          showHttpRequiredMessage();
+          return;
+        }
         const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
         if (!popup || popup.closed) {
           setStatus("New tab blocked. Allow popups or use launch here.");
@@ -1841,13 +2007,20 @@
           companyName: PRODUCT_NAME,
           productName: PRODUCT_NAME,
           productVersion: "1.0.0",
+          cacheControl: buildUnityCacheControl,
+          devicePixelRatio: computeUnityDevicePixelRatio(),
+          matchWebGLToCanvasSize: true,
+          webglContextAttributes: {
+            preserveDrawingBuffer: false,
+            powerPreference: "high-performance",
+          },
         };
   config.decompressionFallback = true;
-        const script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = function () {
+        ensureLoaderScriptLoaded(loaderUrl)
+          .then(function () {
           if (typeof createUnityInstance !== "function") {
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Loader error: createUnityInstance is missing");
             return;
           }
@@ -1864,15 +2037,17 @@
           .catch(function (err) {
             console.error(err);
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Failed to load game");
             alert("Unity failed to load: " + err);
           });
-        };
-        script.onerror = function () {
+        })
+        .catch(function (err) {
+          console.error(err);
           resetLaunchState();
+          setLoadState("failed");
           setStatus("Failed to load Unity loader script");
-        };
-        document.body.appendChild(script);
+        });
       }
 
       function startLegacyGame(loaderUrl) {
@@ -1894,15 +2069,15 @@
           return;
         }
 
-        const script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = function () {
+        ensureLoaderScriptLoaded(loaderUrl)
+          .then(function () {
           const instantiate =
             window.UnityLoader && typeof window.UnityLoader.instantiate === "function"
               ? window.UnityLoader.instantiate
               : null;
           if (!instantiate) {
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Loader error: UnityLoader.instantiate is missing");
             return;
           }
@@ -1924,22 +2099,28 @@
           } catch (err) {
             console.error(err);
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Failed to load game");
             alert("Unity failed to load: " + err);
           }
-        };
-        script.onerror = function () {
+        })
+        .catch(function () {
           resetLaunchState();
+          setLoadState("failed");
           setStatus("Failed to load Unity loader script");
-        };
-        document.body.appendChild(script);
+        });
       }
 
       function startGame() {
+        if (isLocalFileLaunch()) {
+          showHttpRequiredMessage();
+          return;
+        }
         if (started) {
           return;
         }
         started = true;
+        setLoadState("loading");
         if (loadingScreen) {
           loadingScreen.classList.add("is-loading");
         }
@@ -1971,6 +2152,7 @@
 
       setProgressVisibility(false);
       setProgress(0);
+      setLoadState("idle");
       setStatus("Choose how you want to launch");
 
       window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
@@ -1985,6 +2167,12 @@
 
       launchFullscreenBtn.addEventListener("click", startFullscreenGame);
       launchFrameBtn.addEventListener("click", startGame);
+
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(warmUnityBuild, { timeout: 1200 });
+      } else {
+        window.setTimeout(warmUnityBuild, 240);
+      }
 
       if (consumeAutoStartFlag()) {
         startGame();

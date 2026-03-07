@@ -1,0 +1,22 @@
+{
+  "output_dir": "C:\\Users\\hello\\Downloads\\edu\\1.12.2 URL Test",
+  "index_html": "C:\\Users\\hello\\Downloads\\edu\\1.12.2 URL Test\\index.html",
+  "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\1.12.2 URL Test\\required-functions.json",
+  "mode": "entry_auto",
+  "entry_kind": "eaglercraft",
+  "title": "Eaglercraft 1.12.2",
+  "input_url": "https://sites.google.com/view/drive-u-7-home-10/1-12",
+  "root_url": "https://sites.google.com/view/drive-u-7-home-10/1-12/",
+  "resolved_entry_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/13.xml",
+  "classes_file": "classes.js",
+  "classes_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/classes.js",
+  "assets_file": "assets.epk",
+  "assets_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/assets.epk",
+  "locales_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/lang/",
+  "support_files": [
+    "ocean-launcher.css",
+    "ocean-launcher.js",
+    "ocean-jspi.js"
+  ],
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\1.12.2 URL Test\\.standalone-progress.json"
+}

@@ -1,0 +1,46 @@
+{
+  "mode": "entry_auto",
+  "entry_kind": "eaglercraft",
+  "root_url": "https://sites.google.com/view/drive-u-7-home-10/1-12/",
+  "input_url": "https://sites.google.com/view/drive-u-7-home-10/1-12",
+  "resolved_entry_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/13.xml",
+  "title": "Eaglercraft 1.12.2",
+  "classes_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/classes.js",
+  "script_urls": [
+    "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/classes.js",
+    "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/rocket-loader.min.js"
+  ],
+  "assets_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/assets.epk",
+  "locales_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/lang/",
+  "completed": true,
+  "summary": {
+    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\1.12.2",
+    "index_html": "C:\\Users\\hello\\Downloads\\edu\\1.12.2\\index.html",
+    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\1.12.2\\required-functions.json",
+    "mode": "entry_auto",
+    "entry_kind": "eaglercraft",
+    "title": "Eaglercraft 1.12.2",
+    "input_url": "https://sites.google.com/view/drive-u-7-home-10/1-12",
+    "root_url": "https://sites.google.com/view/drive-u-7-home-10/1-12/",
+    "resolved_entry_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/13.xml",
+    "classes_file": "classes.js",
+    "classes_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/classes.js",
+    "entry_script_files": [
+      "classes.js",
+      "rocket-loader.min.js"
+    ],
+    "entry_script_urls": [
+      "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/classes.js",
+      "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/rocket-loader.min.js"
+    ],
+    "skipped_entry_script_urls": [],
+    "assets_file": "assets.epk",
+    "assets_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/assets.epk",
+    "locales_url": "https://cdn.jsdelivr.net/gh/okyesgoogl/mc@main/lang/",
+    "support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\1.12.2\\.standalone-progress.json"
+  }
+}

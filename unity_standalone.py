@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create a standalone Unity WebGL package from direct asset URLs or an entry URL.
+Create a standalone Unity WebGL or Eagler package from direct asset URLs or an entry URL.
 
 Usage:
   python unity_standalone.py "https://example.com/game/"
@@ -11,6 +11,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import html
 import json
 import re
@@ -64,6 +65,25 @@ class DetectedBuild:
     loader_url: str
     candidates: dict[str, list[str]]
     legacy_config: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class DetectedEntry:
+    entry_kind: str
+    index_url: str
+    index_html: str
+
+
+@dataclass
+class DetectedEaglerEntry:
+    title: str
+    index_url: str
+    index_html: str
+    classes_url: str
+    assets_url: str
+    locales_url: str
+    bootstrap_script: str
+    script_urls: list[str] = field(default_factory=list)
 
 
 def file_contains_any_bytes(path: Path, patterns: Sequence[bytes]) -> bool:
@@ -151,7 +171,7 @@ def candidate_index_urls(input_url: str, root_url: str) -> list[str]:
     candidates = []
 
     parsed_input = urllib.parse.urlparse(input_url)
-    if parsed_input.path.endswith(".html"):
+    if parsed_input.path and "." in parsed_input.path.rsplit("/", 1)[-1]:
         candidates.append(input_url)
 
     candidates.append(root_url)
@@ -195,6 +215,18 @@ def looks_like_unity_entry_html(index_html: str) -> bool:
     )
 
 
+def looks_like_eagler_entry_html(index_html: str) -> bool:
+    lower = index_html.lower()
+    return (
+        "window.eaglercraftxopts" in lower
+        or (
+            re.search(r"classes(?:\\.min)?\\.js", lower) is not None
+            and "assets.epk" in lower
+        )
+        or ("eaglercraft" in lower and "main();" in lower and "game_frame" in lower)
+    )
+
+
 def is_ignored_embedded_url(url: str) -> bool:
     lower = url.lower()
     ignored_fragments = (
@@ -234,6 +266,11 @@ def is_ignored_embedded_url(url: str) -> bool:
 
 def extract_embedded_html_snippets(index_html: str) -> list[str]:
     snippets: list[str] = []
+
+    for raw in re.findall(r"<!\[CDATA\[([\s\S]*?)\]\]>", index_html, re.IGNORECASE):
+        decoded = raw.strip()
+        if decoded:
+            snippets.append(decoded)
 
     for raw in re.findall(r'data-code="([\s\S]*?)"', index_html, re.IGNORECASE):
         decoded = html.unescape(raw).strip()
@@ -276,13 +313,97 @@ def extract_embedded_html_snippets(index_html: str) -> list[str]:
     return deduped
 
 
+def detect_supported_entry_kind(index_html: str) -> str:
+    if looks_like_unity_entry_html(index_html):
+        return "unity"
+    if looks_like_eagler_entry_html(index_html):
+        return "eaglercraft"
+    return ""
+
+
+def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
+    errors: list[str] = []
+    visited_urls: set[str] = set()
+    visited_snippets: set[str] = set()
+
+    def inspect_html(index_url: str, index_html: str, depth: int, source: str) -> DetectedEntry | None:
+        snippets = extract_embedded_html_snippets(index_html)
+
+        for snippet in snippets:
+            detected_kind = detect_supported_entry_kind(snippet)
+            if detected_kind:
+                return DetectedEntry(
+                    entry_kind=detected_kind,
+                    index_url=index_url,
+                    index_html=snippet,
+                )
+
+        detected_kind = detect_supported_entry_kind(index_html)
+        if detected_kind:
+            return DetectedEntry(
+                entry_kind=detected_kind,
+                index_url=index_url,
+                index_html=index_html,
+            )
+
+        if depth >= 6:
+            errors.append(f"{source} -> reached embed recursion limit")
+            return None
+
+        for snippet in snippets:
+            snippet_key = snippet[:4096]
+            if snippet_key in visited_snippets:
+                continue
+            visited_snippets.add(snippet_key)
+            result = inspect_html(index_url, snippet, depth + 1, f"{source} -> embedded HTML")
+            if result:
+                return result
+
+        if snippets:
+            errors.append(f"{source} -> embedded HTML found but no supported build reference found")
+            return None
+
+        for child_url in extract_embedded_candidate_urls(index_html, index_url):
+            result = inspect_url(child_url, depth + 1)
+            if result:
+                return result
+
+        errors.append(f"{source} -> fetched but no supported build reference found")
+        return None
+
+    def inspect_url(candidate: str, depth: int) -> DetectedEntry | None:
+        normalized_candidate = normalize_url(candidate)
+        if normalized_candidate in visited_urls:
+            return None
+        visited_urls.add(normalized_candidate)
+
+        try:
+            resolved, raw, _, _ = fetch_url(normalized_candidate)
+        except FetchError as exc:
+            errors.append(str(exc))
+            return None
+
+        text = decode_html_body(raw)
+        return inspect_html(resolved, text, depth, resolved)
+
+    for candidate in candidate_index_urls(input_url, root_url):
+        result = inspect_url(candidate, 0)
+        if result:
+            return result
+
+    joined = "\n  - ".join(errors) if errors else "No candidate URLs were tested."
+    raise FetchError(f"Could not find a supported entry page.\n  - {joined}")
+
+
 def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str]:
     raw_candidates: list[str] = []
     patterns = (
         r"""<iframe[^>]+src=["']([^"']+)["']""",
         r"""data-url=["']([^"']+)["']""",
         r"""(?:const|let|var)\s+[A-Za-z_$][A-Za-z0-9_$]*URL\s*=\s*["'](https?://[^"']+)["']""",
-        r"""["'](https?://[^"']+)["']""",
+        r"""(?:src|href)\s*[:=]\s*["'](https?://[^"']+)["']""",
+        r"""window\.open\(\s*["'](https?://[^"']+)["']""",
+        r"""location(?:\.href)?\s*=\s*["'](https?://[^"']+)["']""",
     )
 
     for pattern in patterns:
@@ -319,61 +440,155 @@ def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str
 
 
 def find_index_html(input_url: str, root_url: str) -> tuple[str, str]:
-    errors: list[str] = []
-    visited_urls: set[str] = set()
-    visited_snippets: set[str] = set()
+    entry = find_supported_entry(input_url, root_url)
+    if entry.entry_kind != "unity":
+        raise FetchError(f"Resolved entry is not a Unity page: {entry.index_url}")
+    return entry.index_url, entry.index_html
 
-    def inspect_html(index_url: str, index_html: str, depth: int, source: str) -> tuple[str, str] | None:
-        snippets = extract_embedded_html_snippets(index_html)
-        for snippet in snippets:
-            if looks_like_unity_entry_html(snippet):
-                return index_url, snippet
 
-        if looks_like_unity_entry_html(index_html):
-            return index_url, index_html
-        if depth >= 6:
-            errors.append(f"{source} -> reached embed recursion limit")
-            return None
+def extract_html_title(index_html: str) -> str:
+    match = re.search(r"<title[^>]*>([\s\S]*?)</title>", index_html, re.IGNORECASE)
+    if not match:
+        return ""
+    title = re.sub(r"\s+", " ", html.unescape(match.group(1))).strip()
+    return title
 
-        for snippet in snippets:
-            snippet_key = snippet[:4096]
-            if snippet_key in visited_snippets:
-                continue
-            visited_snippets.add(snippet_key)
-            result = inspect_html(index_url, snippet, depth + 1, f"{source} -> embedded HTML")
-            if result:
-                return result
 
-        for child_url in extract_embedded_candidate_urls(index_html, index_url):
-            result = inspect_url(child_url, depth + 1)
-            if result:
-                return result
+def extract_inline_script_blocks(index_html: str) -> list[str]:
+    blocks: list[str] = []
+    for attrs, content in re.findall(
+        r"<script\b([^>]*)>([\s\S]*?)</script>",
+        index_html,
+        re.IGNORECASE,
+    ):
+        if re.search(r"\bsrc\s*=", attrs, re.IGNORECASE):
+            continue
+        decoded = html.unescape(content).strip()
+        if decoded:
+            blocks.append(decoded)
+    return blocks
 
-        errors.append(f"{source} -> fetched but no Unity build reference found")
-        return None
 
-    def inspect_url(candidate: str, depth: int) -> tuple[str, str] | None:
-        normalized_candidate = normalize_url(candidate)
-        if normalized_candidate in visited_urls:
-            return None
-        visited_urls.add(normalized_candidate)
+def extract_eagler_external_script_urls(index_html: str, index_url: str) -> list[str]:
+    urls: list[str] = []
+    seen: set[str] = set()
+    for raw_url in re.findall(
+        r"""<script[^>]+src=["']([^"']+)["']""",
+        index_html,
+        re.IGNORECASE,
+    ):
+        candidate = decode_js_string_literal(html.unescape(raw_url)).strip()
+        if not candidate or candidate.startswith("data:"):
+            continue
+        resolved = normalize_url(urllib.parse.urljoin(index_url, candidate))
+        lowered = resolved.lower()
+        if not lowered.endswith(".js") and ".js?" not in lowered:
+            continue
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        urls.append(resolved)
+    return urls
 
-        try:
-            resolved, raw, _, _ = fetch_url(normalized_candidate)
-        except FetchError as exc:
-            errors.append(str(exc))
-            return None
 
-        text = decode_html_body(raw)
-        return inspect_html(resolved, text, depth, resolved)
+def is_eagler_runtime_script_url(script_url: str) -> bool:
+    basename = basename_from_url(script_url).lower()
+    return bool(re.fullmatch(r"classes(?:\.min)?\.js", basename))
 
-    for candidate in candidate_index_urls(input_url, root_url):
-        result = inspect_url(candidate, 0)
-        if result:
-            return result
 
-    joined = "\n  - ".join(errors) if errors else "No candidate URLs were tested."
-    raise FetchError(f"Could not find Unity index HTML.\n  - {joined}")
+def share_url_parent_directory(url_a: str, url_b: str) -> bool:
+    parsed_a = urllib.parse.urlparse(remove_query_and_fragment(url_a))
+    parsed_b = urllib.parse.urlparse(remove_query_and_fragment(url_b))
+    parent_a = parsed_a.path.rsplit("/", 1)[0]
+    parent_b = parsed_b.path.rsplit("/", 1)[0]
+    return (
+        parsed_a.scheme == parsed_b.scheme
+        and parsed_a.netloc == parsed_b.netloc
+        and parent_a == parent_b
+    )
+
+
+def extract_eagler_runtime_assets(index_html: str, index_url: str) -> tuple[str, list[str]]:
+    script_urls = extract_eagler_external_script_urls(index_html, index_url)
+    runtime_url = next((url for url in script_urls if is_eagler_runtime_script_url(url)), "")
+    if not runtime_url:
+        raise FetchError(
+            "No Eagler runtime file (classes.js or classes.min.js) found in entry HTML."
+        )
+
+    support_script_urls = [
+        url
+        for url in script_urls
+        if url != runtime_url and share_url_parent_directory(url, runtime_url)
+    ]
+    return runtime_url, support_script_urls
+
+
+def extract_eagler_bootstrap_script(index_html: str) -> str:
+    candidates: list[tuple[int, int, str]] = []
+    for script in extract_inline_script_blocks(index_html):
+        lower = script.lower()
+        if "window.eaglercraftxopts" not in lower:
+            continue
+        score = 0
+        if "assetsuri" in lower:
+            score += 80
+        if "localesuri" in lower:
+            score += 20
+        if "main();" in lower or "main(" in lower:
+            score += 20
+        if "addEventListener(\"load\"" in script or "addEventListener('load'" in script:
+            score += 15
+        candidates.append((score, len(script), script))
+
+    if not candidates:
+        raise FetchError("No Eagler bootstrap script found in entry HTML.")
+
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    return candidates[0][2]
+
+
+def extract_eagler_option_string(script_text: str, key: str) -> str:
+    patterns = (
+        rf"""{key}\s*:\s*["']([^"']+)["']""",
+        rf"""window\.eaglercraftXOpts\.{key}\s*=\s*["']([^"']+)["']""",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, script_text, re.IGNORECASE)
+        if match:
+            return decode_js_string_literal(match.group(1)).strip()
+    return ""
+
+
+def resolve_optional_url(raw_value: str, base_url: str) -> str:
+    if not raw_value:
+        return ""
+    if raw_value.startswith("data:"):
+        return raw_value
+    return normalize_url(urllib.parse.urljoin(base_url, raw_value))
+
+
+def detect_eagler_entry(index_url: str, index_html: str) -> DetectedEaglerEntry:
+    bootstrap_script = extract_eagler_bootstrap_script(index_html)
+    assets_raw = extract_eagler_option_string(bootstrap_script, "assetsURI")
+    if not assets_raw:
+        raise FetchError("Eagler entry is missing assetsURI.")
+
+    classes_url, support_script_urls = extract_eagler_runtime_assets(index_html, index_url)
+
+    return DetectedEaglerEntry(
+        title=extract_html_title(index_html) or "Eaglercraft",
+        index_url=index_url,
+        index_html=index_html,
+        classes_url=classes_url,
+        assets_url=resolve_optional_url(assets_raw, index_url),
+        locales_url=resolve_optional_url(
+            extract_eagler_option_string(bootstrap_script, "localesURI"),
+            index_url,
+        ),
+        bootstrap_script=bootstrap_script,
+        script_urls=[classes_url, *support_script_urls],
+    )
 
 
 def extract_build_url_prefix(index_html: str) -> str:
@@ -2365,6 +2580,10 @@ def generate_index_html(
         return loadingScreen.style.display !== "none";
       }}
 
+      function isBackdropActive() {{
+        return isVisible() && !loadingScreen.classList.contains("is-loading");
+      }}
+
       function resizeCanvas(canvas) {{
         const nextDpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
         canvas.width = Math.floor(window.innerWidth * nextDpr);
@@ -2496,11 +2715,11 @@ def generate_index_html(
       }}
 
       function scheduleShootingStar() {{
-        if (reduceMotion || !isVisible()) {{
+        if (reduceMotion || !isBackdropActive()) {{
           return;
         }}
         window.setTimeout(function () {{
-          if (!shootingStar && isVisible()) {{
+          if (!shootingStar && isBackdropActive()) {{
             shootingStar = new ShootingStar();
           }}
           scheduleShootingStar();
@@ -2508,7 +2727,7 @@ def generate_index_html(
       }}
 
       function animateStars() {{
-        if (!isVisible()) {{
+        if (!isBackdropActive()) {{
           return;
         }}
         starCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -2527,7 +2746,7 @@ def generate_index_html(
       }}
 
       function smoothMouse() {{
-        if (!isVisible()) {{
+        if (!isBackdropActive()) {{
           return;
         }}
         mouse.x += (mouse.tx - mouse.x) * 0.06;
@@ -2536,7 +2755,7 @@ def generate_index_html(
       }}
 
       function drawWaves() {{
-        if (!isVisible()) {{
+        if (!isBackdropActive()) {{
           return;
         }}
         const width = window.innerWidth;
@@ -2620,6 +2839,7 @@ def generate_index_html(
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
       const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
+      const ROOT = document.documentElement;
 
       const canvas = document.getElementById("unity-canvas");
       const legacyContainer = document.getElementById("unity-legacy-container");
@@ -2635,7 +2855,10 @@ def generate_index_html(
       let loadingScreenDismissed = false;
       let launchPanelHideTimer = 0;
       let legacyConfigUrl = "";
+      let loaderScriptPromise = null;
+      let buildWarmupStarted = false;
       let sourceUrlSpoofApplied = false;
+      const resourceHints = new Set();
       const requestedLaunchMode = (function () {{
         try {{
           return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
@@ -2682,6 +2905,13 @@ def generate_index_html(
         }}
       }}
 
+      function setLoadState(value) {{
+        if (!ROOT) {{
+          return;
+        }}
+        ROOT.setAttribute("data-ocean-unity-state", value);
+      }}
+
       function setProgress(progress) {{
         const numeric = Number(progress);
         const safeProgress = Number.isFinite(numeric) ? Math.min(1, Math.max(0, numeric)) : 0;
@@ -2714,6 +2944,7 @@ def generate_index_html(
         if (loadingScreenDismissed || !loadingScreen) {{
           return;
         }}
+        setLoadState("ready");
         loadingScreenDismissed = true;
         loadingScreen.classList.add("is-exiting");
         window.setTimeout(function () {{
@@ -2804,6 +3035,22 @@ def generate_index_html(
         return targetUrl.toString();
       }}
 
+      function isLocalFileLaunch() {{
+        try {{
+          return new URL(LOCAL_PAGE_URL).protocol === "file:";
+        }} catch (err) {{
+          return window.location.protocol === "file:";
+        }}
+      }}
+
+      function showHttpRequiredMessage() {{
+        resetLaunchState();
+        setStatus("Use HTTP or HTTPS to run this build");
+        alert(
+          "This Unity build must be served over HTTP or HTTPS. Opening index.html directly from disk can stall at 0%. Use GitHub Pages or run a local web server."
+        );
+      }}
+
       function buildLocalUrl(relativePath) {{
         const cleanPath = String(relativePath || "").replace(/^\\.?\\//, "");
         return new URL(cleanPath, LOCAL_PAGE_URL).toString();
@@ -2812,6 +3059,135 @@ def generate_index_html(
       function buildBuildAssetUrl(name) {{
         const cleanName = String(name || "").replace(/^\\.?\\//, "");
         return new URL(cleanName, LOCAL_BUILD_ROOT_URL).toString();
+      }}
+
+      function appendResourceHint(url, rel, asValue, fetchPriority) {{
+        if (!url || !document.head) {{
+          return;
+        }}
+        const key = [rel || "", asValue || "", url].join("|");
+        if (resourceHints.has(key)) {{
+          return;
+        }}
+        resourceHints.add(key);
+        const link = document.createElement("link");
+        link.rel = rel;
+        link.href = url;
+        if (asValue) {{
+          link.as = asValue;
+        }}
+        if (asValue === "fetch") {{
+          link.crossOrigin = "anonymous";
+        }}
+        if (fetchPriority && "fetchPriority" in link) {{
+          link.fetchPriority = fetchPriority;
+        }}
+        document.head.appendChild(link);
+      }}
+
+      function ensureLoaderScriptLoaded(loaderUrl) {{
+        if (
+          BUILD_KIND === "modern" &&
+          typeof window.createUnityInstance === "function"
+        ) {{
+          return Promise.resolve();
+        }}
+        if (
+          BUILD_KIND === "legacy_json" &&
+          window.UnityLoader &&
+          typeof window.UnityLoader.instantiate === "function"
+        ) {{
+          return Promise.resolve();
+        }}
+        if (loaderScriptPromise) {{
+          return loaderScriptPromise;
+        }}
+
+        loaderScriptPromise = new Promise(function (resolve, reject) {{
+          const existing = document.querySelector("script[data-ocean-unity-loader='1']");
+          if (existing) {{
+            if (existing.getAttribute("data-ocean-loader-ready") === "1") {{
+              resolve();
+              return;
+            }}
+            if (existing.getAttribute("data-ocean-loader-error") === "1") {{
+              loaderScriptPromise = null;
+              reject(new Error("Failed to load Unity loader script"));
+              return;
+            }}
+            existing.addEventListener("load", resolve, {{ once: true }});
+            existing.addEventListener("error", function () {{
+              loaderScriptPromise = null;
+              reject(new Error("Failed to load Unity loader script"));
+            }}, {{ once: true }});
+            return;
+          }}
+
+          const script = document.createElement("script");
+          script.src = loaderUrl;
+          script.async = true;
+          script.setAttribute("data-ocean-unity-loader", "1");
+          script.onload = function () {{
+            script.setAttribute("data-ocean-loader-ready", "1");
+            resolve();
+          }};
+          script.onerror = function () {{
+            script.setAttribute("data-ocean-loader-error", "1");
+            loaderScriptPromise = null;
+            reject(new Error("Failed to load Unity loader script"));
+          }};
+          document.body.appendChild(script);
+        }});
+
+        return loaderScriptPromise;
+      }}
+
+      function buildUnityCacheControl(url) {{
+        const cleanUrl = String(url || "").split("?")[0].toLowerCase();
+        const fileName = cleanUrl.split("/").pop() || "";
+        const hashedFile =
+          /^[0-9a-f]{8,}[._-]/i.test(fileName) ||
+          /(?:^|[._-])[0-9a-f]{8,}(?:[._-]|$)/i.test(fileName);
+        if (
+          hashedFile ||
+          cleanUrl.includes("/streamingassets/") ||
+          cleanUrl.endsWith(".unityweb")
+        ) {{
+          return "immutable";
+        }}
+        return "must-revalidate";
+      }}
+
+      function computeUnityDevicePixelRatio() {{
+        const nativeDpr = Number(window.devicePixelRatio) || 1;
+        const cap = requestedLaunchMode === "fullscreen" ? 1.5 : 1.15;
+        return Math.max(1, Math.min(nativeDpr, cap));
+      }}
+
+      function warmUnityBuild() {{
+        if (buildWarmupStarted || isLocalFileLaunch()) {{
+          return;
+        }}
+        buildWarmupStarted = true;
+
+        const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
+        const assetUrls = [
+          {{ url: loaderUrl, as: "script", fetchPriority: "high" }},
+          {{ url: buildBuildAssetUrl(FRAMEWORK_FILE), as: "fetch", fetchPriority: "high" }},
+          {{ url: buildBuildAssetUrl(WASM_FILE), as: "fetch", fetchPriority: "high" }},
+          {{ url: buildBuildAssetUrl(DATA_FILE), as: "fetch", fetchPriority: "high" }},
+        ];
+
+        assetUrls.forEach(function (entry) {{
+          appendResourceHint(entry.url, "preload", entry.as, entry.fetchPriority);
+          appendResourceHint(entry.url, "prefetch", entry.as, entry.fetchPriority);
+        }});
+
+        if (!ENABLE_SOURCE_URL_SPOOF) {{
+          ensureLoaderScriptLoaded(loaderUrl).catch(function () {{
+            // Ignore loader warmup failures until launch time.
+          }});
+        }}
       }}
 
       function defineGetter(target, key, getter) {{
@@ -2913,6 +3289,7 @@ def generate_index_html(
         releaseLegacyConfigUrl();
         setProgressVisibility(false);
         setProgress(0);
+        setLoadState("idle");
       }}
 
       function requestFullscreenMode() {{
@@ -2971,6 +3348,10 @@ def generate_index_html(
       }}
 
       function startFullscreenGame() {{
+        if (isLocalFileLaunch()) {{
+          showHttpRequiredMessage();
+          return;
+        }}
         const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
         if (!popup || popup.closed) {{
           setStatus("New tab blocked. Allow popups or use launch here.");
@@ -3033,12 +3414,19 @@ def generate_index_html(
           companyName: PRODUCT_NAME,
           productName: PRODUCT_NAME,
           productVersion: "1.0.0",
+          cacheControl: buildUnityCacheControl,
+          devicePixelRatio: computeUnityDevicePixelRatio(),
+          matchWebGLToCanvasSize: true,
+          webglContextAttributes: {{
+            preserveDrawingBuffer: false,
+            powerPreference: "high-performance",
+          }},
         }};
-{decompression_fallback_line}        const script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = function () {{
+{decompression_fallback_line}        ensureLoaderScriptLoaded(loaderUrl)
+          .then(function () {{
           if (typeof createUnityInstance !== "function") {{
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Loader error: createUnityInstance is missing");
             return;
           }}
@@ -3055,15 +3443,17 @@ def generate_index_html(
           .catch(function (err) {{
             console.error(err);
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Failed to load game");
             alert("Unity failed to load: " + err);
           }});
-        }};
-        script.onerror = function () {{
+        }})
+        .catch(function (err) {{
+          console.error(err);
           resetLaunchState();
+          setLoadState("failed");
           setStatus("Failed to load Unity loader script");
-        }};
-        document.body.appendChild(script);
+        }});
       }}
 
       function startLegacyGame(loaderUrl) {{
@@ -3085,15 +3475,15 @@ def generate_index_html(
           return;
         }}
 
-        const script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = function () {{
+        ensureLoaderScriptLoaded(loaderUrl)
+          .then(function () {{
           const instantiate =
             window.UnityLoader && typeof window.UnityLoader.instantiate === "function"
               ? window.UnityLoader.instantiate
               : null;
           if (!instantiate) {{
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Loader error: UnityLoader.instantiate is missing");
             return;
           }}
@@ -3115,22 +3505,28 @@ def generate_index_html(
           }} catch (err) {{
             console.error(err);
             resetLaunchState();
+            setLoadState("failed");
             setStatus("Failed to load game");
             alert("Unity failed to load: " + err);
           }}
-        }};
-        script.onerror = function () {{
+        }})
+        .catch(function () {{
           resetLaunchState();
+          setLoadState("failed");
           setStatus("Failed to load Unity loader script");
-        }};
-        document.body.appendChild(script);
+        }});
       }}
 
       function startGame() {{
+        if (isLocalFileLaunch()) {{
+          showHttpRequiredMessage();
+          return;
+        }}
         if (started) {{
           return;
         }}
         started = true;
+        setLoadState("loading");
         if (loadingScreen) {{
           loadingScreen.classList.add("is-loading");
         }}
@@ -3162,6 +3558,7 @@ def generate_index_html(
 
       setProgressVisibility(false);
       setProgress(0);
+      setLoadState("idle");
       setStatus("Choose how you want to launch");
 
       window.addEventListener("wheel", preventFullscreenScroll, {{ passive: false }});
@@ -3176,6 +3573,12 @@ def generate_index_html(
 
       launchFullscreenBtn.addEventListener("click", startFullscreenGame);
       launchFrameBtn.addEventListener("click", startGame);
+
+      if (typeof window.requestIdleCallback === "function") {{
+        window.requestIdleCallback(warmUnityBuild, {{ timeout: 1200 }});
+      }} else {{
+        window.setTimeout(warmUnityBuild, 240);
+      }}
 
       if (consumeAutoStartFlag()) {{
         startGame();
@@ -3440,6 +3843,338 @@ def infer_output_name_from_url(root_url: str, loader_url: str) -> str:
     return slugify_name(host_part)
 
 
+def infer_output_name_from_entry(title: str, root_url: str, fallback_name: str = "standalone-game") -> str:
+    if title:
+        cleaned = slugify_name(title)
+        if cleaned:
+            return cleaned
+
+    parsed = urllib.parse.urlparse(root_url)
+    path_segments = [segment for segment in parsed.path.split("/") if segment]
+    if path_segments:
+        return slugify_name(path_segments[-1])
+
+    host_part = parsed.netloc.split(".")[0] or fallback_name
+    return slugify_name(host_part)
+
+
+def sanitize_filename(name: str, fallback: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "-", name).strip(".-")
+    return cleaned or fallback
+
+
+def decode_data_url_bytes(data_url: str) -> bytes:
+    try:
+        header, payload = data_url.split(",", 1)
+    except ValueError as exc:
+        raise FetchError("Invalid embedded data URL.") from exc
+
+    if ";base64" in header.lower():
+        try:
+            return base64.b64decode(payload)
+        except (ValueError, TypeError) as exc:
+            raise FetchError("Invalid base64 payload in embedded data URL.") from exc
+
+    return urllib.parse.unquote_to_bytes(payload)
+
+
+def download_raw_asset(source_url: str, destination: Path) -> str:
+    if source_url.startswith("data:"):
+        raw = decode_data_url_bytes(source_url)
+        if not raw:
+            raise FetchError("Embedded data URL produced an empty asset.")
+        destination.write_bytes(raw)
+        return "embedded-data-url"
+
+    resolved, raw, _, _ = fetch_url(source_url)
+    if not raw:
+        raise FetchError(f"{source_url} -> empty response")
+    if looks_like_html(raw):
+        raise FetchError(f"{source_url} -> returned HTML instead of a downloadable asset")
+    destination.write_bytes(raw)
+    return resolved
+
+
+def copy_eagler_support_files(output_dir: Path) -> list[str]:
+    script_dir = Path(__file__).resolve().parent
+    copied: list[str] = []
+    for name in ("ocean-launcher.css", "ocean-launcher.js"):
+        source = script_dir / name
+        if not source.exists():
+            raise FetchError(f"Missing support file next to unity_standalone.py: {source}")
+        shutil.copyfile(source, output_dir / name)
+        copied.append(name)
+    return copied
+
+
+def generate_eagler_index_html(
+    title: str,
+    bootstrap_script: str,
+    script_filenames: Sequence[str],
+    assets_filename: str,
+    locales_url: str,
+) -> str:
+    bootstrap_script_js = json.dumps(bootstrap_script, ensure_ascii=False)
+    assets_path_js = json.dumps(f"./{assets_filename}", ensure_ascii=False)
+    locales_url_js = json.dumps(locales_url, ensure_ascii=False)
+    entry_script_tags = "\n".join(
+        f'<script type="text/javascript" src="./{html.escape(filename)}"></script>'
+        for filename in script_filenames
+    )
+
+    locales_override = (
+        f"  window.eaglercraftXOpts.localesURI = {locales_url_js};\n" if locales_url else ""
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+<title>{html.escape(title)}</title>
+<link rel="stylesheet" href="./ocean-launcher.css" />
+</head>
+<body>
+<div id="game_frame"></div>
+<div id="loadingScreen">
+<div id="loadingBackdrop" aria-hidden="true">
+<canvas id="star-canvas"></canvas>
+<canvas id="wave-canvas"></canvas>
+<div class="nebula"></div>
+<div class="overlay"></div>
+<div class="grain"></div>
+</div>
+<div id="loadingCenter">
+<div id="loadingTitleGroup">
+<h1 id="loadingTitle">Ocean</h1>
+<div id="loadingSubtitle">LAUNCHER</div>
+</div>
+<div id="launchPanel">
+<div id="launchMenu">
+<button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
+<button id="launchFullscreenBtn" class="launchOption" type="button">LAUNCH FULLSCREEN</button>
+</div>
+<div id="playNote">Saves to local storage</div>
+</div>
+<div id="progressTrack" aria-hidden="true">
+<div id="progressFill"></div>
+</div>
+<div id="status">Choose how you want to launch</div>
+</div>
+</div>
+{entry_script_tags}
+<script type="text/javascript">
+"use strict";
+(function () {{
+  var bootstrapScript = {bootstrap_script_js};
+  var originalWindowAddEventListener = window.addEventListener;
+  var originalDocumentAddEventListener = document.addEventListener;
+  var originalMain = window.main;
+
+  function createImmediateEvent(type, target) {{
+    return {{
+      type: type,
+      target: target,
+      currentTarget: target,
+      preventDefault: function () {{}},
+      stopPropagation: function () {{}}
+    }};
+  }}
+
+  function fireImmediately(type, listener, target) {{
+    if (typeof listener === "function") {{
+      listener.call(target, createImmediateEvent(type, target));
+      return;
+    }}
+    if (listener && typeof listener.handleEvent === "function") {{
+      listener.handleEvent(createImmediateEvent(type, target));
+    }}
+  }}
+
+  window.addEventListener = function (type, listener, options) {{
+    if (type === "load") {{
+      fireImmediately(type, listener, window);
+      return;
+    }}
+    return originalWindowAddEventListener.call(this, type, listener, options);
+  }};
+
+  if (typeof originalDocumentAddEventListener === "function") {{
+    document.addEventListener = function (type, listener, options) {{
+      if (type === "DOMContentLoaded" || type === "load") {{
+        fireImmediately(type, listener, document);
+        return;
+      }}
+      return originalDocumentAddEventListener.call(this, type, listener, options);
+    }};
+  }}
+
+  window.main = function () {{}};
+
+  try {{
+    (0, eval)(bootstrapScript);
+  }} finally {{
+    window.addEventListener = originalWindowAddEventListener;
+    if (typeof originalDocumentAddEventListener === "function") {{
+      document.addEventListener = originalDocumentAddEventListener;
+    }}
+    window.main = originalMain;
+  }}
+
+  if (typeof window.eaglercraftXOpts !== "object" || !window.eaglercraftXOpts) {{
+    window.eaglercraftXOpts = {{}};
+  }}
+
+  window.eaglercraftXOpts.container = "game_frame";
+  window.eaglercraftXOpts.assetsURI = {assets_path_js};
+{locales_override}}})();
+</script>
+<script src="./ocean-launcher.js"></script>
+</body>
+</html>
+"""
+
+
+def export_eagler_entry(
+    output_dir: Path,
+    progress_file: Path,
+    detected_entry: DetectedEaglerEntry,
+    input_url: str,
+    root_url: str,
+) -> dict[str, Any]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    used_entry_script_names: set[str] = set()
+    entry_script_files: list[dict[str, str]] = []
+    for index, script_url in enumerate(detected_entry.script_urls, start=1):
+        fallback_name = "classes.js" if index == 1 else f"support-{index}.js"
+        script_name = sanitize_filename(basename_from_url(script_url), fallback_name)
+        if script_name.lower() in used_entry_script_names:
+            stem, dot, suffix = script_name.rpartition(".")
+            stem = stem or script_name
+            dot = "." if dot else ""
+            counter = 2
+            while True:
+                candidate = f"{stem}-{counter}{dot}{suffix}"
+                if candidate.lower() not in used_entry_script_names:
+                    script_name = candidate
+                    break
+                counter += 1
+        used_entry_script_names.add(script_name.lower())
+        entry_script_files.append({"url": script_url, "name": script_name})
+
+    assets_name = sanitize_filename(
+        basename_from_url(detected_entry.assets_url) if not detected_entry.assets_url.startswith("data:") else "assets.epk",
+        "assets.epk",
+    )
+
+    support_files = copy_eagler_support_files(output_dir)
+
+    progress_payload = load_json_file(progress_file)
+    progress_payload.update(
+        {
+            "mode": "entry_auto",
+            "entry_kind": "eaglercraft",
+            "root_url": root_url,
+            "input_url": input_url,
+            "resolved_entry_url": detected_entry.index_url,
+            "title": detected_entry.title,
+            "classes_url": detected_entry.classes_url,
+            "script_urls": detected_entry.script_urls,
+            "assets_url": detected_entry.assets_url,
+            "locales_url": detected_entry.locales_url,
+            "completed": False,
+        }
+    )
+    save_json_file(progress_file, progress_payload)
+
+    downloaded_entry_scripts: list[dict[str, str]] = []
+    skipped_entry_scripts: list[str] = []
+    for script_index, script_file in enumerate(entry_script_files):
+        try:
+            resolved_script_url = download_raw_asset(
+                script_file["url"],
+                output_dir / script_file["name"],
+            )
+        except FetchError:
+            if script_index == 0:
+                raise
+            skipped_entry_scripts.append(script_file["url"])
+            log(f"Skipping optional Eagler support script: {script_file['url']}")
+            continue
+        downloaded_entry_scripts.append(
+            {
+                "url": script_file["url"],
+                "name": script_file["name"],
+                "resolved_url": resolved_script_url,
+            }
+        )
+
+    if not downloaded_entry_scripts:
+        raise FetchError("Failed to download the Eagler runtime bundle.")
+
+    classes_name = downloaded_entry_scripts[0]["name"]
+    assets_resolved_url = download_raw_asset(
+        detected_entry.assets_url,
+        output_dir / assets_name,
+    )
+
+    index_content = generate_eagler_index_html(
+        title=detected_entry.title,
+        bootstrap_script=detected_entry.bootstrap_script,
+        script_filenames=[item["name"] for item in downloaded_entry_scripts],
+        assets_filename=assets_name,
+        locales_url=detected_entry.locales_url,
+    )
+    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
+
+    required_functions_payload = {
+        "count": 0,
+        "functions": [],
+        "window_root_count": 0,
+        "window_roots": [],
+        "window_callable_chain_count": 0,
+        "window_callable_chains": [],
+    }
+    (output_dir / "required-functions.json").write_text(
+        json.dumps(required_functions_payload, indent=2),
+        encoding="utf-8",
+    )
+
+    summary = {
+        "output_dir": str(output_dir),
+        "index_html": str(output_dir / "index.html"),
+        "required_functions_file": str(output_dir / "required-functions.json"),
+        "mode": "entry_auto",
+        "entry_kind": "eaglercraft",
+        "title": detected_entry.title,
+        "input_url": input_url,
+        "root_url": root_url,
+        "resolved_entry_url": detected_entry.index_url,
+        "classes_file": classes_name,
+        "classes_url": downloaded_entry_scripts[0]["resolved_url"],
+        "entry_script_files": [item["name"] for item in downloaded_entry_scripts],
+        "entry_script_urls": [item["resolved_url"] for item in downloaded_entry_scripts],
+        "skipped_entry_script_urls": skipped_entry_scripts,
+        "assets_file": assets_name,
+        "assets_url": assets_resolved_url,
+        "locales_url": detected_entry.locales_url,
+        "support_files": support_files,
+        "progress_file": str(progress_file),
+    }
+    (output_dir / "standalone-build-info.json").write_text(
+        json.dumps(summary, indent=2),
+        encoding="utf-8",
+    )
+
+    progress_payload = load_json_file(progress_file)
+    progress_payload["completed"] = True
+    progress_payload["summary"] = summary
+    save_json_file(progress_file, progress_payload)
+
+    return summary
+
+
 def main(argv: Sequence[str]) -> int:
     args = parse_args(argv)
 
@@ -3461,8 +4196,12 @@ def main(argv: Sequence[str]) -> int:
             "(--loader-url --framework-url --data-url --wasm-url)."
         )
 
+    input_url = ""
+    entry_kind = "unity"
     build_kind = "modern"
     legacy_config: dict[str, Any] = {}
+    detected_build: DetectedBuild | None = None
+    detected_eagler_entry: DetectedEaglerEntry | None = None
 
     if direct_mode:
         loader_url = normalize_url(args.loader_url)
@@ -3480,19 +4219,40 @@ def main(argv: Sequence[str]) -> int:
         log(f"Input URL: {input_url}")
         log(f"Game root URL: {root_url}")
 
-        index_url, index_html = find_index_html(input_url, root_url)
-        log(f"Resolved index URL: {index_url}")
+        detected_entry = find_supported_entry(input_url, root_url)
+        entry_kind = detected_entry.entry_kind
+        log(f"Resolved entry URL: {detected_entry.index_url}")
+        log(f"Detected entry kind: {entry_kind}")
 
-        detected_build = detect_entry_build(index_url, index_html)
-        build_kind = detected_build.build_kind
-        legacy_config = detected_build.legacy_config
-        loader_url = detected_build.loader_url
-        candidates = detected_build.candidates
+        if entry_kind == "unity":
+            detected_build = detect_entry_build(detected_entry.index_url, detected_entry.index_html)
+            build_kind = detected_build.build_kind
+            legacy_config = detected_build.legacy_config
+            loader_url = detected_build.loader_url
+            candidates = detected_build.candidates
 
-        log(f"Detected build kind: {build_kind}")
-        log(f"Resolved loader URL: {loader_url}")
+            log(f"Detected build kind: {build_kind}")
+            log(f"Resolved loader URL: {loader_url}")
+        else:
+            detected_eagler_entry = detect_eagler_entry(
+                detected_entry.index_url,
+                detected_entry.index_html,
+            )
+            log(f"Resolved Eagler runtime URL: {detected_eagler_entry.classes_url}")
+            log(f"Resolved Eagler assets URL: {detected_eagler_entry.assets_url}")
+            if detected_eagler_entry.locales_url:
+                log(f"Resolved Eagler locales URL: {detected_eagler_entry.locales_url}")
 
-    output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
+    if direct_mode:
+        output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
+    elif entry_kind == "eaglercraft" and detected_eagler_entry is not None:
+        output_name = args.out_dir.strip() or infer_output_name_from_entry(
+            detected_eagler_entry.title,
+            root_url,
+            fallback_name="eaglercraft",
+        )
+    else:
+        output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
     output_dir = Path(output_name).resolve()
     build_dir = output_dir / "Build"
     progress_file = output_dir / ".standalone-progress.json"
@@ -3514,12 +4274,25 @@ def main(argv: Sequence[str]) -> int:
         else:
             log(f"Output directory exists, resuming if possible: {output_dir}")
 
+    if entry_kind == "eaglercraft" and detected_eagler_entry is not None:
+        summary = export_eagler_entry(
+            output_dir=output_dir,
+            progress_file=progress_file,
+            detected_entry=detected_eagler_entry,
+            input_url=input_url,
+            root_url=root_url,
+        )
+        log("Done.")
+        log(json.dumps(summary, indent=2))
+        return 0
+
     build_dir.mkdir(parents=True, exist_ok=True)
 
     progress_payload = load_json_file(progress_file)
     progress_payload.update(
         {
             "mode": "direct_urls" if direct_mode else "entry_auto",
+            "entry_kind": "unity",
             "build_kind": build_kind,
             "root_url": root_url,
             "loader_url": loader_url,
@@ -3546,7 +4319,7 @@ def main(argv: Sequence[str]) -> int:
         else empty_framework_analysis()
     )
     required_functions = framework_analysis.required_functions
-    source_page_url = detected_build.index_url if not direct_mode else root_url
+    source_page_url = detected_build.index_url if (not direct_mode and detected_build is not None) else root_url
     enable_source_url_spoof = file_contains_any_bytes(
         build_dir / assets.data_name,
         [
