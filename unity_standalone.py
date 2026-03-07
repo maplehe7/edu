@@ -1096,8 +1096,8 @@ def generate_index_html(
         </div>
         <div id="launchPanel">
           <div id="launchMenu">
+            <button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
             <button id="launchFullscreenBtn" class="launchOption" type="button">Launch In Fullscreen (New Tab)</button>
-            <button id="launchFrameBtn" class="launchOption" type="button">Launch In Frame</button>
           </div>
           <div id="playNote">Saves to local storage</div>
         </div>
