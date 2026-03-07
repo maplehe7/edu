@@ -1092,7 +1092,7 @@ def generate_index_html(
       <div id="loadingCenter">
         <div id="loadingTitleGroup">
           <h1 id="loadingTitle">Ocean</h1>
-          <div id="loadingSubtitle">games</div>
+          <div id="loadingSubtitle">LAUNCHER</div>
         </div>
         <div id="launchPanel">
           <div id="launchMenu">
