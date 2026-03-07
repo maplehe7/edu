@@ -1,7 +1,7 @@
 {
-  "output_dir": "C:\\Users\\hello\\Downloads\\New folder (2)\\Ragdoll Archers",
-  "index_html": "C:\\Users\\hello\\Downloads\\New folder (2)\\Ragdoll Archers\\index.html",
-  "required_functions_file": "C:\\Users\\hello\\Downloads\\New folder (2)\\Ragdoll Archers\\required-functions.json",
+  "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Ragdoll Archers",
+  "index_html": "C:\\Users\\hello\\Downloads\\edu\\Ragdoll Archers\\index.html",
+  "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Ragdoll Archers\\required-functions.json",
   "loader": "v111.loader.js",
   "framework": "0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",
   "data": "6697b6deba8b617c67b69c55dcd07cb1.data.unityweb",
@@ -13,5 +13,5 @@
   "used_br_assets": true,
   "used_compressed_assets": true,
   "mode": "entry_auto",
-  "progress_file": "C:\\Users\\hello\\Downloads\\New folder (2)\\Ragdoll Archers\\.standalone-progress.json"
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Ragdoll Archers\\.standalone-progress.json"
 }
