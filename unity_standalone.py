@@ -19,9 +19,9 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Any, Iterable, Sequence
 
 
 REQUEST_HEADERS = {
@@ -39,6 +39,9 @@ class DownloadedAssets:
     data_name: str
     wasm_name: str
     used_br_assets: bool
+    build_kind: str = "modern"
+    legacy_config: dict[str, Any] = field(default_factory=dict)
+    legacy_asset_names: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -51,6 +54,16 @@ class FrameworkAnalysis:
 
 class FetchError(RuntimeError):
     pass
+
+
+@dataclass
+class DetectedBuild:
+    build_kind: str
+    index_url: str
+    index_html: str
+    loader_url: str
+    candidates: dict[str, list[str]]
+    legacy_config: dict[str, Any] = field(default_factory=dict)
 
 
 def log(message: str) -> None:
@@ -151,19 +164,203 @@ def decode_html_body(raw: bytes) -> str:
         return raw.decode("utf-8", errors="replace")
 
 
+def decode_js_string_literal(raw_value: str) -> str:
+    cleaned = raw_value.replace("\\/", "/")
+    try:
+        decoded = bytes(cleaned, encoding="utf-8").decode("unicode_escape")
+    except UnicodeDecodeError:
+        decoded = cleaned
+    return (
+        decoded.replace('\\"', '"')
+        .replace("\\'", "'")
+        .replace("\\/", "/")
+    )
+
+
+def looks_like_unity_entry_html(index_html: str) -> bool:
+    return (
+        ".loader.js" in index_html
+        or "createUnityInstance" in index_html
+        or "UnityLoader.instantiate" in index_html
+    )
+
+
+def is_ignored_embedded_url(url: str) -> bool:
+    lower = url.lower()
+    ignored_fragments = (
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "googletagmanager.com",
+        "google-analytics.com",
+        "gstatic.com/",
+        "apis.google.com/js/api.js",
+        "lh3.googleusercontent.com",
+        "sites.google.com/u/",
+    )
+    ignored_suffixes = (
+        ".css",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".ico",
+        ".webp",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".map",
+    )
+    if lower.startswith("data:"):
+        return True
+    if any(fragment in lower for fragment in ignored_fragments):
+        return True
+    if lower.endswith(ignored_suffixes):
+        return True
+    if lower.endswith(".js") and "unityloader.js" not in lower and ".loader.js" not in lower:
+        return True
+    return False
+
+
+def extract_embedded_html_snippets(index_html: str) -> list[str]:
+    snippets: list[str] = []
+
+    for raw in re.findall(r'data-code="([\s\S]*?)"', index_html, re.IGNORECASE):
+        decoded = html.unescape(raw).strip()
+        if decoded:
+            snippets.append(decoded)
+
+    user_html_patterns = (
+        r'userHtml\\x22:\s*\\x22([\s\S]*?)\\x22,\s*\\x22ncc\\x22',
+        r'"userHtml"\s*:\s*"([\s\S]*?)"\s*,\s*"ncc"',
+    )
+    for pattern in user_html_patterns:
+        for raw in re.findall(pattern, index_html, re.IGNORECASE):
+            decoded = html.unescape(decode_js_string_literal(raw)).strip()
+            if decoded:
+                snippets.append(decoded)
+
+    deduped: list[str] = []
+    seen = set()
+    for snippet in snippets:
+        if snippet not in seen:
+            deduped.append(snippet)
+            seen.add(snippet)
+
+    def snippet_priority(snippet: str) -> tuple[int, int]:
+        lower = snippet.lower()
+        score = 0
+        if "script.google.com/macros" in lower:
+            score += 100
+        if "unityloader.instantiate" in lower or ".loader.js" in lower:
+            score += 80
+        if "createunityinstance" in lower:
+            score += 60
+        if "default_url" in lower:
+            score += 25
+        if "file_url" in lower or ".xml" in lower:
+            score -= 20
+        return (-score, len(snippet))
+
+    deduped.sort(key=snippet_priority)
+    return deduped
+
+
+def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str]:
+    raw_candidates: list[str] = []
+    patterns = (
+        r"""<iframe[^>]+src=["']([^"']+)["']""",
+        r"""data-url=["']([^"']+)["']""",
+        r"""(?:const|let|var)\s+[A-Za-z_$][A-Za-z0-9_$]*URL\s*=\s*["'](https?://[^"']+)["']""",
+        r"""["'](https?://[^"']+)["']""",
+    )
+
+    for pattern in patterns:
+        raw_candidates.extend(re.findall(pattern, index_html, re.IGNORECASE))
+
+    urls: list[str] = []
+    seen = set()
+    for raw in raw_candidates:
+        candidate = html.unescape(raw).replace("\\/", "/").strip()
+        if not candidate:
+            continue
+        absolute = normalize_url(urllib.parse.urljoin(index_url, candidate))
+        if is_ignored_embedded_url(absolute):
+            continue
+        if absolute not in seen:
+            urls.append(absolute)
+            seen.add(absolute)
+
+    def url_priority(url: str) -> tuple[int, str]:
+        lower = url.lower()
+        score = 0
+        if "script.google.com/macros" in lower:
+            score += 100
+        if "googleusercontent.com/embeds/" in lower:
+            score += 60
+        if lower.endswith(".loader.js") or lower.endswith("unityloader.js"):
+            score += 60
+        if lower.endswith(".xml"):
+            score -= 20
+        return (-score, lower)
+
+    urls.sort(key=url_priority)
+    return urls
+
+
 def find_index_html(input_url: str, root_url: str) -> tuple[str, str]:
     errors: list[str] = []
-    for candidate in candidate_index_urls(input_url, root_url):
+    visited_urls: set[str] = set()
+    visited_snippets: set[str] = set()
+
+    def inspect_html(index_url: str, index_html: str, depth: int, source: str) -> tuple[str, str] | None:
+        snippets = extract_embedded_html_snippets(index_html)
+        for snippet in snippets:
+            if looks_like_unity_entry_html(snippet):
+                return index_url, snippet
+
+        if looks_like_unity_entry_html(index_html):
+            return index_url, index_html
+        if depth >= 6:
+            errors.append(f"{source} -> reached embed recursion limit")
+            return None
+
+        for snippet in snippets:
+            snippet_key = snippet[:4096]
+            if snippet_key in visited_snippets:
+                continue
+            visited_snippets.add(snippet_key)
+            result = inspect_html(index_url, snippet, depth + 1, f"{source} -> embedded HTML")
+            if result:
+                return result
+
+        for child_url in extract_embedded_candidate_urls(index_html, index_url):
+            result = inspect_url(child_url, depth + 1)
+            if result:
+                return result
+
+        errors.append(f"{source} -> fetched but no Unity build reference found")
+        return None
+
+    def inspect_url(candidate: str, depth: int) -> tuple[str, str] | None:
+        normalized_candidate = normalize_url(candidate)
+        if normalized_candidate in visited_urls:
+            return None
+        visited_urls.add(normalized_candidate)
+
         try:
-            resolved, raw, _, _ = fetch_url(candidate)
+            resolved, raw, _, _ = fetch_url(normalized_candidate)
         except FetchError as exc:
             errors.append(str(exc))
-            continue
+            return None
 
         text = decode_html_body(raw)
-        if ".loader.js" in text:
-            return resolved, text
-        errors.append(f"{candidate} -> fetched but no Unity loader reference found")
+        return inspect_html(resolved, text, depth, resolved)
+
+    for candidate in candidate_index_urls(input_url, root_url):
+        result = inspect_url(candidate, 0)
+        if result:
+            return result
 
     joined = "\n  - ".join(errors) if errors else "No candidate URLs were tested."
     raise FetchError(f"Could not find Unity index HTML.\n  - {joined}")
@@ -306,6 +503,128 @@ def extract_loader_url(index_html: str, index_url: str) -> str:
     raise FetchError("No Unity loader file URL (*.loader.js) found in index HTML.")
 
 
+def extract_legacy_config_url(index_html: str, index_url: str) -> str:
+    build_prefix = extract_build_url_prefix(index_html).strip("/")
+
+    def absolutize(candidate: str) -> str:
+        raw_value = html.unescape(candidate).replace("\\/", "/")
+        if build_prefix and raw_value.startswith("/") and not raw_value.startswith("//"):
+            if raw_value.lstrip("/").startswith(build_prefix + "/"):
+                raw_value = raw_value.lstrip("/")
+            else:
+                raw_value = build_prefix + raw_value
+        return normalize_url(urllib.parse.urljoin(index_url, raw_value))
+
+    concat_match = re.search(
+        r"""UnityLoader\.instantiate\(\s*[^,]+,\s*buildUrl\s*\+\s*["']([^"']+?\.json(?:\?[^"']*)?)["']""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if concat_match:
+        candidate = concat_match.group(1)
+        if candidate.startswith("/") and not candidate.startswith("//"):
+            candidate = build_prefix + candidate
+        else:
+            candidate = build_prefix + "/" + candidate.lstrip("/")
+        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+
+    direct_match = re.search(
+        r"""UnityLoader\.instantiate\(\s*[^,]+,\s*["']([^"']+?\.json(?:\?[^"']*)?)["']""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if direct_match:
+        return absolutize(direct_match.group(1))
+
+    variable_match = re.search(
+        r"""UnityLoader\.instantiate\(\s*[^,]+,\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*,""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if variable_match:
+        variable_name = re.escape(variable_match.group(1))
+        concat_variable_match = re.search(
+            rf"""{variable_name}\s*=\s*buildUrl\s*\+\s*["']([^"']+?\.json(?:\?[^"']*)?)["']""",
+            index_html,
+            re.IGNORECASE,
+        )
+        if concat_variable_match:
+            candidate = concat_variable_match.group(1)
+            if candidate.startswith("/") and not candidate.startswith("//"):
+                candidate = build_prefix + candidate
+            else:
+                candidate = build_prefix + "/" + candidate.lstrip("/")
+            return normalize_url(urllib.parse.urljoin(index_url, candidate))
+
+        direct_variable_match = re.search(
+            rf"""{variable_name}\s*=\s*["']([^"']+?\.json(?:\?[^"']*)?)["']""",
+            index_html,
+            re.IGNORECASE,
+        )
+        if direct_variable_match:
+            return absolutize(direct_variable_match.group(1))
+
+    raise FetchError("No legacy Unity JSON config URL found in entry HTML.")
+
+
+def extract_legacy_loader_url(index_html: str, index_url: str, config_url: str) -> str:
+    script_pattern = re.compile(
+        r"""<script[^>]+src=["']([^"']+?UnityLoader\.js(?:\?[^"']*)?)["']""",
+        re.IGNORECASE,
+    )
+    script_matches = script_pattern.findall(index_html)
+    if script_matches:
+        candidate = html.unescape(script_matches[0]).replace("\\/", "/")
+        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+
+    quoted_matches = re.findall(
+        r"""["']([^"']+?UnityLoader\.js(?:\?[^"']*)?)["']""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if quoted_matches:
+        candidate = html.unescape(quoted_matches[0]).replace("\\/", "/")
+        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+
+    config_base_url = remove_query_and_fragment(config_url).rsplit("/", 1)[0] + "/"
+    return normalize_url(urllib.parse.urljoin(config_base_url, "UnityLoader.js"))
+
+
+def fetch_json_payload(url: str) -> dict[str, Any]:
+    resolved_url, raw, _, _ = fetch_url(url)
+    try:
+        payload = json.loads(decode_html_body(raw))
+    except json.JSONDecodeError as exc:
+        raise FetchError(f"{resolved_url} -> invalid JSON payload") from exc
+    if not isinstance(payload, dict):
+        raise FetchError(f"{resolved_url} -> JSON payload is not an object")
+    return payload
+
+
+def build_legacy_asset_candidate_urls(
+    loader_url: str,
+    legacy_config: dict[str, Any],
+    config_url: str,
+) -> dict[str, list[str]]:
+    candidates: dict[str, list[str]] = {
+        "loader": [remove_query_and_fragment(normalize_url(loader_url))]
+    }
+
+    for key, value in legacy_config.items():
+        if not key.endswith("Url") or not isinstance(value, str):
+            continue
+        cleaned_value = html.unescape(value).replace("\\/", "/").strip()
+        if not cleaned_value or cleaned_value.startswith("data:"):
+            continue
+        absolute = normalize_url(urllib.parse.urljoin(config_url, cleaned_value))
+        filename = basename_from_url(absolute)
+        if not filename or "." not in filename:
+            continue
+        candidates[key] = [remove_query_and_fragment(absolute)]
+
+    return candidates
+
+
 def remove_query_and_fragment(url: str) -> str:
     parsed = urllib.parse.urlparse(url)
     return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
@@ -438,6 +757,31 @@ def build_asset_candidate_urls(loader_url: str, index_html: str, index_url: str)
     }
 
 
+def detect_entry_build(index_url: str, index_html: str) -> DetectedBuild:
+    if "UnityLoader.instantiate" in index_html:
+        config_url = extract_legacy_config_url(index_html, index_url)
+        legacy_config = fetch_json_payload(config_url)
+        loader_url = extract_legacy_loader_url(index_html, index_url, config_url)
+        candidates = build_legacy_asset_candidate_urls(loader_url, legacy_config, config_url)
+        return DetectedBuild(
+            build_kind="legacy_json",
+            index_url=index_url,
+            index_html=index_html,
+            loader_url=loader_url,
+            candidates=candidates,
+            legacy_config=legacy_config,
+        )
+
+    loader_url = extract_loader_url(index_html, index_url)
+    return DetectedBuild(
+        build_kind="modern",
+        index_url=index_url,
+        index_html=index_html,
+        loader_url=loader_url,
+        candidates=build_asset_candidate_urls(loader_url, index_html, index_url),
+    )
+
+
 def build_asset_candidate_urls_from_direct(
     loader_url: str,
     framework_url: str,
@@ -549,6 +893,15 @@ def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
         window_roots=sorted(window_roots),
         window_callable_chains=sorted(window_callable_chains),
         requires_crazygames_sdk=requires_crazygames_sdk,
+    )
+
+
+def empty_framework_analysis() -> FrameworkAnalysis:
+    return FrameworkAnalysis(
+        required_functions=[],
+        window_roots=[],
+        window_callable_chains=[],
+        requires_crazygames_sdk=False,
     )
 
 
@@ -716,6 +1069,8 @@ def generate_index_html(
     data_name_js = json.dumps(assets.data_name, ensure_ascii=False)
     framework_name_js = json.dumps(assets.framework_name, ensure_ascii=False)
     wasm_name_js = json.dumps(assets.wasm_name, ensure_ascii=False)
+    build_kind_js = json.dumps(assets.build_kind, ensure_ascii=False)
+    legacy_config_js = json.dumps(assets.legacy_config, ensure_ascii=False)
     decompression_fallback_line = (
         "  config.decompressionFallback = true;\n" if assets.used_br_assets else ""
     )
@@ -767,6 +1122,17 @@ def generate_index_html(
       height: 100%;
       display: block;
       background: #000;
+    }}
+    #unity-legacy-container {{
+      position: absolute;
+      inset: 0;
+      display: none;
+      background: #000;
+    }}
+    #unity-legacy-container canvas {{
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
     }}
     #loadingScreen {{
       position: absolute;
@@ -1081,6 +1447,7 @@ def generate_index_html(
 <body>
   <div id="container">
     <canvas id="unity-canvas"></canvas>
+    <div id="unity-legacy-container"></div>
     <div id="loadingScreen">
       <div id="loadingBackdrop" aria-hidden="true">
         <canvas id="star-canvas"></canvas>
@@ -1849,13 +2216,16 @@ def generate_index_html(
   <script>
     (function () {{
       const PRODUCT_NAME = {product_name_js};
+      const BUILD_KIND = {build_kind_js};
       const BUILD_DIR = "Build";
       const LOADER_FILE = {loader_name_js};
       const DATA_FILE = {data_name_js};
       const FRAMEWORK_FILE = {framework_name_js};
       const WASM_FILE = {wasm_name_js};
+      const LEGACY_CONFIG = {legacy_config_js};
 
       const canvas = document.getElementById("unity-canvas");
+      const legacyContainer = document.getElementById("unity-legacy-container");
       const loadingScreen = document.getElementById("loadingScreen");
       const progressFill = document.getElementById("progressFill");
       const progressTrack = document.getElementById("progressTrack");
@@ -1867,6 +2237,18 @@ def generate_index_html(
       let started = false;
       let loadingScreenDismissed = false;
       let launchPanelHideTimer = 0;
+      let legacyConfigUrl = "";
+
+      if (BUILD_KIND === "legacy_json") {{
+        if (canvas) {{
+          canvas.style.display = "none";
+        }}
+        if (legacyContainer) {{
+          legacyContainer.style.display = "block";
+        }}
+      }} else if (legacyContainer) {{
+        legacyContainer.style.display = "none";
+      }}
 
       function setStatus(text) {{
         if (status) {{
@@ -1892,6 +2274,14 @@ def generate_index_html(
           return;
         }}
         progressTrack.classList.toggle("is-visible", Boolean(isVisible));
+      }}
+
+      function releaseLegacyConfigUrl() {{
+        if (!legacyConfigUrl || typeof URL.revokeObjectURL !== "function") {{
+          return;
+        }}
+        URL.revokeObjectURL(legacyConfigUrl);
+        legacyConfigUrl = "";
       }}
 
       function dismissLoadingScreen() {{
@@ -1923,6 +2313,7 @@ def generate_index_html(
           launchPanel.style.display = "";
           launchPanel.classList.remove("is-hidden");
         }}
+        releaseLegacyConfigUrl();
         setProgressVisibility(false);
         setProgress(0);
       }}
@@ -1984,6 +2375,127 @@ def generate_index_html(
           }});
       }}
 
+      function buildLegacyConfig() {{
+        const config = JSON.parse(JSON.stringify(LEGACY_CONFIG || {{}}));
+        Object.keys(config).forEach(function (key) {{
+          const value = config[key];
+          if (typeof value !== "string" || !value || /^data:/i.test(value)) {{
+            return;
+          }}
+          if (!key.endsWith("Url")) {{
+            return;
+          }}
+          if (/^[a-z][a-z0-9+.-]*:/i.test(value)) {{
+            return;
+          }}
+          const relativeValue = value.replace(/^\\.?\\//, "");
+          config[key] = new URL(BUILD_DIR + "/" + relativeValue, window.location.href).toString();
+        }});
+        return config;
+      }}
+
+      function startModernGame(loaderUrl) {{
+        const config = {{
+          dataUrl: BUILD_DIR + "/" + DATA_FILE,
+          frameworkUrl: BUILD_DIR + "/" + FRAMEWORK_FILE,
+          codeUrl: BUILD_DIR + "/" + WASM_FILE,
+          streamingAssetsUrl: BUILD_DIR + "/StreamingAssets",
+          companyName: PRODUCT_NAME,
+          productName: PRODUCT_NAME,
+          productVersion: "1.0.0",
+        }};
+{decompression_fallback_line}        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = function () {{
+          if (typeof createUnityInstance !== "function") {{
+            resetLaunchState();
+            setStatus("Loader error: createUnityInstance is missing");
+            return;
+          }}
+
+          createUnityInstance(canvas, config, function (progress) {{
+            const percent = setProgress(progress);
+            setStatus("Loading " + percent + "%");
+          }})
+          .then(function () {{
+            setProgress(1);
+            setStatus("Ready");
+            window.setTimeout(dismissLoadingScreen, 380);
+          }})
+          .catch(function (err) {{
+            console.error(err);
+            resetLaunchState();
+            setStatus("Failed to load game");
+            alert("Unity failed to load: " + err);
+          }});
+        }};
+        script.onerror = function () {{
+          resetLaunchState();
+          setStatus("Failed to load Unity loader script");
+        }};
+        document.body.appendChild(script);
+      }}
+
+      function startLegacyGame(loaderUrl) {{
+        if (!legacyContainer) {{
+          resetLaunchState();
+          setStatus("Legacy Unity container is missing");
+          return;
+        }}
+
+        const configBlob = new Blob(
+          [JSON.stringify(buildLegacyConfig())],
+          {{ type: "application/json" }}
+        );
+        legacyConfigUrl =
+          typeof URL.createObjectURL === "function" ? URL.createObjectURL(configBlob) : "";
+        if (!legacyConfigUrl) {{
+          resetLaunchState();
+          setStatus("Failed to prepare legacy Unity config");
+          return;
+        }}
+
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = function () {{
+          const instantiate =
+            window.UnityLoader && typeof window.UnityLoader.instantiate === "function"
+              ? window.UnityLoader.instantiate
+              : null;
+          if (!instantiate) {{
+            resetLaunchState();
+            setStatus("Loader error: UnityLoader.instantiate is missing");
+            return;
+          }}
+
+          try {{
+            instantiate(legacyContainer, legacyConfigUrl, {{
+              onProgress: function (_instance, progress) {{
+                const percent = setProgress(progress);
+                setStatus("Loading " + percent + "%");
+                if (progress >= 1) {{
+                  window.setTimeout(function () {{
+                    releaseLegacyConfigUrl();
+                    dismissLoadingScreen();
+                    setStatus("Ready");
+                  }}, 380);
+                }}
+              }},
+            }});
+          }} catch (err) {{
+            console.error(err);
+            resetLaunchState();
+            setStatus("Failed to load game");
+            alert("Unity failed to load: " + err);
+          }}
+        }};
+        script.onerror = function () {{
+          resetLaunchState();
+          setStatus("Failed to load Unity loader script");
+        }};
+        document.body.appendChild(script);
+      }}
+
       function startGame() {{
         if (started) {{
           return;
@@ -2009,45 +2521,11 @@ def generate_index_html(
 
         ensureStorageAccess().finally(function () {{
           const loaderUrl = BUILD_DIR + "/" + LOADER_FILE;
-          const config = {{
-            dataUrl: BUILD_DIR + "/" + DATA_FILE,
-            frameworkUrl: BUILD_DIR + "/" + FRAMEWORK_FILE,
-            codeUrl: BUILD_DIR + "/" + WASM_FILE,
-            streamingAssetsUrl: BUILD_DIR + "/StreamingAssets",
-            companyName: PRODUCT_NAME,
-            productName: PRODUCT_NAME,
-            productVersion: "1.0.0",
-          }};
-{decompression_fallback_line}        const script = document.createElement("script");
-          script.src = loaderUrl;
-          script.onload = function () {{
-            if (typeof createUnityInstance !== "function") {{
-              resetLaunchState();
-              setStatus("Loader error: createUnityInstance is missing");
-              return;
-            }}
-
-            createUnityInstance(canvas, config, function (progress) {{
-              const percent = setProgress(progress);
-              setStatus("Loading " + percent + "%");
-            }})
-            .then(function () {{
-              setProgress(1);
-              setStatus("Ready");
-              window.setTimeout(dismissLoadingScreen, 380);
-            }})
-            .catch(function (err) {{
-              console.error(err);
-              resetLaunchState();
-              setStatus("Failed to load game");
-              alert("Unity failed to load: " + err);
-            }});
-          }};
-          script.onerror = function () {{
-            resetLaunchState();
-            setStatus("Failed to load Unity loader script");
-          }};
-          document.body.appendChild(script);
+          if (BUILD_KIND === "legacy_json") {{
+            startLegacyGame(loaderUrl);
+            return;
+          }}
+          startModernGame(loaderUrl);
         }});
       }}
 
@@ -2144,6 +2622,119 @@ def download_assets(
         data_name=data_name,
         wasm_name=wasm_name,
         used_br_assets=used_br_assets,
+        build_kind="modern",
+    )
+
+
+def download_legacy_assets(
+    output_build_dir: Path,
+    candidates: dict[str, list[str]],
+    legacy_config: dict[str, Any],
+    progress_file: Path,
+) -> DownloadedAssets:
+    progress = load_json_file(progress_file)
+    expected_signature = {
+        "build_kind": "legacy_json",
+        "candidate_urls": candidates,
+        "legacy_config": legacy_config,
+    }
+    if (
+        progress.get("build_kind") != "legacy_json"
+        or progress.get("candidate_urls") != candidates
+        or progress.get("legacy_config") != legacy_config
+    ):
+        progress = {
+            "build_kind": "legacy_json",
+            "candidate_urls": candidates,
+            "legacy_config": legacy_config,
+            "assets": {},
+            "completed": False,
+        }
+        save_json_file(progress_file, progress)
+    else:
+        progress.update(expected_signature)
+
+    assets_state = progress.get("assets")
+    if not isinstance(assets_state, dict):
+        assets_state = {}
+        progress["assets"] = assets_state
+
+    def download_or_resume(kind: str) -> str:
+        existing = assets_state.get(kind) if isinstance(assets_state, dict) else None
+        if isinstance(existing, dict):
+            existing_name = existing.get("filename", "")
+            existing_path = output_build_dir / existing_name
+            if existing_name and existing_path.exists() and existing_path.stat().st_size > 0:
+                log(f"{kind}: reusing {existing_name}")
+                return existing_name
+
+        possible_names = [basename_from_url(url) for url in candidates[kind]]
+        destination = output_build_dir / possible_names[0]
+        resolved_url, _, compression_kind = download_first_valid(candidates[kind], destination)
+
+        resolved_name = basename_from_url(resolved_url)
+        if kind != "loader":
+            lower_name = resolved_name.lower()
+            if compression_kind == "br" and not (
+                lower_name.endswith(".br") or lower_name.endswith(".unityweb")
+            ):
+                resolved_name = resolved_name + ".br"
+            elif compression_kind == "gzip" and not (
+                lower_name.endswith(".gz") or lower_name.endswith(".unityweb")
+            ):
+                resolved_name = resolved_name + ".gz"
+        if destination.name != resolved_name:
+            corrected_path = output_build_dir / resolved_name
+            destination.replace(corrected_path)
+            final_path = corrected_path
+        else:
+            final_path = destination
+
+        assets_state[kind] = {
+            "filename": final_path.name,
+            "url": resolved_url,
+            "size": final_path.stat().st_size,
+        }
+        progress["assets"] = assets_state
+        save_json_file(progress_file, progress)
+        log(f"{kind}: downloaded {final_path.name}")
+        return final_path.name
+
+    downloaded_names: dict[str, str] = {}
+    for kind in ["loader"] + sorted(key for key in candidates if key != "loader"):
+        downloaded_names[kind] = download_or_resume(kind)
+
+    localized_config = json.loads(json.dumps(legacy_config))
+    for key, name in downloaded_names.items():
+        if key != "loader" and key in localized_config:
+            localized_config[key] = name
+
+    used_br_assets = any(
+        name.lower().endswith((".br", ".gz", ".unityweb"))
+        for key, name in downloaded_names.items()
+        if key != "loader"
+    )
+
+    return DownloadedAssets(
+        loader_name=downloaded_names["loader"],
+        framework_name=(
+            downloaded_names.get("wasmFrameworkUrl")
+            or downloaded_names.get("frameworkUrl")
+            or downloaded_names.get("asmFrameworkUrl")
+            or ""
+        ),
+        data_name=downloaded_names.get("dataUrl", ""),
+        wasm_name=(
+            downloaded_names.get("wasmCodeUrl")
+            or downloaded_names.get("codeUrl")
+            or downloaded_names.get("wasmUrl")
+            or downloaded_names.get("asmCodeUrl")
+            or ""
+        ),
+        used_br_assets=used_br_assets,
+        build_kind="legacy_json",
+        legacy_config=localized_config,
+        legacy_asset_names={key: value for key, value in downloaded_names.items() if key != "loader"},
     )
 
 
@@ -2200,6 +2791,10 @@ def infer_output_name_from_url(root_url: str, loader_url: str) -> str:
         return slugify_name(stem)
 
     parsed = urllib.parse.urlparse(root_url)
+    path_segments = [segment for segment in parsed.path.split("/") if segment]
+    if path_segments:
+        return slugify_name(path_segments[-1])
+
     host_part = parsed.netloc.split(".")[0] or "unity-game"
     return slugify_name(host_part)
 
@@ -2224,6 +2819,9 @@ def main(argv: Sequence[str]) -> int:
             "Provide either an entry URL or all direct URLs "
             "(--loader-url --framework-url --data-url --wasm-url)."
         )
+
+    build_kind = "modern"
+    legacy_config: dict[str, Any] = {}
 
     if direct_mode:
         loader_url = normalize_url(args.loader_url)
@@ -2250,9 +2848,14 @@ def main(argv: Sequence[str]) -> int:
         index_url, index_html = find_index_html(input_url, root_url)
         log(f"Resolved index URL: {index_url}")
 
-        loader_url = extract_loader_url(index_html, index_url)
+        detected_build = detect_entry_build(index_url, index_html)
+        build_kind = detected_build.build_kind
+        legacy_config = detected_build.legacy_config
+        loader_url = detected_build.loader_url
+        candidates = detected_build.candidates
+
+        log(f"Detected build kind: {build_kind}")
         log(f"Resolved loader URL: {loader_url}")
-        candidates = build_asset_candidate_urls(loader_url, index_html, index_url)
 
     output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
     output_dir = Path(output_name).resolve()
@@ -2272,17 +2875,31 @@ def main(argv: Sequence[str]) -> int:
     progress_payload.update(
         {
             "mode": "direct_urls" if direct_mode else "entry_auto",
+            "build_kind": build_kind,
             "root_url": root_url,
             "loader_url": loader_url,
             "completed": False,
         }
     )
+    if legacy_config:
+        progress_payload["legacy_config"] = legacy_config
     save_json_file(progress_file, progress_payload)
 
-    assets = download_assets(build_dir, candidates, progress_file)
+    if build_kind == "legacy_json":
+        assets = download_legacy_assets(build_dir, candidates, legacy_config, progress_file)
+    else:
+        assets = download_assets(build_dir, candidates, progress_file)
 
-    framework_path = build_dir / assets.framework_name
-    framework_analysis = analyze_framework(framework_path)
+    analysis_target = (
+        build_dir / assets.framework_name
+        if assets.framework_name
+        else build_dir / assets.loader_name
+    )
+    framework_analysis = (
+        analyze_framework(analysis_target)
+        if analysis_target.exists()
+        else empty_framework_analysis()
+    )
     required_functions = framework_analysis.required_functions
 
     product_name = slugify_name(output_dir.name).replace("-", " ")
@@ -2324,9 +2941,12 @@ def main(argv: Sequence[str]) -> int:
         "window_callable_chain_count": len(framework_analysis.window_callable_chains),
         "used_br_assets": assets.used_br_assets,
         "used_compressed_assets": assets.used_br_assets,
+        "build_kind": build_kind,
         "mode": "direct_urls" if direct_mode else "entry_auto",
         "progress_file": str(progress_file),
     }
+    if assets.build_kind == "legacy_json":
+        summary["legacy_asset_names"] = assets.legacy_asset_names
     (output_dir / "standalone-build-info.json").write_text(
         json.dumps(summary, indent=2),
         encoding="utf-8",
