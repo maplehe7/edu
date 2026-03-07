@@ -46,6 +46,17 @@
       display: block;
       background: #000;
     }
+    #unity-legacy-container {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background: #000;
+    }
+    #unity-legacy-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
     #loadingScreen {
       position: absolute;
       inset: 0;
@@ -359,6 +370,7 @@
 <body>
   <div id="container">
     <canvas id="unity-canvas"></canvas>
+    <div id="unity-legacy-container"></div>
     <div id="loadingScreen">
       <div id="loadingBackdrop" aria-hidden="true">
         <canvas id="star-canvas"></canvas>
@@ -393,6 +405,9 @@
       const FALSE = "false";
       const EMPTY = "";
       const ZERO = "0";
+      const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
+      const SOURCE_PAGE_URL = "https://bitlifeonline.github.io/ragdoll-archers/";
+      const ENABLE_SOURCE_URL_SPOOF = false;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
       };
@@ -402,6 +417,10 @@
       const AD_STATE_OPENED = "opened";
       const AD_STATE_CLOSED = "closed";
       const AD_STATE_REWARDED = "rewarded";
+      window.__unityStandaloneLocalPageUrl = LOCAL_PAGE_URL;
+      if (SOURCE_PAGE_URL) {
+        window.__unityStandaloneSourcePageUrl = SOURCE_PAGE_URL;
+      }
 
       function rewriteVendorScriptUrl(value) {
         if (typeof value !== "string") {
@@ -411,11 +430,12 @@
           return SCRIPT_SRC_REDIRECTS[value];
         }
         try {
-          const parsed = new URL(value, document.baseURI);
+          const parsed = new URL(value, LOCAL_PAGE_URL);
+          const localPage = new URL(LOCAL_PAGE_URL);
           const sameFileOrigin =
-            parsed.protocol === "file:" && window.location.protocol === "file:";
+            parsed.protocol === "file:" && localPage.protocol === "file:";
           const sameHttpOrigin =
-            parsed.origin === window.location.origin && parsed.origin !== "null";
+            parsed.origin === localPage.origin && parsed.origin !== "null";
           if (sameFileOrigin || sameHttpOrigin) {
             const mapped = SCRIPT_SRC_REDIRECTS[parsed.pathname];
             if (mapped) {
@@ -506,6 +526,68 @@
       const legacyStorageKey = function (key) {
         return LEGACY_STORAGE_PREFIX + String(key);
       };
+
+      function buildMadHookSettings() {
+        const allowedLocalHosts = ["localhost", "127.0.0.1", "::1"];
+        const allowedRemoteHosts = [];
+        if (SOURCE_PAGE_URL) {
+          try {
+            const sourceUrl = new URL(SOURCE_PAGE_URL);
+            if (sourceUrl.hostname) {
+              allowedRemoteHosts.push(sourceUrl.hostname);
+            }
+          } catch (err) {
+            console.warn("Failed to parse source page URL:", err);
+          }
+        }
+        try {
+          const localUrl = new URL(LOCAL_PAGE_URL);
+          if (localUrl.hostname) {
+            allowedRemoteHosts.push(localUrl.hostname);
+          }
+        } catch (err) {
+          console.warn("Failed to parse local page URL:", err);
+        }
+        const uniqueRemoteHosts = Array.from(new Set(allowedRemoteHosts.filter(Boolean)));
+        const whitelistedDomains = Array.from(
+          new Set(uniqueRemoteHosts.concat(allowedLocalHosts))
+        );
+        return {
+          allowedLocalHosts: allowedLocalHosts,
+          allowedRemoteHosts: uniqueRemoteHosts,
+          whitelistedDomains: whitelistedDomains,
+          sourcePageUrl: SOURCE_PAGE_URL || EMPTY,
+          localPageUrl: LOCAL_PAGE_URL,
+          isQaTool: false,
+          hasAdblock: false,
+          siteLockEnabled: ENABLE_SOURCE_URL_SPOOF,
+        };
+      }
+
+      function getMadHookSettingsJson() {
+        return JSON.stringify(buildMadHookSettings());
+      }
+
+      function getUrlParametersJson() {
+        const payload = {};
+        try {
+          const localUrl = new URL(LOCAL_PAGE_URL);
+          localUrl.searchParams.forEach(function (value, key) {
+            payload[key] = value;
+          });
+        } catch (err) {
+          console.warn("Failed to parse URL parameters:", err);
+        }
+        return JSON.stringify(payload);
+      }
+
+      function getOfflineUser() {
+        return {
+          userId: "offline_player",
+          username: "Player",
+          displayName: "Player",
+        };
+      }
 
       const known = {
         // Ads
@@ -643,11 +725,140 @@
           }
           return EMPTY;
         },
+        // Mad Hook / CrazySDK bridge
+        InitSDK: function (...args) {
+          patchUnitySdk();
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [buildMadHookSettings()]);
+          safeCall(window.UnitySDK && window.UnitySDK.onSdkScriptLoaded, []);
+          return TRUE;
+        },
+        RequestAdSDK: function (...args) {
+          interstitialState = AD_STATE_OPENED;
+          rewardedState = AD_STATE_OPENED;
+          const callbackBag = args.find((arg) => arg && typeof arg === "object" && !Array.isArray(arg));
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          if (callbackBag) {
+            safeCall(callbackBag.adStarted, []);
+            safeCall(callbackBag.adFinished, []);
+            safeCall(callbackBag.adComplete, []);
+            safeCall(callbackBag.complete, []);
+          }
+          safeRunCallbacks(callbacks, [AD_STATE_CLOSED]);
+          interstitialState = AD_STATE_CLOSED;
+          rewardedState = AD_STATE_REWARDED;
+          return AD_STATE_CLOSED;
+        },
+        HappyTimeSDK: noop,
+        GameplayStartSDK: noop,
+        GameplayStopSDK: noop,
+        RequestInviteUrlSDK: function (...args) {
+          const inviteUrl = SOURCE_PAGE_URL || LOCAL_PAGE_URL;
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [inviteUrl]);
+          return inviteUrl;
+        },
+        ShowInviteButtonSDK: noop,
+        HideInviteButtonSDK: noop,
+        CopyToClipboardSDK: function (value) {
+          const text = value == null ? EMPTY : String(value);
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            navigator.clipboard.writeText(text).catch(noop);
+          }
+          return TRUE;
+        },
+        GetUrlParametersSDK: () => getUrlParametersJson(),
+        RequestBannersSDK: function (...args) {
+          bannerState = "shown";
+          const callbackBag = args.find((arg) => arg && typeof arg === "object" && !Array.isArray(arg));
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          if (callbackBag) {
+            safeCall(callbackBag.bannerRendered, []);
+            safeCall(callbackBag.complete, []);
+          }
+          safeRunCallbacks(callbacks, ["bannerRendered"]);
+          return "bannerRendered";
+        },
+        ShowAuthPromptSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        },
+        ShowAccountLinkPromptSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        },
+        GetUserSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        },
+        GetUserTokenSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, EMPTY]);
+          return EMPTY;
+        },
+        GetXsollaUserTokenSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, EMPTY]);
+          return EMPTY;
+        },
+        AddUserScoreSDK: noop,
+        SyncUnityGameDataSDK: noop,
+        HasAdblock: () => false,
+        GetSettings: () => getMadHookSettingsJson(),
+        WrapGFFeature: (value) => value,
+        IsQaTool: () => false,
+        IsOnWhitelistedDomain: () => true,
+        DebugLog: function (...args) {
+          console.log("[standalone-sdk]", ...args);
+          return EMPTY;
+        },
       };
 
       const dynamicFunctionNames = ["getUserMedia", "unityStringify"];
       const dynamicWindowRootNames = ["CrazyGames", "Crazygames", "UnitySDK", "crazySdkInitOptions", "getUserMedia", "unityStringify"];
       const dynamicWindowCallableChains = ["CrazyGames.SDK.ad.hasAdblock", "CrazyGames.SDK.ad.requestAd", "CrazyGames.SDK.addInitCallback", "CrazyGames.SDK.banner.requestOverlayBanners", "CrazyGames.SDK.game.gameplayStart", "CrazyGames.SDK.game.gameplayStop", "CrazyGames.SDK.game.happytime", "CrazyGames.SDK.user.addAuthListener", "CrazyGames.SDK.user.addScore", "CrazyGames.SDK.user.getUser", "CrazyGames.SDK.user.getUserToken", "CrazyGames.SDK.user.getXsollaUserToken", "CrazyGames.SDK.user.showAccountLinkPrompt", "CrazyGames.SDK.user.showAuthPrompt", "Crazygames.requestInviteUrl", "UnitySDK.ensureLoaded", "UnitySDK.lockPointer", "UnitySDK.onSdkScriptLoaded", "UnitySDK.unlockPointer", "getUserMedia", "unityStringify"];
+      const fixedGlobalFunctionNames = [
+        "InitSDK",
+        "RequestAdSDK",
+        "HappyTimeSDK",
+        "GameplayStartSDK",
+        "GameplayStopSDK",
+        "RequestInviteUrlSDK",
+        "ShowInviteButtonSDK",
+        "HideInviteButtonSDK",
+        "CopyToClipboardSDK",
+        "GetUrlParametersSDK",
+        "RequestBannersSDK",
+        "ShowAuthPromptSDK",
+        "ShowAccountLinkPromptSDK",
+        "GetUserSDK",
+        "GetUserTokenSDK",
+        "GetXsollaUserTokenSDK",
+        "AddUserScoreSDK",
+        "SyncUnityGameDataSDK",
+        "HasAdblock",
+        "GetSettings",
+        "WrapGFFeature",
+        "IsQaTool",
+        "IsOnWhitelistedDomain",
+        "DebugLog",
+      ];
+      const fixedWindowRootNames = ["CrazySDK", "MadHook"];
+      const fixedWindowCallableChains = fixedGlobalFunctionNames.map(function (name) {
+        return "CrazySDK." + name;
+      });
+      const allDynamicFunctionNames = Array.from(
+        new Set(dynamicFunctionNames.concat(fixedGlobalFunctionNames))
+      );
+      const allDynamicWindowRoots = Array.from(
+        new Set(dynamicWindowRootNames.concat(fixedWindowRootNames))
+      );
+      const allDynamicWindowCallableChains = Array.from(
+        new Set(dynamicWindowCallableChains.concat(fixedWindowCallableChains))
+      );
 
       function safeCall(fn, args) {
         if (typeof fn !== "function") {
@@ -794,17 +1005,17 @@
         }
       }
 
-      for (const name of dynamicFunctionNames) {
+      for (const name of allDynamicFunctionNames) {
         if (typeof window[name] !== "function") {
           window[name] = inferStub(name);
         }
       }
 
-      for (const rootName of dynamicWindowRootNames) {
+      for (const rootName of allDynamicWindowRoots) {
         ensurePath(rootName, false);
       }
 
-      for (const chain of dynamicWindowCallableChains) {
+      for (const chain of allDynamicWindowCallableChains) {
         ensurePath(chain, true);
       }
 
@@ -849,8 +1060,75 @@
         }
       }
 
+      function patchCrazySdk() {
+        if (!window.CrazySDK || typeof window.CrazySDK !== "object") {
+          window.CrazySDK = {};
+        }
+        const sdk = window.CrazySDK;
+        const settings = buildMadHookSettings();
+        sdk.settings = settings;
+        if (!window.crazySdkInitOptions || typeof window.crazySdkInitOptions !== "object") {
+          window.crazySdkInitOptions = {};
+        }
+        Object.assign(window.crazySdkInitOptions, settings);
+        const methodMap = {
+          InitSDK: window.InitSDK,
+          RequestAdSDK: window.RequestAdSDK,
+          HappyTimeSDK: window.HappyTimeSDK,
+          GameplayStartSDK: window.GameplayStartSDK,
+          GameplayStopSDK: window.GameplayStopSDK,
+          RequestInviteUrlSDK: window.RequestInviteUrlSDK,
+          ShowInviteButtonSDK: window.ShowInviteButtonSDK,
+          HideInviteButtonSDK: window.HideInviteButtonSDK,
+          CopyToClipboardSDK: window.CopyToClipboardSDK,
+          GetUrlParametersSDK: window.GetUrlParametersSDK,
+          RequestBannersSDK: window.RequestBannersSDK,
+          ShowAuthPromptSDK: window.ShowAuthPromptSDK,
+          ShowAccountLinkPromptSDK: window.ShowAccountLinkPromptSDK,
+          GetUserSDK: window.GetUserSDK,
+          GetUserTokenSDK: window.GetUserTokenSDK,
+          GetXsollaUserTokenSDK: window.GetXsollaUserTokenSDK,
+          AddUserScoreSDK: window.AddUserScoreSDK,
+          SyncUnityGameDataSDK: window.SyncUnityGameDataSDK,
+          HasAdblock: window.HasAdblock,
+          GetSettings: window.GetSettings,
+          WrapGFFeature: window.WrapGFFeature,
+          IsQaTool: window.IsQaTool,
+          IsOnWhitelistedDomain: window.IsOnWhitelistedDomain,
+          DebugLog: window.DebugLog,
+        };
+        Object.entries(methodMap).forEach(function (entry) {
+          const name = entry[0];
+          const fn = entry[1];
+          if (typeof fn === "function") {
+            sdk[name] = fn;
+          }
+        });
+        if (typeof sdk.init !== "function") {
+          sdk.init = window.InitSDK;
+        }
+        if (typeof sdk.requestAd !== "function") {
+          sdk.requestAd = window.RequestAdSDK;
+        }
+        if (typeof sdk.getSettings !== "function") {
+          sdk.getSettings = function () {
+            return buildMadHookSettings();
+          };
+        }
+        if (typeof sdk.hasAdblock !== "function") {
+          sdk.hasAdblock = window.HasAdblock;
+        }
+        if (typeof sdk.isOnWhitelistedDomain !== "function") {
+          sdk.isOnWhitelistedDomain = window.IsOnWhitelistedDomain;
+        }
+      }
+
       patchUnitySdk();
-      const sdkPatchInterval = setInterval(patchUnitySdk, 500);
+      patchCrazySdk();
+      const sdkPatchInterval = setInterval(function () {
+        patchUnitySdk();
+        patchCrazySdk();
+      }, 500);
       setTimeout(function () {
         clearInterval(sdkPatchInterval);
       }, 15000);
@@ -1127,13 +1405,22 @@
   <script>
     (function () {
       const PRODUCT_NAME = "Ragdoll Archers";
+      const BUILD_KIND = "modern";
       const BUILD_DIR = "Build";
       const LOADER_FILE = "v111.loader.js";
       const DATA_FILE = "6697b6deba8b617c67b69c55dcd07cb1.data.unityweb";
       const FRAMEWORK_FILE = "0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb";
       const WASM_FILE = "b3397c29f6878557c1c614cbf9e196ea.wasm.unityweb";
+      const LEGACY_CONFIG = {};
+      const SOURCE_PAGE_URL =
+        window.__unityStandaloneSourcePageUrl || "https://bitlifeonline.github.io/ragdoll-archers/";
+      const ENABLE_SOURCE_URL_SPOOF = false;
+      const LOCAL_PAGE_URL =
+        window.__unityStandaloneLocalPageUrl || window.location.href;
+      const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
 
       const canvas = document.getElementById("unity-canvas");
+      const legacyContainer = document.getElementById("unity-legacy-container");
       const loadingScreen = document.getElementById("loadingScreen");
       const progressFill = document.getElementById("progressFill");
       const progressTrack = document.getElementById("progressTrack");
@@ -1145,6 +1432,19 @@
       let started = false;
       let loadingScreenDismissed = false;
       let launchPanelHideTimer = 0;
+      let legacyConfigUrl = "";
+      let sourceUrlSpoofApplied = false;
+
+      if (BUILD_KIND === "legacy_json") {
+        if (canvas) {
+          canvas.style.display = "none";
+        }
+        if (legacyContainer) {
+          legacyContainer.style.display = "block";
+        }
+      } else if (legacyContainer) {
+        legacyContainer.style.display = "none";
+      }
 
       function setStatus(text) {
         if (status) {
@@ -1172,6 +1472,14 @@
         progressTrack.classList.toggle("is-visible", Boolean(isVisible));
       }
 
+      function releaseLegacyConfigUrl() {
+        if (!legacyConfigUrl || typeof URL.revokeObjectURL !== "function") {
+          return;
+        }
+        URL.revokeObjectURL(legacyConfigUrl);
+        legacyConfigUrl = "";
+      }
+
       function dismissLoadingScreen() {
         if (loadingScreenDismissed || !loadingScreen) {
           return;
@@ -1191,6 +1499,102 @@
         launchPanelHideTimer = 0;
       }
 
+      function buildLocalUrl(relativePath) {
+        const cleanPath = String(relativePath || "").replace(/^\.?\//, "");
+        return new URL(cleanPath, LOCAL_PAGE_URL).toString();
+      }
+
+      function buildBuildAssetUrl(name) {
+        const cleanName = String(name || "").replace(/^\.?\//, "");
+        return new URL(cleanName, LOCAL_BUILD_ROOT_URL).toString();
+      }
+
+      function defineGetter(target, key, getter) {
+        if (!target || typeof getter !== "function") {
+          return false;
+        }
+        try {
+          Object.defineProperty(target, key, {
+            configurable: true,
+            enumerable: true,
+            get: getter,
+          });
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function maybeSpoofSourcePageUrl() {
+        if (
+          sourceUrlSpoofApplied ||
+          !ENABLE_SOURCE_URL_SPOOF ||
+          typeof SOURCE_PAGE_URL !== "string" ||
+          !SOURCE_PAGE_URL
+        ) {
+          return;
+        }
+        let spoofUrl;
+        try {
+          spoofUrl = new URL(SOURCE_PAGE_URL);
+        } catch (err) {
+          console.warn("Invalid source page URL for spoofing:", err);
+          return;
+        }
+        sourceUrlSpoofApplied = true;
+        const actualLocation = window.location;
+        const spoofLocation = {
+          href: spoofUrl.toString(),
+          origin: spoofUrl.origin,
+          protocol: spoofUrl.protocol,
+          host: spoofUrl.host,
+          hostname: spoofUrl.hostname,
+          port: spoofUrl.port,
+          pathname: spoofUrl.pathname,
+          search: spoofUrl.search,
+          hash: spoofUrl.hash,
+          assign: function (value) {
+            return actualLocation.assign(value);
+          },
+          replace: function (value) {
+            return actualLocation.replace(value);
+          },
+          reload: function () {
+            return actualLocation.reload();
+          },
+          toString: function () {
+            return spoofUrl.toString();
+          },
+          valueOf: function () {
+            return spoofUrl.toString();
+          },
+        };
+        defineGetter(document, "URL", function () {
+          return spoofUrl.toString();
+        });
+        defineGetter(document, "documentURI", function () {
+          return spoofUrl.toString();
+        });
+        defineGetter(document, "baseURI", function () {
+          return spoofUrl.toString();
+        });
+        defineGetter(document, "referrer", function () {
+          return spoofUrl.origin + "/";
+        });
+        defineGetter(document, "location", function () {
+          return spoofLocation;
+        });
+        defineGetter(window, "origin", function () {
+          return spoofUrl.origin;
+        });
+        defineGetter(window, "location", function () {
+          return spoofLocation;
+        });
+        defineGetter(globalThis, "location", function () {
+          return spoofLocation;
+        });
+      }
+
       function resetLaunchState() {
         started = false;
         clearLaunchPanelHideTimer();
@@ -1201,19 +1605,20 @@
           launchPanel.style.display = "";
           launchPanel.classList.remove("is-hidden");
         }
+        releaseLegacyConfigUrl();
         setProgressVisibility(false);
         setProgress(0);
       }
 
       function buildLaunchUrl(mode) {
-        const targetUrl = new URL(window.location.href);
+        const targetUrl = new URL(LOCAL_PAGE_URL);
         targetUrl.searchParams.set("autostart", "1");
         targetUrl.searchParams.set("launchMode", mode);
         return targetUrl.toString();
       }
 
       function consumeAutoStartFlag() {
-        const currentUrl = new URL(window.location.href);
+        const currentUrl = new URL(LOCAL_PAGE_URL);
         const shouldAutoStart = currentUrl.searchParams.get("autostart") === "1";
         if (shouldAutoStart) {
           currentUrl.searchParams.delete("autostart");
@@ -1262,6 +1667,128 @@
           });
       }
 
+      function buildLegacyConfig() {
+        const config = JSON.parse(JSON.stringify(LEGACY_CONFIG || {}));
+        Object.keys(config).forEach(function (key) {
+          const value = config[key];
+          if (typeof value !== "string" || !value || /^data:/i.test(value)) {
+            return;
+          }
+          if (!key.endsWith("Url")) {
+            return;
+          }
+          if (/^[a-z][a-z0-9+.-]*:/i.test(value)) {
+            return;
+          }
+          const relativeValue = value.replace(/^\.?\//, "");
+          config[key] = buildBuildAssetUrl(relativeValue);
+        });
+        return config;
+      }
+
+      function startModernGame(loaderUrl) {
+        const config = {
+          dataUrl: buildBuildAssetUrl(DATA_FILE),
+          frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
+          codeUrl: buildBuildAssetUrl(WASM_FILE),
+          streamingAssetsUrl: buildBuildAssetUrl("StreamingAssets"),
+          companyName: PRODUCT_NAME,
+          productName: PRODUCT_NAME,
+          productVersion: "1.0.0",
+        };
+  config.decompressionFallback = true;
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = function () {
+          if (typeof createUnityInstance !== "function") {
+            resetLaunchState();
+            setStatus("Loader error: createUnityInstance is missing");
+            return;
+          }
+
+          createUnityInstance(canvas, config, function (progress) {
+            const percent = setProgress(progress);
+            setStatus("Loading " + percent + "%");
+          })
+          .then(function () {
+            setProgress(1);
+            setStatus("Ready");
+            window.setTimeout(dismissLoadingScreen, 380);
+          })
+          .catch(function (err) {
+            console.error(err);
+            resetLaunchState();
+            setStatus("Failed to load game");
+            alert("Unity failed to load: " + err);
+          });
+        };
+        script.onerror = function () {
+          resetLaunchState();
+          setStatus("Failed to load Unity loader script");
+        };
+        document.body.appendChild(script);
+      }
+
+      function startLegacyGame(loaderUrl) {
+        if (!legacyContainer) {
+          resetLaunchState();
+          setStatus("Legacy Unity container is missing");
+          return;
+        }
+
+        const configBlob = new Blob(
+          [JSON.stringify(buildLegacyConfig())],
+          { type: "application/json" }
+        );
+        legacyConfigUrl =
+          typeof URL.createObjectURL === "function" ? URL.createObjectURL(configBlob) : "";
+        if (!legacyConfigUrl) {
+          resetLaunchState();
+          setStatus("Failed to prepare legacy Unity config");
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = function () {
+          const instantiate =
+            window.UnityLoader && typeof window.UnityLoader.instantiate === "function"
+              ? window.UnityLoader.instantiate
+              : null;
+          if (!instantiate) {
+            resetLaunchState();
+            setStatus("Loader error: UnityLoader.instantiate is missing");
+            return;
+          }
+
+          try {
+            instantiate(legacyContainer, legacyConfigUrl, {
+              onProgress: function (_instance, progress) {
+                const percent = setProgress(progress);
+                setStatus("Loading " + percent + "%");
+                if (progress >= 1) {
+                  window.setTimeout(function () {
+                    releaseLegacyConfigUrl();
+                    dismissLoadingScreen();
+                    setStatus("Ready");
+                  }, 380);
+                }
+              },
+            });
+          } catch (err) {
+            console.error(err);
+            resetLaunchState();
+            setStatus("Failed to load game");
+            alert("Unity failed to load: " + err);
+          }
+        };
+        script.onerror = function () {
+          resetLaunchState();
+          setStatus("Failed to load Unity loader script");
+        };
+        document.body.appendChild(script);
+      }
+
       function startGame() {
         if (started) {
           return;
@@ -1286,47 +1813,13 @@
         setStatus("Loading 0%");
 
         ensureStorageAccess().finally(function () {
-          const loaderUrl = BUILD_DIR + "/" + LOADER_FILE;
-          const config = {
-            dataUrl: BUILD_DIR + "/" + DATA_FILE,
-            frameworkUrl: BUILD_DIR + "/" + FRAMEWORK_FILE,
-            codeUrl: BUILD_DIR + "/" + WASM_FILE,
-            streamingAssetsUrl: BUILD_DIR + "/StreamingAssets",
-            companyName: PRODUCT_NAME,
-            productName: PRODUCT_NAME,
-            productVersion: "1.0.0",
-          };
-  config.decompressionFallback = true;
-        const script = document.createElement("script");
-          script.src = loaderUrl;
-          script.onload = function () {
-            if (typeof createUnityInstance !== "function") {
-              resetLaunchState();
-              setStatus("Loader error: createUnityInstance is missing");
-              return;
-            }
-
-            createUnityInstance(canvas, config, function (progress) {
-              const percent = setProgress(progress);
-              setStatus("Loading " + percent + "%");
-            })
-            .then(function () {
-              setProgress(1);
-              setStatus("Ready");
-              window.setTimeout(dismissLoadingScreen, 380);
-            })
-            .catch(function (err) {
-              console.error(err);
-              resetLaunchState();
-              setStatus("Failed to load game");
-              alert("Unity failed to load: " + err);
-            });
-          };
-          script.onerror = function () {
-            resetLaunchState();
-            setStatus("Failed to load Unity loader script");
-          };
-          document.body.appendChild(script);
+          const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
+          maybeSpoofSourcePageUrl();
+          if (BUILD_KIND === "legacy_json") {
+            startLegacyGame(loaderUrl);
+            return;
+          }
+          startModernGame(loaderUrl);
         });
       }
 

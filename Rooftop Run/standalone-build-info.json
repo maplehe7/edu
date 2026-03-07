@@ -11,6 +11,9 @@
   "window_callable_chain_count": 25,
   "used_br_assets": true,
   "used_compressed_assets": true,
+  "build_kind": "modern",
   "mode": "entry_auto",
+  "source_page_url": "https://www.crazygames.com/game/rooftop-run/",
+  "source_url_spoof_enabled": true,
   "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\.standalone-progress.json"
 }

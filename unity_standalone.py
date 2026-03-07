@@ -66,6 +66,16 @@ class DetectedBuild:
     legacy_config: dict[str, Any] = field(default_factory=dict)
 
 
+def file_contains_any_bytes(path: Path, patterns: Sequence[bytes]) -> bool:
+    if not path.exists() or not patterns:
+        return False
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        return False
+    return any(pattern in raw for pattern in patterns)
+
+
 def log(message: str) -> None:
     print(f"[unity-standalone] {message}")
 
@@ -1060,6 +1070,8 @@ def generate_index_html(
     required_functions: Sequence[str],
     window_roots: Sequence[str],
     window_callable_chains: Sequence[str],
+    source_page_url: str = "",
+    enable_source_url_spoof: bool = False,
 ) -> str:
     fn_list_js = json.dumps(list(required_functions), ensure_ascii=False)
     window_roots_js = json.dumps(list(window_roots), ensure_ascii=False)
@@ -1071,6 +1083,8 @@ def generate_index_html(
     wasm_name_js = json.dumps(assets.wasm_name, ensure_ascii=False)
     build_kind_js = json.dumps(assets.build_kind, ensure_ascii=False)
     legacy_config_js = json.dumps(assets.legacy_config, ensure_ascii=False)
+    source_page_url_js = json.dumps(source_page_url, ensure_ascii=False)
+    enable_source_url_spoof_js = "true" if enable_source_url_spoof else "false"
     decompression_fallback_line = (
         "  config.decompressionFallback = true;\n" if assets.used_br_assets else ""
     )
@@ -1482,6 +1496,9 @@ def generate_index_html(
       const FALSE = "false";
       const EMPTY = "";
       const ZERO = "0";
+      const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
+      const SOURCE_PAGE_URL = {source_page_url_js};
+      const ENABLE_SOURCE_URL_SPOOF = {enable_source_url_spoof_js};
       const SCRIPT_SRC_REDIRECTS = {{
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
       }};
@@ -1491,6 +1508,10 @@ def generate_index_html(
       const AD_STATE_OPENED = "opened";
       const AD_STATE_CLOSED = "closed";
       const AD_STATE_REWARDED = "rewarded";
+      window.__unityStandaloneLocalPageUrl = LOCAL_PAGE_URL;
+      if (SOURCE_PAGE_URL) {{
+        window.__unityStandaloneSourcePageUrl = SOURCE_PAGE_URL;
+      }}
 
       function rewriteVendorScriptUrl(value) {{
         if (typeof value !== "string") {{
@@ -1500,11 +1521,12 @@ def generate_index_html(
           return SCRIPT_SRC_REDIRECTS[value];
         }}
         try {{
-          const parsed = new URL(value, document.baseURI);
+          const parsed = new URL(value, LOCAL_PAGE_URL);
+          const localPage = new URL(LOCAL_PAGE_URL);
           const sameFileOrigin =
-            parsed.protocol === "file:" && window.location.protocol === "file:";
+            parsed.protocol === "file:" && localPage.protocol === "file:";
           const sameHttpOrigin =
-            parsed.origin === window.location.origin && parsed.origin !== "null";
+            parsed.origin === localPage.origin && parsed.origin !== "null";
           if (sameFileOrigin || sameHttpOrigin) {{
             const mapped = SCRIPT_SRC_REDIRECTS[parsed.pathname];
             if (mapped) {{
@@ -1595,6 +1617,68 @@ def generate_index_html(
       const legacyStorageKey = function (key) {{
         return LEGACY_STORAGE_PREFIX + String(key);
       }};
+
+      function buildMadHookSettings() {{
+        const allowedLocalHosts = ["localhost", "127.0.0.1", "::1"];
+        const allowedRemoteHosts = [];
+        if (SOURCE_PAGE_URL) {{
+          try {{
+            const sourceUrl = new URL(SOURCE_PAGE_URL);
+            if (sourceUrl.hostname) {{
+              allowedRemoteHosts.push(sourceUrl.hostname);
+            }}
+          }} catch (err) {{
+            console.warn("Failed to parse source page URL:", err);
+          }}
+        }}
+        try {{
+          const localUrl = new URL(LOCAL_PAGE_URL);
+          if (localUrl.hostname) {{
+            allowedRemoteHosts.push(localUrl.hostname);
+          }}
+        }} catch (err) {{
+          console.warn("Failed to parse local page URL:", err);
+        }}
+        const uniqueRemoteHosts = Array.from(new Set(allowedRemoteHosts.filter(Boolean)));
+        const whitelistedDomains = Array.from(
+          new Set(uniqueRemoteHosts.concat(allowedLocalHosts))
+        );
+        return {{
+          allowedLocalHosts: allowedLocalHosts,
+          allowedRemoteHosts: uniqueRemoteHosts,
+          whitelistedDomains: whitelistedDomains,
+          sourcePageUrl: SOURCE_PAGE_URL || EMPTY,
+          localPageUrl: LOCAL_PAGE_URL,
+          isQaTool: false,
+          hasAdblock: false,
+          siteLockEnabled: ENABLE_SOURCE_URL_SPOOF,
+        }};
+      }}
+
+      function getMadHookSettingsJson() {{
+        return JSON.stringify(buildMadHookSettings());
+      }}
+
+      function getUrlParametersJson() {{
+        const payload = {{}};
+        try {{
+          const localUrl = new URL(LOCAL_PAGE_URL);
+          localUrl.searchParams.forEach(function (value, key) {{
+            payload[key] = value;
+          }});
+        }} catch (err) {{
+          console.warn("Failed to parse URL parameters:", err);
+        }}
+        return JSON.stringify(payload);
+      }}
+
+      function getOfflineUser() {{
+        return {{
+          userId: "offline_player",
+          username: "Player",
+          displayName: "Player",
+        }};
+      }}
 
       const known = {{
         // Ads
@@ -1732,11 +1816,140 @@ def generate_index_html(
           }}
           return EMPTY;
         }},
+        // Mad Hook / CrazySDK bridge
+        InitSDK: function (...args) {{
+          patchUnitySdk();
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [buildMadHookSettings()]);
+          safeCall(window.UnitySDK && window.UnitySDK.onSdkScriptLoaded, []);
+          return TRUE;
+        }},
+        RequestAdSDK: function (...args) {{
+          interstitialState = AD_STATE_OPENED;
+          rewardedState = AD_STATE_OPENED;
+          const callbackBag = args.find((arg) => arg && typeof arg === "object" && !Array.isArray(arg));
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          if (callbackBag) {{
+            safeCall(callbackBag.adStarted, []);
+            safeCall(callbackBag.adFinished, []);
+            safeCall(callbackBag.adComplete, []);
+            safeCall(callbackBag.complete, []);
+          }}
+          safeRunCallbacks(callbacks, [AD_STATE_CLOSED]);
+          interstitialState = AD_STATE_CLOSED;
+          rewardedState = AD_STATE_REWARDED;
+          return AD_STATE_CLOSED;
+        }},
+        HappyTimeSDK: noop,
+        GameplayStartSDK: noop,
+        GameplayStopSDK: noop,
+        RequestInviteUrlSDK: function (...args) {{
+          const inviteUrl = SOURCE_PAGE_URL || LOCAL_PAGE_URL;
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [inviteUrl]);
+          return inviteUrl;
+        }},
+        ShowInviteButtonSDK: noop,
+        HideInviteButtonSDK: noop,
+        CopyToClipboardSDK: function (value) {{
+          const text = value == null ? EMPTY : String(value);
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {{
+            navigator.clipboard.writeText(text).catch(noop);
+          }}
+          return TRUE;
+        }},
+        GetUrlParametersSDK: () => getUrlParametersJson(),
+        RequestBannersSDK: function (...args) {{
+          bannerState = "shown";
+          const callbackBag = args.find((arg) => arg && typeof arg === "object" && !Array.isArray(arg));
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          if (callbackBag) {{
+            safeCall(callbackBag.bannerRendered, []);
+            safeCall(callbackBag.complete, []);
+          }}
+          safeRunCallbacks(callbacks, ["bannerRendered"]);
+          return "bannerRendered";
+        }},
+        ShowAuthPromptSDK: function (...args) {{
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        }},
+        ShowAccountLinkPromptSDK: function (...args) {{
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        }},
+        GetUserSDK: function (...args) {{
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        }},
+        GetUserTokenSDK: function (...args) {{
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, EMPTY]);
+          return EMPTY;
+        }},
+        GetXsollaUserTokenSDK: function (...args) {{
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, EMPTY]);
+          return EMPTY;
+        }},
+        AddUserScoreSDK: noop,
+        SyncUnityGameDataSDK: noop,
+        HasAdblock: () => false,
+        GetSettings: () => getMadHookSettingsJson(),
+        WrapGFFeature: (value) => value,
+        IsQaTool: () => false,
+        IsOnWhitelistedDomain: () => true,
+        DebugLog: function (...args) {{
+          console.log("[standalone-sdk]", ...args);
+          return EMPTY;
+        }},
       }};
 
       const dynamicFunctionNames = {fn_list_js};
       const dynamicWindowRootNames = {window_roots_js};
       const dynamicWindowCallableChains = {window_callable_chains_js};
+      const fixedGlobalFunctionNames = [
+        "InitSDK",
+        "RequestAdSDK",
+        "HappyTimeSDK",
+        "GameplayStartSDK",
+        "GameplayStopSDK",
+        "RequestInviteUrlSDK",
+        "ShowInviteButtonSDK",
+        "HideInviteButtonSDK",
+        "CopyToClipboardSDK",
+        "GetUrlParametersSDK",
+        "RequestBannersSDK",
+        "ShowAuthPromptSDK",
+        "ShowAccountLinkPromptSDK",
+        "GetUserSDK",
+        "GetUserTokenSDK",
+        "GetXsollaUserTokenSDK",
+        "AddUserScoreSDK",
+        "SyncUnityGameDataSDK",
+        "HasAdblock",
+        "GetSettings",
+        "WrapGFFeature",
+        "IsQaTool",
+        "IsOnWhitelistedDomain",
+        "DebugLog",
+      ];
+      const fixedWindowRootNames = ["CrazySDK", "MadHook"];
+      const fixedWindowCallableChains = fixedGlobalFunctionNames.map(function (name) {{
+        return "CrazySDK." + name;
+      }});
+      const allDynamicFunctionNames = Array.from(
+        new Set(dynamicFunctionNames.concat(fixedGlobalFunctionNames))
+      );
+      const allDynamicWindowRoots = Array.from(
+        new Set(dynamicWindowRootNames.concat(fixedWindowRootNames))
+      );
+      const allDynamicWindowCallableChains = Array.from(
+        new Set(dynamicWindowCallableChains.concat(fixedWindowCallableChains))
+      );
 
       function safeCall(fn, args) {{
         if (typeof fn !== "function") {{
@@ -1883,17 +2096,17 @@ def generate_index_html(
         }}
       }}
 
-      for (const name of dynamicFunctionNames) {{
+      for (const name of allDynamicFunctionNames) {{
         if (typeof window[name] !== "function") {{
           window[name] = inferStub(name);
         }}
       }}
 
-      for (const rootName of dynamicWindowRootNames) {{
+      for (const rootName of allDynamicWindowRoots) {{
         ensurePath(rootName, false);
       }}
 
-      for (const chain of dynamicWindowCallableChains) {{
+      for (const chain of allDynamicWindowCallableChains) {{
         ensurePath(chain, true);
       }}
 
@@ -1938,8 +2151,75 @@ def generate_index_html(
         }}
       }}
 
+      function patchCrazySdk() {{
+        if (!window.CrazySDK || typeof window.CrazySDK !== "object") {{
+          window.CrazySDK = {{}};
+        }}
+        const sdk = window.CrazySDK;
+        const settings = buildMadHookSettings();
+        sdk.settings = settings;
+        if (!window.crazySdkInitOptions || typeof window.crazySdkInitOptions !== "object") {{
+          window.crazySdkInitOptions = {{}};
+        }}
+        Object.assign(window.crazySdkInitOptions, settings);
+        const methodMap = {{
+          InitSDK: window.InitSDK,
+          RequestAdSDK: window.RequestAdSDK,
+          HappyTimeSDK: window.HappyTimeSDK,
+          GameplayStartSDK: window.GameplayStartSDK,
+          GameplayStopSDK: window.GameplayStopSDK,
+          RequestInviteUrlSDK: window.RequestInviteUrlSDK,
+          ShowInviteButtonSDK: window.ShowInviteButtonSDK,
+          HideInviteButtonSDK: window.HideInviteButtonSDK,
+          CopyToClipboardSDK: window.CopyToClipboardSDK,
+          GetUrlParametersSDK: window.GetUrlParametersSDK,
+          RequestBannersSDK: window.RequestBannersSDK,
+          ShowAuthPromptSDK: window.ShowAuthPromptSDK,
+          ShowAccountLinkPromptSDK: window.ShowAccountLinkPromptSDK,
+          GetUserSDK: window.GetUserSDK,
+          GetUserTokenSDK: window.GetUserTokenSDK,
+          GetXsollaUserTokenSDK: window.GetXsollaUserTokenSDK,
+          AddUserScoreSDK: window.AddUserScoreSDK,
+          SyncUnityGameDataSDK: window.SyncUnityGameDataSDK,
+          HasAdblock: window.HasAdblock,
+          GetSettings: window.GetSettings,
+          WrapGFFeature: window.WrapGFFeature,
+          IsQaTool: window.IsQaTool,
+          IsOnWhitelistedDomain: window.IsOnWhitelistedDomain,
+          DebugLog: window.DebugLog,
+        }};
+        Object.entries(methodMap).forEach(function (entry) {{
+          const name = entry[0];
+          const fn = entry[1];
+          if (typeof fn === "function") {{
+            sdk[name] = fn;
+          }}
+        }});
+        if (typeof sdk.init !== "function") {{
+          sdk.init = window.InitSDK;
+        }}
+        if (typeof sdk.requestAd !== "function") {{
+          sdk.requestAd = window.RequestAdSDK;
+        }}
+        if (typeof sdk.getSettings !== "function") {{
+          sdk.getSettings = function () {{
+            return buildMadHookSettings();
+          }};
+        }}
+        if (typeof sdk.hasAdblock !== "function") {{
+          sdk.hasAdblock = window.HasAdblock;
+        }}
+        if (typeof sdk.isOnWhitelistedDomain !== "function") {{
+          sdk.isOnWhitelistedDomain = window.IsOnWhitelistedDomain;
+        }}
+      }}
+
       patchUnitySdk();
-      const sdkPatchInterval = setInterval(patchUnitySdk, 500);
+      patchCrazySdk();
+      const sdkPatchInterval = setInterval(function () {{
+        patchUnitySdk();
+        patchCrazySdk();
+      }}, 500);
       setTimeout(function () {{
         clearInterval(sdkPatchInterval);
       }}, 15000);
@@ -2223,6 +2503,12 @@ def generate_index_html(
       const FRAMEWORK_FILE = {framework_name_js};
       const WASM_FILE = {wasm_name_js};
       const LEGACY_CONFIG = {legacy_config_js};
+      const SOURCE_PAGE_URL =
+        window.__unityStandaloneSourcePageUrl || {source_page_url_js};
+      const ENABLE_SOURCE_URL_SPOOF = {enable_source_url_spoof_js};
+      const LOCAL_PAGE_URL =
+        window.__unityStandaloneLocalPageUrl || window.location.href;
+      const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
 
       const canvas = document.getElementById("unity-canvas");
       const legacyContainer = document.getElementById("unity-legacy-container");
@@ -2238,6 +2524,7 @@ def generate_index_html(
       let loadingScreenDismissed = false;
       let launchPanelHideTimer = 0;
       let legacyConfigUrl = "";
+      let sourceUrlSpoofApplied = false;
 
       if (BUILD_KIND === "legacy_json") {{
         if (canvas) {{
@@ -2303,6 +2590,102 @@ def generate_index_html(
         launchPanelHideTimer = 0;
       }}
 
+      function buildLocalUrl(relativePath) {{
+        const cleanPath = String(relativePath || "").replace(/^\\.?\\//, "");
+        return new URL(cleanPath, LOCAL_PAGE_URL).toString();
+      }}
+
+      function buildBuildAssetUrl(name) {{
+        const cleanName = String(name || "").replace(/^\\.?\\//, "");
+        return new URL(cleanName, LOCAL_BUILD_ROOT_URL).toString();
+      }}
+
+      function defineGetter(target, key, getter) {{
+        if (!target || typeof getter !== "function") {{
+          return false;
+        }}
+        try {{
+          Object.defineProperty(target, key, {{
+            configurable: true,
+            enumerable: true,
+            get: getter,
+          }});
+          return true;
+        }} catch (err) {{
+          return false;
+        }}
+      }}
+
+      function maybeSpoofSourcePageUrl() {{
+        if (
+          sourceUrlSpoofApplied ||
+          !ENABLE_SOURCE_URL_SPOOF ||
+          typeof SOURCE_PAGE_URL !== "string" ||
+          !SOURCE_PAGE_URL
+        ) {{
+          return;
+        }}
+        let spoofUrl;
+        try {{
+          spoofUrl = new URL(SOURCE_PAGE_URL);
+        }} catch (err) {{
+          console.warn("Invalid source page URL for spoofing:", err);
+          return;
+        }}
+        sourceUrlSpoofApplied = true;
+        const actualLocation = window.location;
+        const spoofLocation = {{
+          href: spoofUrl.toString(),
+          origin: spoofUrl.origin,
+          protocol: spoofUrl.protocol,
+          host: spoofUrl.host,
+          hostname: spoofUrl.hostname,
+          port: spoofUrl.port,
+          pathname: spoofUrl.pathname,
+          search: spoofUrl.search,
+          hash: spoofUrl.hash,
+          assign: function (value) {{
+            return actualLocation.assign(value);
+          }},
+          replace: function (value) {{
+            return actualLocation.replace(value);
+          }},
+          reload: function () {{
+            return actualLocation.reload();
+          }},
+          toString: function () {{
+            return spoofUrl.toString();
+          }},
+          valueOf: function () {{
+            return spoofUrl.toString();
+          }},
+        }};
+        defineGetter(document, "URL", function () {{
+          return spoofUrl.toString();
+        }});
+        defineGetter(document, "documentURI", function () {{
+          return spoofUrl.toString();
+        }});
+        defineGetter(document, "baseURI", function () {{
+          return spoofUrl.toString();
+        }});
+        defineGetter(document, "referrer", function () {{
+          return spoofUrl.origin + "/";
+        }});
+        defineGetter(document, "location", function () {{
+          return spoofLocation;
+        }});
+        defineGetter(window, "origin", function () {{
+          return spoofUrl.origin;
+        }});
+        defineGetter(window, "location", function () {{
+          return spoofLocation;
+        }});
+        defineGetter(globalThis, "location", function () {{
+          return spoofLocation;
+        }});
+      }}
+
       function resetLaunchState() {{
         started = false;
         clearLaunchPanelHideTimer();
@@ -2319,14 +2702,14 @@ def generate_index_html(
       }}
 
       function buildLaunchUrl(mode) {{
-        const targetUrl = new URL(window.location.href);
+        const targetUrl = new URL(LOCAL_PAGE_URL);
         targetUrl.searchParams.set("autostart", "1");
         targetUrl.searchParams.set("launchMode", mode);
         return targetUrl.toString();
       }}
 
       function consumeAutoStartFlag() {{
-        const currentUrl = new URL(window.location.href);
+        const currentUrl = new URL(LOCAL_PAGE_URL);
         const shouldAutoStart = currentUrl.searchParams.get("autostart") === "1";
         if (shouldAutoStart) {{
           currentUrl.searchParams.delete("autostart");
@@ -2389,17 +2772,17 @@ def generate_index_html(
             return;
           }}
           const relativeValue = value.replace(/^\\.?\\//, "");
-          config[key] = new URL(BUILD_DIR + "/" + relativeValue, window.location.href).toString();
+          config[key] = buildBuildAssetUrl(relativeValue);
         }});
         return config;
       }}
 
       function startModernGame(loaderUrl) {{
         const config = {{
-          dataUrl: BUILD_DIR + "/" + DATA_FILE,
-          frameworkUrl: BUILD_DIR + "/" + FRAMEWORK_FILE,
-          codeUrl: BUILD_DIR + "/" + WASM_FILE,
-          streamingAssetsUrl: BUILD_DIR + "/StreamingAssets",
+          dataUrl: buildBuildAssetUrl(DATA_FILE),
+          frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
+          codeUrl: buildBuildAssetUrl(WASM_FILE),
+          streamingAssetsUrl: buildBuildAssetUrl("StreamingAssets"),
           companyName: PRODUCT_NAME,
           productName: PRODUCT_NAME,
           productVersion: "1.0.0",
@@ -2520,7 +2903,8 @@ def generate_index_html(
         setStatus("Loading 0%");
 
         ensureStorageAccess().finally(function () {{
-          const loaderUrl = BUILD_DIR + "/" + LOADER_FILE;
+          const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
+          maybeSpoofSourcePageUrl();
           if (BUILD_KIND === "legacy_json") {{
             startLegacyGame(loaderUrl);
             return;
@@ -2901,6 +3285,16 @@ def main(argv: Sequence[str]) -> int:
         else empty_framework_analysis()
     )
     required_functions = framework_analysis.required_functions
+    source_page_url = detected_build.index_url if not direct_mode else root_url
+    enable_source_url_spoof = file_contains_any_bytes(
+        build_dir / assets.data_name,
+        [
+            b"SiteLock",
+            b"whitelistedDomains",
+            b"allowedRemoteHosts",
+            b"IsOnWhitelistedDomain",
+        ],
+    )
 
     product_name = slugify_name(output_dir.name).replace("-", " ")
     index_content = generate_index_html(
@@ -2909,6 +3303,8 @@ def main(argv: Sequence[str]) -> int:
         required_functions,
         framework_analysis.window_roots,
         framework_analysis.window_callable_chains,
+        source_page_url=source_page_url,
+        enable_source_url_spoof=enable_source_url_spoof,
     )
     validate_required_function_coverage(index_content, required_functions)
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
@@ -2943,6 +3339,8 @@ def main(argv: Sequence[str]) -> int:
         "used_compressed_assets": assets.used_br_assets,
         "build_kind": build_kind,
         "mode": "direct_urls" if direct_mode else "entry_auto",
+        "source_page_url": source_page_url,
+        "source_url_spoof_enabled": enable_source_url_spoof,
         "progress_file": str(progress_file),
     }
     if assets.build_kind == "legacy_json":
