@@ -1,0 +1,2925 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Holeio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05070f;
+      --cyan: #22d3ee;
+      --blue: #3b82f6;
+      --violet: #a78bfa;
+      --mint: #4ade80;
+      --text: rgba(255, 255, 255, 0.92);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    body {
+      background: var(--bg);
+    }
+    html[data-ocean-fullscreen-lock="1"],
+    html[data-ocean-fullscreen-lock="1"] body,
+    body[data-ocean-fullscreen-lock="1"] {
+      overflow: hidden !important;
+      overscroll-behavior: none;
+    }
+    html[data-ocean-fullscreen-lock="1"] #container,
+    html[data-ocean-fullscreen-lock="1"] #loadingScreen {
+      touch-action: none;
+    }
+    #container {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+    }
+    #unity-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+    }
+    #unity-legacy-container {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background: #000;
+    }
+    #unity-legacy-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+    #loadingScreen {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(20px, 3vw, 36px);
+      box-sizing: border-box;
+      overflow: hidden;
+      animation: loadingScreenEnter 900ms ease both;
+      background: var(--bg);
+    }
+    #loadingScreen.is-exiting {
+      animation: loadingScreenExit 900ms ease forwards;
+      pointer-events: none;
+    }
+    #loadingBackdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background: var(--bg);
+    }
+    #star-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      filter: saturate(1.05) contrast(1.03);
+    }
+    #wave-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.95;
+      pointer-events: none;
+    }
+    .nebula {
+      position: absolute;
+      inset: -12%;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.55;
+      background:
+        radial-gradient(1200px 800px at 50% 20%, rgba(59, 130, 246, 0.14), transparent 62%),
+        radial-gradient(900px 600px at 15% 60%, rgba(34, 211, 238, 0.10), transparent 58%),
+        radial-gradient(800px 600px at 85% 70%, rgba(167, 139, 250, 0.10), transparent 58%);
+      animation: nebulaFloatA 22s ease-in-out infinite;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+    }
+    .nebula::before {
+      content: "";
+      position: absolute;
+      inset: -14%;
+      background:
+        radial-gradient(900px 650px at 30% 25%, rgba(74, 222, 128, 0.08), transparent 62%),
+        radial-gradient(1100px 700px at 70% 40%, rgba(59, 130, 246, 0.07), transparent 64%),
+        radial-gradient(900px 700px at 60% 85%, rgba(34, 211, 238, 0.06), transparent 60%);
+      opacity: 0.9;
+      animation: nebulaFloatB 32s ease-in-out infinite;
+      transform: translate3d(0, 0, 0);
+    }
+    @keyframes nebulaFloatA {
+      0%, 100% {
+        transform: translate3d(-1%, -0.6%, 0) scale(1.02);
+      }
+      50% {
+        transform: translate3d(1%, 0.6%, 0) scale(1.03);
+      }
+    }
+    @keyframes nebulaFloatB {
+      0%, 100% {
+        transform: translate3d(0.6%, -1%, 0) scale(1.02);
+      }
+      50% {
+        transform: translate3d(-0.6%, 1%, 0) scale(1.03);
+      }
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background:
+        radial-gradient(1200px 900px at 50% 30%, transparent 38%, rgba(0, 0, 0, 0.52) 86%),
+        radial-gradient(900px 700px at 50% 80%, rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0.70));
+      mix-blend-mode: multiply;
+    }
+    .grain {
+      position: absolute;
+      inset: -30%;
+      z-index: 4;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+      opacity: 0.07;
+      transform: rotate(6deg);
+      animation: grainMove 10s steps(10) infinite;
+    }
+    @keyframes grainMove {
+      0% {
+        transform: translate3d(-2%, -2%, 0) rotate(6deg);
+      }
+      100% {
+        transform: translate3d(2%, 2%, 0) rotate(6deg);
+      }
+    }
+    @keyframes loadingScreenEnter {
+      0% {
+        opacity: 0;
+        transform: scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    @keyframes loadingScreenExit {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.015);
+      }
+    }
+    #loadingCenter {
+      position: relative;
+      z-index: 5;
+      width: min(92vw, 560px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 0 22px 18px;
+      overflow: visible;
+      text-align: center;
+      text-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+    #loadingTitleGroup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    #loadingTitle {
+      margin: 0;
+      padding-left: 0.28em;
+      font-size: clamp(3rem, 10vw, 6.4rem);
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      line-height: 0.88;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.98), rgba(171, 239, 255, 0.98), rgba(110, 189, 255, 0.98));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
+    }
+    #loadingSubtitle {
+      margin: 0;
+      padding-left: 0.72em;
+      color: rgba(225, 245, 255, 0.78);
+      font-size: clamp(0.72rem, 1.8vw, 0.98rem);
+      font-weight: 700;
+      letter-spacing: 0.72em;
+      line-height: 1;
+    }
+    #launchPanel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 18px 18px;
+      margin: -14px -18px -18px;
+      overflow: visible;
+      transition:
+        opacity 240ms ease,
+        transform 240ms ease;
+    }
+    #launchPanel.is-hidden {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+    .launchOption {
+      width: 100%;
+      padding: 15px 22px;
+      border: 1px solid rgba(120, 196, 255, 0.30);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(10, 16, 31, 0.86), rgba(10, 18, 38, 0.96));
+      color: #effcff;
+      font: 800 14px/1.1 "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        background 180ms ease,
+        border-color 180ms ease;
+    }
+    .launchOption:hover {
+      transform: translateY(-1px);
+      border-color: rgba(88, 200, 255, 0.62);
+      background: linear-gradient(180deg, rgba(16, 28, 58, 0.94), rgba(10, 22, 46, 0.98));
+      box-shadow:
+        0 18px 36px rgba(0, 0, 0, 0.34),
+        0 0 24px rgba(59, 130, 246, 0.22);
+    }
+    #launchMenu {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .launchOption {
+      font-size: 14px;
+      padding: 14px 18px;
+    }
+    #playNote {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-align: center;
+      line-height: 1.35;
+    }
+    #status {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, 0.38);
+    }
+    #stepLog {
+      position: absolute;
+      right: 14px;
+      bottom: 10px;
+      z-index: 6;
+      max-width: min(46vw, 540px);
+      color: rgba(230, 244, 255, 0.58);
+      font: 500 10px/1.38 "Cascadia Mono", Consolas, "Courier New", monospace;
+      text-align: right;
+      white-space: pre-line;
+      pointer-events: none;
+      text-shadow: none;
+      opacity: 0.96;
+    }
+    #progressTrack {
+      display: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.28);
+    }
+    #progressTrack.is-visible {
+      display: block;
+    }
+    #progressFill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--mint), var(--cyan), var(--blue), var(--violet));
+      background-size: 300% 100%;
+      box-shadow: 0 0 24px rgba(59, 130, 246, 0.34);
+      transition: width 220ms ease;
+      animation: progressGlow 6.5s ease-in-out infinite;
+    }
+    @keyframes progressGlow {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    @media (max-width: 640px) {
+      #loadingCenter {
+        width: min(94vw, 560px);
+        padding: 0 16px 16px;
+      }
+      .launchOption {
+        font-size: 13px;
+      }
+      #status {
+        font-size: 14px;
+      }
+      #stepLog {
+        right: 10px;
+        bottom: 8px;
+        max-width: 72vw;
+        font-size: 9px;
+      }
+    }
+    @media (max-height: 760px) {
+      #loadingScreen {
+        padding-top: 16px;
+        padding-bottom: 16px;
+      }
+      #loadingCenter {
+        gap: 14px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .grain,
+      .nebula,
+      #progressFill {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <canvas id="unity-canvas"></canvas>
+    <div id="unity-legacy-container"></div>
+    <div id="loadingScreen">
+      <div id="loadingBackdrop" aria-hidden="true">
+        <canvas id="star-canvas"></canvas>
+        <canvas id="wave-canvas"></canvas>
+        <div class="nebula"></div>
+        <div class="overlay"></div>
+        <div class="grain"></div>
+      </div>
+      <div id="loadingCenter">
+        <div id="loadingTitleGroup">
+          <h1 id="loadingTitle">Ocean</h1>
+          <div id="loadingSubtitle">LAUNCHER</div>
+        </div>
+        <div id="launchPanel">
+          <div id="launchMenu">
+            <button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
+            <button id="launchFullscreenBtn" class="launchOption" type="button">LAUNCH FULLSCREEN</button>
+          </div>
+          <div id="playNote">Saves to local storage</div>
+        </div>
+        <div id="progressTrack" aria-hidden="true">
+          <div id="progressFill"></div>
+        </div>
+        <div id="status">Choose how you want to launch</div>
+      </div>
+      <div id="stepLog" aria-live="polite" aria-atomic="false"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const TRUE = "true";
+      const FALSE = "false";
+      const EMPTY = "";
+      const ZERO = "0";
+      const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
+      const SOURCE_PAGE_URL = "https://www.holeio.com/";
+      const ENABLE_SOURCE_URL_SPOOF = true;
+      const SCRIPT_SRC_REDIRECTS = {
+        "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
+      };
+      const STORAGE_PREFIX = "__unity_standalone_ls__:";
+      const LEGACY_STORAGE_PREFIX = "__pg_standalone_ls__:";
+      const AD_STATE_LOADING = "loading";
+      const AD_STATE_OPENED = "opened";
+      const AD_STATE_CLOSED = "closed";
+      const AD_STATE_REWARDED = "rewarded";
+      window.__unityStandaloneLocalPageUrl = LOCAL_PAGE_URL;
+      if (SOURCE_PAGE_URL) {
+        window.__unityStandaloneSourcePageUrl = SOURCE_PAGE_URL;
+        try {
+          window.__unityStandaloneSourceHost = new URL(SOURCE_PAGE_URL).hostname || "";
+        } catch (err) {
+          window.__unityStandaloneSourceHost = "";
+        }
+      } else if (typeof window.__unityStandaloneSourceHost !== "string") {
+        window.__unityStandaloneSourceHost = "";
+      }
+
+      function rewriteVendorScriptUrl(value) {
+        if (typeof value !== "string") {
+          return value;
+        }
+        if (Object.prototype.hasOwnProperty.call(SCRIPT_SRC_REDIRECTS, value)) {
+          return SCRIPT_SRC_REDIRECTS[value];
+        }
+        try {
+          const parsed = new URL(value, LOCAL_PAGE_URL);
+          const localPage = new URL(LOCAL_PAGE_URL);
+          const sameFileOrigin =
+            parsed.protocol === "file:" && localPage.protocol === "file:";
+          const sameHttpOrigin =
+            parsed.origin === localPage.origin && parsed.origin !== "null";
+          if (sameFileOrigin || sameHttpOrigin) {
+            const mapped = SCRIPT_SRC_REDIRECTS[parsed.pathname];
+            if (mapped) {
+              return mapped + parsed.search + parsed.hash;
+            }
+          }
+        } catch (err) {
+          return value;
+        }
+        return value;
+      }
+
+      (function patchVendorScriptUrls() {
+        if (typeof HTMLScriptElement === "undefined") {
+          return;
+        }
+        const descriptor = Object.getOwnPropertyDescriptor(
+          HTMLScriptElement.prototype,
+          "src"
+        );
+        if (
+          descriptor &&
+          typeof descriptor.get === "function" &&
+          typeof descriptor.set === "function"
+        ) {
+          Object.defineProperty(HTMLScriptElement.prototype, "src", {
+            configurable: true,
+            enumerable: descriptor.enumerable,
+            get: function () {
+              return descriptor.get.call(this);
+            },
+            set: function (value) {
+              return descriptor.set.call(this, rewriteVendorScriptUrl(value));
+            },
+          });
+        }
+        if (typeof Element === "undefined") {
+          return;
+        }
+        const originalSetAttribute = Element.prototype.setAttribute;
+        Element.prototype.setAttribute = function (name, value) {
+          if (this.tagName === "SCRIPT" && String(name).toLowerCase() === "src") {
+            value = rewriteVendorScriptUrl(value);
+          }
+          return originalSetAttribute.call(this, name, value);
+        };
+      })();
+
+      const noop = function () {};
+      let interstitialState = AD_STATE_CLOSED;
+      let rewardedState = AD_STATE_REWARDED;
+      let bannerState = "hidden";
+      let minimumDelayBetweenInterstitial = ZERO;
+
+      const completeInterstitial = function () {
+        interstitialState = AD_STATE_OPENED;
+        interstitialState = AD_STATE_CLOSED;
+        return AD_STATE_CLOSED;
+      };
+      const completeRewarded = function () {
+        rewardedState = AD_STATE_OPENED;
+        rewardedState = AD_STATE_REWARDED;
+        return AD_STATE_REWARDED;
+      };
+      const storageSupported = typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+      const probeStorageAvailable = function () {
+        if (!storageSupported) {
+          return false;
+        }
+        try {
+          const probeKey = STORAGE_PREFIX + "__probe__";
+          window.localStorage.setItem(probeKey, "1");
+          const ok = window.localStorage.getItem(probeKey) === "1";
+          window.localStorage.removeItem(probeKey);
+          return ok;
+        } catch (err) {
+          return false;
+        }
+      };
+      let storageAvailable = probeStorageAvailable();
+      const refreshStorageAvailability = function () {
+        storageAvailable = probeStorageAvailable();
+        return storageAvailable;
+      };
+      const storageKey = function (key) {
+        return STORAGE_PREFIX + String(key);
+      };
+      const legacyStorageKey = function (key) {
+        return LEGACY_STORAGE_PREFIX + String(key);
+      };
+
+      function buildMadHookSettings() {
+        const allowedLocalHosts = ["localhost", "127.0.0.1", "::1"];
+        const allowedRemoteHosts = [];
+        if (SOURCE_PAGE_URL) {
+          try {
+            const sourceUrl = new URL(SOURCE_PAGE_URL);
+            if (sourceUrl.hostname) {
+              allowedRemoteHosts.push(sourceUrl.hostname);
+            }
+          } catch (err) {
+            console.warn("Failed to parse source page URL:", err);
+          }
+        }
+        try {
+          const localUrl = new URL(LOCAL_PAGE_URL);
+          if (localUrl.hostname) {
+            allowedRemoteHosts.push(localUrl.hostname);
+          }
+        } catch (err) {
+          console.warn("Failed to parse local page URL:", err);
+        }
+        const uniqueRemoteHosts = Array.from(new Set(allowedRemoteHosts.filter(Boolean)));
+        const whitelistedDomains = Array.from(
+          new Set(uniqueRemoteHosts.concat(allowedLocalHosts))
+        );
+        return {
+          allowedLocalHosts: allowedLocalHosts,
+          allowedRemoteHosts: uniqueRemoteHosts,
+          whitelistedDomains: whitelistedDomains,
+          sourcePageUrl: SOURCE_PAGE_URL || EMPTY,
+          localPageUrl: LOCAL_PAGE_URL,
+          isQaTool: false,
+          hasAdblock: false,
+          siteLockEnabled: ENABLE_SOURCE_URL_SPOOF,
+        };
+      }
+
+      function getMadHookSettingsJson() {
+        return JSON.stringify(buildMadHookSettings());
+      }
+
+      function getUrlParametersJson() {
+        const payload = {};
+        try {
+          const localUrl = new URL(LOCAL_PAGE_URL);
+          localUrl.searchParams.forEach(function (value, key) {
+            payload[key] = value;
+          });
+        } catch (err) {
+          console.warn("Failed to parse URL parameters:", err);
+        }
+        return JSON.stringify(payload);
+      }
+
+      function getOfflineUser() {
+        return {
+          userId: "offline_player",
+          username: "Player",
+          displayName: "Player",
+        };
+      }
+
+      const known = {
+        // Ads
+        getInterstitialState: () => interstitialState,
+        getRewardedState: () => rewardedState,
+        getBannerState: () => bannerState,
+        getRewardedPlacement: () => EMPTY,
+        getMinimumDelayBetweenInterstitial: () => minimumDelayBetweenInterstitial,
+        showInterstitial: () => completeInterstitial(),
+        showRewarded: () => completeRewarded(),
+        showBanner: () => {
+          bannerState = "shown";
+          return "shown";
+        },
+        hideBanner: () => {
+          bannerState = "hidden";
+          return "hidden";
+        },
+        setMinimumDelayBetweenInterstitial: (value) => {
+          minimumDelayBetweenInterstitial = String(value ?? ZERO);
+          return minimumDelayBetweenInterstitial;
+        },
+        getIsInterstitialSupported: () => TRUE,
+        getIsRewardedSupported: () => TRUE,
+        getIsBannerSupported: () => TRUE,
+        // Storage
+        getIsStorageSupported: () => (storageSupported ? TRUE : FALSE),
+        getIsStorageAvailable: () => (refreshStorageAvailability() ? TRUE : FALSE),
+        getStorageDefaultType: () => "local_storage",
+        setStorageData: (key, value) => {
+          if (!refreshStorageAvailability()) {
+            return;
+          }
+          try {
+            window.localStorage.setItem(storageKey(key), String(value));
+          } catch (err) {
+            console.warn("setStorageData failed:", err);
+          }
+        },
+        getStorageData: (key) => {
+          if (!refreshStorageAvailability()) {
+            return EMPTY;
+          }
+          try {
+            const value = window.localStorage.getItem(storageKey(key));
+            if (value != null) {
+              return value;
+            }
+            const legacyValue = window.localStorage.getItem(legacyStorageKey(key));
+            return legacyValue == null ? EMPTY : legacyValue;
+          } catch (err) {
+            return EMPTY;
+          }
+        },
+        deleteStorageData: (key) => {
+          if (!refreshStorageAvailability()) {
+            return;
+          }
+          try {
+            window.localStorage.removeItem(storageKey(key));
+            window.localStorage.removeItem(legacyStorageKey(key));
+          } catch (err) {
+            console.warn("deleteStorageData failed:", err);
+          }
+        },
+        // Player / platform
+        getPlayerId: () => "offline_player",
+        getPlayerName: () => "Player",
+        getPlayerPhotos: () => EMPTY,
+        getPlayerExtra: () => EMPTY,
+        getIsPlayerAuthorized: () => TRUE,
+        getIsPlayerAuthorizationSupported: () => FALSE,
+        authorizePlayer: noop,
+        getPlatformId: () => "web",
+        getPlatformLanguage: () => navigator.language || "en",
+        getPlatformPayload: () => EMPTY,
+        getPlatformTld: () => "local",
+        getDeviceType: () => {
+          const ua = navigator.userAgent || "";
+          return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "mobile" : "desktop";
+        },
+        getVisibilityState: () => document.visibilityState || "visible",
+        getIsPlatformAudioEnabled: () => TRUE,
+        getIsExternalLinksAllowed: () => TRUE,
+        sendMessageToPlatform: (msg) => {
+          console.log("Platform message:", msg);
+        },
+        // Achievements / social / leaderboards / payments
+        achievementsGetList: noop,
+        achievementsUnlock: noop,
+        achievementsShowNativePopup: noop,
+        addToFavorites: noop,
+        addToHomeScreen: noop,
+        inviteFriends: noop,
+        joinCommunity: noop,
+        share: noop,
+        createPost: noop,
+        rate: noop,
+        leaderboardsGetEntries: noop,
+        leaderboardsSetScore: noop,
+        leaderboardsShowNativePopup: noop,
+        paymentsGetCatalog: noop,
+        paymentsGetPurchases: noop,
+        paymentsPurchase: noop,
+        paymentsConsumePurchase: noop,
+        // Remote / misc
+        remoteConfigGet: () => EMPTY,
+        checkAdBlock: () => FALSE,
+        getAllGames: noop,
+        getGameById: noop,
+        getServerTime: () => String(Date.now()),
+        unityStringify: (value) => {
+          if (value == null) {
+            return EMPTY;
+          }
+          if (typeof value === "string") {
+            return value;
+          }
+          try {
+            if (typeof window.UTF8ToString === "function") {
+              return window.UTF8ToString(value);
+            }
+          } catch (err) {
+            // Fall back to String(value) below.
+          }
+          return String(value);
+        },
+        getUserMedia: (...args) => {
+          const legacyGetUserMedia =
+            navigator.getUserMedia ||
+            navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia;
+          if (typeof legacyGetUserMedia === "function") {
+            return legacyGetUserMedia.apply(navigator, args);
+          }
+          return EMPTY;
+        },
+        // Mad Hook / CrazySDK bridge
+        InitSDK: function (...args) {
+          patchUnitySdk();
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [buildMadHookSettings()]);
+          safeCall(window.UnitySDK && window.UnitySDK.onSdkScriptLoaded, []);
+          return TRUE;
+        },
+        RequestAdSDK: function (...args) {
+          interstitialState = AD_STATE_OPENED;
+          rewardedState = AD_STATE_OPENED;
+          const callbackBag = args.find((arg) => arg && typeof arg === "object" && !Array.isArray(arg));
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          if (callbackBag) {
+            safeCall(callbackBag.adStarted, []);
+            safeCall(callbackBag.adFinished, []);
+            safeCall(callbackBag.adComplete, []);
+            safeCall(callbackBag.complete, []);
+          }
+          safeRunCallbacks(callbacks, [AD_STATE_CLOSED]);
+          interstitialState = AD_STATE_CLOSED;
+          rewardedState = AD_STATE_REWARDED;
+          return AD_STATE_CLOSED;
+        },
+        HappyTimeSDK: noop,
+        GameplayStartSDK: noop,
+        GameplayStopSDK: noop,
+        RequestInviteUrlSDK: function (...args) {
+          const inviteUrl = SOURCE_PAGE_URL || LOCAL_PAGE_URL;
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [inviteUrl]);
+          return inviteUrl;
+        },
+        ShowInviteButtonSDK: noop,
+        HideInviteButtonSDK: noop,
+        CopyToClipboardSDK: function (value) {
+          const text = value == null ? EMPTY : String(value);
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            navigator.clipboard.writeText(text).catch(noop);
+          }
+          return TRUE;
+        },
+        GetUrlParametersSDK: () => getUrlParametersJson(),
+        RequestBannersSDK: function (...args) {
+          bannerState = "shown";
+          const callbackBag = args.find((arg) => arg && typeof arg === "object" && !Array.isArray(arg));
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          if (callbackBag) {
+            safeCall(callbackBag.bannerRendered, []);
+            safeCall(callbackBag.complete, []);
+          }
+          safeRunCallbacks(callbacks, ["bannerRendered"]);
+          return "bannerRendered";
+        },
+        ShowAuthPromptSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        },
+        ShowAccountLinkPromptSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        },
+        GetUserSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, getOfflineUser()]);
+          return JSON.stringify(getOfflineUser());
+        },
+        GetUserTokenSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, EMPTY]);
+          return EMPTY;
+        },
+        GetXsollaUserTokenSDK: function (...args) {
+          const callbacks = args.filter((arg) => typeof arg === "function");
+          safeRunCallbacks(callbacks, [null, EMPTY]);
+          return EMPTY;
+        },
+        AddUserScoreSDK: noop,
+        SyncUnityGameDataSDK: noop,
+        HasAdblock: () => false,
+        GetSettings: () => getMadHookSettingsJson(),
+        WrapGFFeature: (value) => value,
+        IsQaTool: () => false,
+        IsOnWhitelistedDomain: () => true,
+        DebugLog: function (...args) {
+          console.log("[standalone-sdk]", ...args);
+          return EMPTY;
+        },
+      };
+
+      const dynamicFunctionNames = ["focus", "gameLoaded", "gameOverParent", "getComputedStyle", "getUserMedia", "mapsClose", "mapsOpen", "onGamePlayPressed", "sendMessageToUnity", "showAdsBanner"];
+      const dynamicWindowRootNames = ["HasAdBlock", "focus", "gameLoaded", "gameOverParent", "getComputedStyle", "getUserMedia", "mapsClose", "mapsOpen", "onGamePlayPressed", "sendMessageToUnity", "showAdsBanner", "top", "warnedAboutManualFilesystemSyncGettingDeprecated"];
+      const dynamicWindowCallableChains = ["focus", "gameLoaded", "gameOverParent", "getComputedStyle", "getUserMedia", "mapsClose", "mapsOpen", "onGamePlayPressed", "sendMessageToUnity", "showAdsBanner"];
+      const fixedGlobalFunctionNames = [
+        "InitSDK",
+        "RequestAdSDK",
+        "HappyTimeSDK",
+        "GameplayStartSDK",
+        "GameplayStopSDK",
+        "RequestInviteUrlSDK",
+        "ShowInviteButtonSDK",
+        "HideInviteButtonSDK",
+        "CopyToClipboardSDK",
+        "GetUrlParametersSDK",
+        "RequestBannersSDK",
+        "ShowAuthPromptSDK",
+        "ShowAccountLinkPromptSDK",
+        "GetUserSDK",
+        "GetUserTokenSDK",
+        "GetXsollaUserTokenSDK",
+        "AddUserScoreSDK",
+        "SyncUnityGameDataSDK",
+        "HasAdblock",
+        "GetSettings",
+        "WrapGFFeature",
+        "IsQaTool",
+        "IsOnWhitelistedDomain",
+        "DebugLog",
+      ];
+      const fixedWindowRootNames = ["CrazySDK", "MadHook"];
+      const fixedWindowCallableChains = fixedGlobalFunctionNames.map(function (name) {
+        return "CrazySDK." + name;
+      });
+      const allDynamicFunctionNames = Array.from(
+        new Set(dynamicFunctionNames.concat(fixedGlobalFunctionNames))
+      );
+      const allDynamicWindowRoots = Array.from(
+        new Set(dynamicWindowRootNames.concat(fixedWindowRootNames))
+      );
+      const allDynamicWindowCallableChains = Array.from(
+        new Set(dynamicWindowCallableChains.concat(fixedWindowCallableChains))
+      );
+
+      function safeCall(fn, args) {
+        if (typeof fn !== "function") {
+          return;
+        }
+        try {
+          return fn.apply(null, args || []);
+        } catch (err) {
+          console.warn("integration callback failed:", err);
+        }
+      }
+
+      function safeRunCallbacks(callbacks, args) {
+        if (!Array.isArray(callbacks)) {
+          return;
+        }
+        for (const fn of callbacks) {
+          safeCall(fn, args);
+        }
+      }
+
+      function inferStub(name) {
+        if (Object.prototype.hasOwnProperty.call(known, name)) {
+          return known[name];
+        }
+        if (/Interstitial/i.test(name) && /^show/i.test(name)) {
+          return () => completeInterstitial();
+        }
+        if (/Rewarded/i.test(name) && /^show/i.test(name)) {
+          return () => completeRewarded();
+        }
+        if (/InterstitialState/i.test(name) && /^get/i.test(name)) {
+          return () => interstitialState;
+        }
+        if (/RewardedState/i.test(name) && /^get/i.test(name)) {
+          return () => rewardedState;
+        }
+        if (/BannerState/i.test(name) && /^get/i.test(name)) {
+          return () => bannerState;
+        }
+        if (/^getIs[A-Z]/.test(name) || /^is[A-Z]/.test(name) || /^has[A-Z]/.test(name)) {
+          return () => FALSE;
+        }
+        if (/^get[A-Z]/.test(name)) {
+          return () => EMPTY;
+        }
+        return noop;
+      }
+
+      function inferChainStub(chain) {
+        const name = String(chain || "").split(".").pop() || "";
+        if (/requestAd/i.test(name)) {
+          return function (...args) {
+            interstitialState = AD_STATE_OPENED;
+            rewardedState = AD_STATE_OPENED;
+            const callbackBag = args.find((arg) => arg && typeof arg === "object" && !Array.isArray(arg));
+            if (callbackBag) {
+              safeCall(callbackBag.adStarted, []);
+              safeCall(callbackBag.adFinished, []);
+              safeCall(callbackBag.adComplete, []);
+              safeCall(callbackBag.complete, []);
+            }
+            interstitialState = AD_STATE_CLOSED;
+            rewardedState = AD_STATE_REWARDED;
+            return AD_STATE_CLOSED;
+          };
+        }
+        if (/requestBanner/i.test(name) || /requestOverlayBanners/i.test(name)) {
+          return function (...args) {
+            const callback = args.find((arg) => typeof arg === "function");
+            safeCall(callback, [EMPTY, "bannerRendered", null]);
+            return "bannerRendered";
+          };
+        }
+        if (/hasAdblock/i.test(name)) {
+          return function (...args) {
+            const callbacks = args.filter((arg) => typeof arg === "function");
+            safeRunCallbacks(callbacks, [null, false]);
+            return false;
+          };
+        }
+        if (/ensureLoaded|addInitCallback/i.test(name)) {
+          return function (...args) {
+            const callbacks = args.filter((arg) => typeof arg === "function");
+            safeRunCallbacks(callbacks, [{}]);
+          };
+        }
+        if (/addAuthListener/i.test(name)) {
+          return function (...args) {
+            const callbacks = args.filter((arg) => typeof arg === "function");
+            safeRunCallbacks(callbacks, [{}]);
+          };
+        }
+        if (/getUserToken|getXsollaUserToken/i.test(name)) {
+          return function (...args) {
+            const callbacks = args.filter((arg) => typeof arg === "function");
+            safeRunCallbacks(callbacks, [null, EMPTY]);
+            return EMPTY;
+          };
+        }
+        if (/showAuthPrompt|showAccountLinkPrompt|getUser/i.test(name)) {
+          return function (...args) {
+            const callbacks = args.filter((arg) => typeof arg === "function");
+            safeRunCallbacks(callbacks, [null, {}]);
+            return EMPTY;
+          };
+        }
+        if (/^get/i.test(name)) {
+          return function () {
+            return EMPTY;
+          };
+        }
+        if (/^has|^is/i.test(name)) {
+          return function () {
+            return false;
+          };
+        }
+        return noop;
+      }
+
+      function ensurePath(path, leafAsFunction) {
+        if (!path) {
+          return;
+        }
+        const parts = String(path).split(".").filter(Boolean);
+        if (!parts.length) {
+          return;
+        }
+        let scope = window;
+        for (let idx = 0; idx < parts.length; idx += 1) {
+          const part = parts[idx];
+          const isLeaf = idx === parts.length - 1;
+          const existing = scope[part];
+          if (isLeaf && leafAsFunction) {
+            if (typeof existing !== "function") {
+              scope[part] = inferChainStub(path);
+            }
+            return;
+          }
+          if (existing == null || (typeof existing !== "object" && typeof existing !== "function")) {
+            scope[part] = {};
+          }
+          scope = scope[part];
+        }
+      }
+
+      for (const name of allDynamicFunctionNames) {
+        if (typeof window[name] !== "function") {
+          window[name] = inferStub(name);
+        }
+      }
+
+      for (const rootName of allDynamicWindowRoots) {
+        ensurePath(rootName, false);
+      }
+
+      for (const chain of allDynamicWindowCallableChains) {
+        ensurePath(chain, true);
+      }
+
+      function patchUnitySdk() {
+        if (!window.UnitySDK || typeof window.UnitySDK !== "object") {
+          window.UnitySDK = {};
+        }
+        const sdk = window.UnitySDK;
+        if (!Array.isArray(sdk.waitingForLoad)) {
+          sdk.waitingForLoad = [];
+        }
+        if (typeof sdk.objectName !== "string" || !sdk.objectName) {
+          sdk.objectName = "UnitySDK";
+        }
+        if (typeof sdk.userObjectName !== "string" || !sdk.userObjectName) {
+          sdk.userObjectName = "UnitySDK.User";
+        }
+        if (typeof sdk.unlockPointer !== "function") {
+          sdk.unlockPointer = noop;
+        }
+        if (typeof sdk.lockPointer !== "function") {
+          sdk.lockPointer = noop;
+        }
+        if (typeof sdk.ensureLoaded !== "function") {
+          sdk.ensureLoaded = function (callback) {
+            safeCall(callback, []);
+          };
+        }
+        if (typeof sdk.onSdkScriptLoaded !== "function") {
+          sdk.onSdkScriptLoaded = function () {
+            sdk.isSdkLoaded = true;
+            const queued = Array.isArray(sdk.waitingForLoad) ? sdk.waitingForLoad.splice(0) : [];
+            safeRunCallbacks(queued, []);
+          };
+        }
+        if (sdk.isSdkLoaded !== true) {
+          sdk.isSdkLoaded = true;
+        }
+        if (sdk.waitingForLoad.length > 0) {
+          const queued = sdk.waitingForLoad.splice(0);
+          safeRunCallbacks(queued, []);
+        }
+      }
+
+      function patchCrazySdk() {
+        if (!window.CrazySDK || typeof window.CrazySDK !== "object") {
+          window.CrazySDK = {};
+        }
+        const sdk = window.CrazySDK;
+        const settings = buildMadHookSettings();
+        sdk.settings = settings;
+        if (!window.crazySdkInitOptions || typeof window.crazySdkInitOptions !== "object") {
+          window.crazySdkInitOptions = {};
+        }
+        Object.assign(window.crazySdkInitOptions, settings);
+        const methodMap = {
+          InitSDK: window.InitSDK,
+          RequestAdSDK: window.RequestAdSDK,
+          HappyTimeSDK: window.HappyTimeSDK,
+          GameplayStartSDK: window.GameplayStartSDK,
+          GameplayStopSDK: window.GameplayStopSDK,
+          RequestInviteUrlSDK: window.RequestInviteUrlSDK,
+          ShowInviteButtonSDK: window.ShowInviteButtonSDK,
+          HideInviteButtonSDK: window.HideInviteButtonSDK,
+          CopyToClipboardSDK: window.CopyToClipboardSDK,
+          GetUrlParametersSDK: window.GetUrlParametersSDK,
+          RequestBannersSDK: window.RequestBannersSDK,
+          ShowAuthPromptSDK: window.ShowAuthPromptSDK,
+          ShowAccountLinkPromptSDK: window.ShowAccountLinkPromptSDK,
+          GetUserSDK: window.GetUserSDK,
+          GetUserTokenSDK: window.GetUserTokenSDK,
+          GetXsollaUserTokenSDK: window.GetXsollaUserTokenSDK,
+          AddUserScoreSDK: window.AddUserScoreSDK,
+          SyncUnityGameDataSDK: window.SyncUnityGameDataSDK,
+          HasAdblock: window.HasAdblock,
+          GetSettings: window.GetSettings,
+          WrapGFFeature: window.WrapGFFeature,
+          IsQaTool: window.IsQaTool,
+          IsOnWhitelistedDomain: window.IsOnWhitelistedDomain,
+          DebugLog: window.DebugLog,
+        };
+        Object.entries(methodMap).forEach(function (entry) {
+          const name = entry[0];
+          const fn = entry[1];
+          if (typeof fn === "function") {
+            sdk[name] = fn;
+          }
+        });
+        if (typeof sdk.init !== "function") {
+          sdk.init = window.InitSDK;
+        }
+        if (typeof sdk.requestAd !== "function") {
+          sdk.requestAd = window.RequestAdSDK;
+        }
+        if (typeof sdk.getSettings !== "function") {
+          sdk.getSettings = function () {
+            return buildMadHookSettings();
+          };
+        }
+        if (typeof sdk.hasAdblock !== "function") {
+          sdk.hasAdblock = window.HasAdblock;
+        }
+        if (typeof sdk.isOnWhitelistedDomain !== "function") {
+          sdk.isOnWhitelistedDomain = window.IsOnWhitelistedDomain;
+        }
+      }
+
+      patchUnitySdk();
+      patchCrazySdk();
+      const sdkPatchInterval = setInterval(function () {
+        patchUnitySdk();
+        patchCrazySdk();
+      }, 500);
+      setTimeout(function () {
+        clearInterval(sdkPatchInterval);
+      }, 15000);
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const loadingScreen = document.getElementById("loadingScreen");
+      const starCanvas = document.getElementById("star-canvas");
+      const waveCanvas = document.getElementById("wave-canvas");
+      if (!loadingScreen || !starCanvas || !waveCanvas) {
+        return;
+      }
+
+      const starCtx = starCanvas.getContext("2d", { alpha: true });
+      const waveCtx = waveCanvas.getContext("2d", { alpha: true });
+      if (!starCtx || !waveCtx) {
+        return;
+      }
+
+      let stars = [];
+      let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      let waveTime = 0;
+      let shootingStar = null;
+      const reduceMotion =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 };
+
+      function isVisible() {
+        return loadingScreen.style.display !== "none";
+      }
+
+      function isBackdropActive() {
+        return isVisible() && !loadingScreen.classList.contains("is-loading");
+      }
+
+      function resizeCanvas(canvas) {
+        const nextDpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(window.innerWidth * nextDpr);
+        canvas.height = Math.floor(window.innerHeight * nextDpr);
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+        return nextDpr;
+      }
+
+      class Star {
+        constructor(depth) {
+          this.depth = depth;
+          this.reset();
+        }
+
+        reset() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          this.x = Math.random() * width;
+          this.y = Math.random() * height;
+          const base = 1 - this.depth;
+          this.size = (base * 1.5 + 0.55) * (Math.random() * 0.9 + 0.6);
+          const drift = base * 0.18 + 0.04;
+          this.vx = (Math.random() - 0.5) * drift;
+          this.vy = (Math.random() - 0.5) * drift;
+          this.opacity = Math.random() * 0.4 + 0.32;
+          this.twinkle = Math.random() * 0.01 + 0.005;
+          this.direction = Math.random() < 0.5 ? -1 : 1;
+        }
+
+        update() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          this.x += this.vx;
+          this.y += this.vy;
+          this.opacity += this.twinkle * this.direction;
+          if (this.opacity > 1) {
+            this.opacity = 1;
+            this.direction *= -1;
+          }
+          if (this.opacity < 0.22) {
+            this.opacity = 0.22;
+            this.direction *= -1;
+          }
+          if (this.x < -20) this.x = width + 20;
+          if (this.x > width + 20) this.x = -20;
+          if (this.y < -20) this.y = height + 20;
+          if (this.y > height + 20) this.y = -20;
+        }
+
+        draw() {
+          starCtx.shadowBlur = 8 * (this.size / 2);
+          starCtx.shadowColor = "rgba(255,255,255,.75)";
+          starCtx.fillStyle = "rgba(255,255,255," + this.opacity + ")";
+          starCtx.beginPath();
+          starCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          starCtx.fill();
+          starCtx.shadowBlur = 0;
+        }
+      }
+
+      class ShootingStar {
+        constructor() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          const startEdge = Math.random();
+          this.x = startEdge < 0.5 ? Math.random() * width * 0.6 : -60;
+          this.y = startEdge < 0.5 ? -60 : Math.random() * height * 0.4;
+          const angle = (Math.random() * 0.25 + 0.35) * Math.PI;
+          const speed = Math.random() * 10 + 18;
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed;
+          this.life = 0;
+          this.maxLife = Math.random() * 18 + 30;
+          this.length = Math.random() * 160 + 220;
+          this.width = Math.random() * 1.2 + 1.2;
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.life += 1;
+          return this.life < this.maxLife;
+        }
+
+        draw(context) {
+          const progress = this.life / this.maxLife;
+          const alpha = Math.sin(Math.PI * progress) * 0.75;
+          const tailX = this.x - this.vx * 3;
+          const tailY = this.y - this.vy * 3;
+          const norm = Math.hypot(this.vx, this.vy) || 1;
+          const lineX = tailX - (this.vx / norm) * this.length;
+          const lineY = tailY - (this.vy / norm) * this.length;
+          const gradient = context.createLinearGradient(tailX, tailY, lineX, lineY);
+          gradient.addColorStop(0, "rgba(255,255,255," + alpha + ")");
+          gradient.addColorStop(0.4, "rgba(34,211,238," + alpha * 0.45 + ")");
+          gradient.addColorStop(1, "rgba(59,130,246,0)");
+          context.save();
+          context.globalCompositeOperation = "lighter";
+          context.strokeStyle = gradient;
+          context.lineWidth = this.width;
+          context.lineCap = "round";
+          context.shadowBlur = 14;
+          context.shadowColor = "rgba(34,211,238," + alpha * 0.55 + ")";
+          context.beginPath();
+          context.moveTo(tailX, tailY);
+          context.lineTo(lineX, lineY);
+          context.stroke();
+          context.restore();
+        }
+      }
+
+      function seedStars() {
+        stars = [];
+        const count = Math.round(
+          Math.min(160, Math.max(90, (window.innerWidth * window.innerHeight) / 14000))
+        );
+        for (let index = 0; index < count; index += 1) {
+          stars.push(new Star(Math.random()));
+        }
+      }
+
+      function resizeAll() {
+        dpr = resizeCanvas(starCanvas);
+        starCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        resizeCanvas(waveCanvas);
+        waveCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seedStars();
+      }
+
+      function scheduleShootingStar() {
+        if (reduceMotion || !isBackdropActive()) {
+          return;
+        }
+        window.setTimeout(function () {
+          if (!shootingStar && isBackdropActive()) {
+            shootingStar = new ShootingStar();
+          }
+          scheduleShootingStar();
+        }, Math.random() * 2500 + 3500);
+      }
+
+      function animateStars() {
+        if (!isBackdropActive()) {
+          return;
+        }
+        starCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        for (const star of stars) {
+          star.update();
+          star.draw();
+        }
+        if (shootingStar) {
+          if (!shootingStar.update()) {
+            shootingStar = null;
+          } else {
+            shootingStar.draw(starCtx);
+          }
+        }
+        window.requestAnimationFrame(animateStars);
+      }
+
+      function smoothMouse() {
+        if (!isBackdropActive()) {
+          return;
+        }
+        mouse.x += (mouse.tx - mouse.x) * 0.06;
+        mouse.y += (mouse.ty - mouse.y) * 0.06;
+        window.requestAnimationFrame(smoothMouse);
+      }
+
+      function drawWaves() {
+        if (!isBackdropActive()) {
+          return;
+        }
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        waveCtx.clearRect(0, 0, width, height);
+        const ampBoost = 1 + (0.9 - mouse.y) * 0.65;
+        const phaseShift = (mouse.x - 0.5) * 1.2;
+        const horizon = height * (0.56 + (mouse.y - 0.5) * 0.08);
+        const gradient = waveCtx.createLinearGradient(0, horizon - 200, 0, height);
+        gradient.addColorStop(0, "rgba(34,211,238,0.05)");
+        gradient.addColorStop(0.4, "rgba(59,130,246,0.10)");
+        gradient.addColorStop(1, "rgba(59,130,246,0.08)");
+        const bands = 8;
+
+        for (let band = 0; band < bands; band += 1) {
+          const bandTime = waveTime * (0.75 + band * 0.045);
+          const baseY = horizon + band * (height * 0.055);
+          const amplitude = (12 + band * 7) * ampBoost;
+          const frequency = 0.01 + band * 0.0012;
+          const speed = 0.75 + band * 0.12;
+          const wobble = 0.35 + band * 0.04;
+
+          waveCtx.beginPath();
+          waveCtx.moveTo(0, baseY);
+          for (let x = 0; x <= width; x += 10) {
+            const nextX = x * frequency;
+            const y =
+              baseY +
+              Math.sin(nextX + bandTime * 0.015 * speed + phaseShift) * amplitude +
+              Math.sin(nextX * 1.8 - bandTime * 0.01 * speed) * (amplitude * wobble * 0.25);
+            waveCtx.lineTo(x, y);
+          }
+          waveCtx.lineTo(width, height);
+          waveCtx.lineTo(0, height);
+          waveCtx.closePath();
+          waveCtx.fillStyle = gradient;
+          waveCtx.fill();
+          waveCtx.globalCompositeOperation = "lighter";
+          waveCtx.strokeStyle = "rgba(34,211,238," + (0.05 + band * 0.008) + ")";
+          waveCtx.lineWidth = 1;
+          waveCtx.stroke();
+          waveCtx.globalCompositeOperation = "source-over";
+        }
+
+        waveTime += 0.95;
+        window.requestAnimationFrame(drawWaves);
+      }
+
+      window.addEventListener("mousemove", function (event) {
+        mouse.tx = event.clientX / Math.max(window.innerWidth, 1);
+        mouse.ty = event.clientY / Math.max(window.innerHeight, 1);
+      }, { passive: true });
+      window.addEventListener("resize", resizeAll);
+
+      resizeAll();
+      if (reduceMotion) {
+        mouse.tx = 0.5;
+        mouse.ty = 0.5;
+      } else {
+        scheduleShootingStar();
+        smoothMouse();
+      }
+      animateStars();
+      drawWaves();
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const PRODUCT_NAME = "Holeio";
+      const BUILD_KIND = "modern";
+      const BUILD_DIR = "Build";
+      const LOADER_FILE = "e49533548ddc8d90e5938cf4b1963e0b.loader.js";
+      const DATA_FILE = "8911c04fc4a011193bda1adc9f604d41.data.unityweb";
+      const FRAMEWORK_FILE = "e02abc0772c3f98f6cf3c2b6f0299a43.framework.js.unityweb";
+      const WASM_FILE = "33f96c1b12865c28e9bb84c56538272c.wasm.unityweb";
+      const LEGACY_CONFIG = {};
+      const SOURCE_PAGE_URL =
+        window.__unityStandaloneSourcePageUrl || "https://www.holeio.com/";
+      const ENABLE_SOURCE_URL_SPOOF = true;
+      const ORIGINAL_FOLDER_URL = "";
+      const STREAMING_ASSETS_URL = "https://www.holeio.com/b/4/StreamingAssets";
+      const BUILD_CACHE_BUSTER = "0729e0590353";
+      const ENTRY_PAGE_CONFIG = {"companyName": "DRA.RU", "productName": "HOLE.io", "productVersion": "3.0", "autoSyncPersistentDataPath": true, "devicePixelRatio": 1};
+      const AUXILIARY_ASSET_REWRITES = {};
+      const LOCAL_PAGE_URL =
+        window.__unityStandaloneLocalPageUrl || window.location.href;
+      const LOCAL_HOST_NAME = (function () {
+        try {
+          return new URL(LOCAL_PAGE_URL).hostname || "";
+        } catch (err) {
+          return window.location && window.location.hostname
+            ? String(window.location.hostname)
+            : "";
+        }
+      })();
+      const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
+      const ROOT = document.documentElement;
+
+      const canvas = document.getElementById("unity-canvas");
+      const legacyContainer = document.getElementById("unity-legacy-container");
+      const loadingScreen = document.getElementById("loadingScreen");
+      const progressFill = document.getElementById("progressFill");
+      const progressTrack = document.getElementById("progressTrack");
+      const launchPanel = document.getElementById("launchPanel");
+      const launchFullscreenBtn = document.getElementById("launchFullscreenBtn");
+      const launchFrameBtn = document.getElementById("launchFrameBtn");
+      const status = document.getElementById("status");
+      const stepLog = document.getElementById("stepLog");
+
+      let started = false;
+      let loadingScreenDismissed = false;
+      let launchPanelHideTimer = 0;
+      let legacyConfigUrl = "";
+      let loaderScriptPromise = null;
+      let buildWarmupStarted = false;
+      let sourceUrlSpoofApplied = false;
+      const resourceHints = new Set();
+      const stepLogEntries = [];
+      const loaderStepEpoch = Date.now();
+      let lastLoggedStep = "";
+      let lastProgressBucket = -1;
+      if (ORIGINAL_FOLDER_URL) {
+        window.originalFolder = ORIGINAL_FOLDER_URL;
+      }
+      window.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
+      globalThis.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
+      const requestedLaunchMode = (function () {
+        try {
+          return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
+        } catch (err) {
+          return "";
+        }
+      })();
+      const forceFullscreenScrollLock = requestedLaunchMode === "fullscreen";
+      const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
+      const fullscreenScrollKeys = new Set([
+        " ",
+        "Spacebar",
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
+      const fullscreenScrollCodes = new Set([
+        "Space",
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
+
+      if (BUILD_KIND === "legacy_json") {
+        if (canvas) {
+          canvas.style.display = "none";
+        }
+        if (legacyContainer) {
+          legacyContainer.style.display = "block";
+        }
+      } else if (legacyContainer) {
+        legacyContainer.style.display = "none";
+      }
+
+      function logLoaderStep(message) {
+        if (!stepLog || typeof message !== "string") {
+          return;
+        }
+        const cleanMessage = message.replace(/\s+/g, " ").trim();
+        if (!cleanMessage) {
+          return;
+        }
+        const progressMatch = /^Loading (\d+)%$/.exec(cleanMessage);
+        if (progressMatch) {
+          const percent = Number(progressMatch[1]);
+          const bucket =
+            percent >= 100 ? 100 : Math.max(0, Math.floor(percent / 10) * 10);
+          if (bucket === lastProgressBucket && percent !== 0 && percent !== 100) {
+            return;
+          }
+          lastProgressBucket = bucket;
+        } else if (cleanMessage === lastLoggedStep) {
+          return;
+        } else {
+          lastLoggedStep = cleanMessage;
+        }
+        const elapsedSeconds = ((Date.now() - loaderStepEpoch) / 1000).toFixed(1);
+        stepLogEntries.push(elapsedSeconds + "s  " + cleanMessage);
+        while (stepLogEntries.length > 8) {
+          stepLogEntries.shift();
+        }
+        stepLog.textContent = stepLogEntries.join("\n");
+      }
+
+      function setStatus(text) {
+        if (status) {
+          status.textContent = text;
+        }
+        logLoaderStep(text);
+      }
+
+      function setLoadState(value) {
+        if (!ROOT) {
+          return;
+        }
+        ROOT.setAttribute("data-ocean-unity-state", value);
+      }
+
+      function setProgress(progress) {
+        const numeric = Number(progress);
+        const safeProgress = Number.isFinite(numeric) ? Math.min(1, Math.max(0, numeric)) : 0;
+        const percent = Math.round(safeProgress * 100);
+        if (progressFill) {
+          progressFill.style.width = percent + "%";
+        }
+        if (loadingScreen) {
+          loadingScreen.setAttribute("data-progress", String(percent));
+        }
+        return percent;
+      }
+
+      function setProgressVisibility(isVisible) {
+        if (!progressTrack) {
+          return;
+        }
+        progressTrack.classList.toggle("is-visible", Boolean(isVisible));
+      }
+
+      function releaseLegacyConfigUrl() {
+        if (!legacyConfigUrl || typeof URL.revokeObjectURL !== "function") {
+          return;
+        }
+        URL.revokeObjectURL(legacyConfigUrl);
+        legacyConfigUrl = "";
+      }
+
+      function dismissLoadingScreen() {
+        if (loadingScreenDismissed || !loadingScreen) {
+          return;
+        }
+        setLoadState("ready");
+        loadingScreenDismissed = true;
+        loadingScreen.classList.add("is-exiting");
+        window.setTimeout(function () {
+          loadingScreen.style.display = "none";
+        }, 880);
+      }
+
+      function clearLaunchPanelHideTimer() {
+        if (!launchPanelHideTimer) {
+          return;
+        }
+        window.clearTimeout(launchPanelHideTimer);
+        launchPanelHideTimer = 0;
+      }
+
+      function isFullscreenActive() {
+        return Boolean(
+          document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement ||
+            document.mozFullScreenElement
+        );
+      }
+
+      function shouldLockFullscreenScroll() {
+        return forceFullscreenScrollLock || isFullscreenActive();
+      }
+
+      function setFullscreenScrollLock(isLocked) {
+        const root = document.documentElement;
+        const body = document.body;
+        if (root) {
+          if (isLocked) {
+            root.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+          } else {
+            root.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+          }
+        }
+        if (body) {
+          if (isLocked) {
+            body.setAttribute(FULLSCREEN_SCROLL_LOCK_ATTR, "1");
+          } else {
+            body.removeAttribute(FULLSCREEN_SCROLL_LOCK_ATTR);
+          }
+        }
+        if (isLocked && typeof window.scrollTo === "function") {
+          window.scrollTo(0, 0);
+        }
+      }
+
+      function syncFullscreenScrollLock() {
+        setFullscreenScrollLock(shouldLockFullscreenScroll());
+      }
+
+      function isFullscreenScrollKey(event) {
+        const key = typeof event.key === "string" ? event.key : "";
+        const code = typeof event.code === "string" ? event.code : "";
+        return fullscreenScrollKeys.has(key) || fullscreenScrollCodes.has(code);
+      }
+
+      function preventFullscreenScroll(event) {
+        if (!shouldLockFullscreenScroll()) {
+          return;
+        }
+        if (event.type === "keydown" && !isFullscreenScrollKey(event)) {
+          return;
+        }
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+      }
+
+      function enforceFullscreenScrollTop() {
+        if (
+          !shouldLockFullscreenScroll() ||
+          (window.scrollX === 0 && window.scrollY === 0) ||
+          typeof window.scrollTo !== "function"
+        ) {
+          return;
+        }
+        window.scrollTo(0, 0);
+      }
+
+      function buildLaunchUrl(mode) {
+        const targetUrl = new URL(LOCAL_PAGE_URL);
+        targetUrl.searchParams.set("autostart", "1");
+        targetUrl.searchParams.set("launchMode", mode);
+        return targetUrl.toString();
+      }
+
+      function isLocalFileLaunch() {
+        try {
+          return new URL(LOCAL_PAGE_URL).protocol === "file:";
+        } catch (err) {
+          return window.location.protocol === "file:";
+        }
+      }
+
+      function showHttpRequiredMessage() {
+        resetLaunchState();
+        setStatus("Use HTTP or HTTPS to run this build");
+        alert(
+          "This Unity build must be served over HTTP or HTTPS. Opening index.html directly from disk can stall at 0%. Use GitHub Pages or run a local web server."
+        );
+      }
+
+      function buildLocalUrl(relativePath) {
+        const cleanPath = String(relativePath || "").replace(/^\.?\//, "");
+        return new URL(cleanPath, LOCAL_PAGE_URL).toString();
+      }
+
+      function buildBuildAssetUrl(name, includeCacheBuster) {
+        const cleanName = String(name || "").replace(/^\.?\//, "");
+        const assetUrl = new URL(cleanName, LOCAL_BUILD_ROOT_URL);
+        if (
+          includeCacheBuster !== false &&
+          BUILD_CACHE_BUSTER &&
+          /(^|\/)[^/?#]+\.[^/?#]+$/.test(cleanName)
+        ) {
+          assetUrl.searchParams.set("v", BUILD_CACHE_BUSTER);
+        }
+        return assetUrl.toString();
+      }
+
+      function appendResourceHint(url, rel, asValue, fetchPriority) {
+        if (!url || !document.head) {
+          return;
+        }
+        const key = [rel || "", asValue || "", url].join("|");
+        if (resourceHints.has(key)) {
+          return;
+        }
+        resourceHints.add(key);
+        const link = document.createElement("link");
+        link.rel = rel;
+        link.href = url;
+        if (asValue) {
+          link.as = asValue;
+        }
+        if (asValue === "fetch") {
+          link.crossOrigin = "anonymous";
+        }
+        if (fetchPriority && "fetchPriority" in link) {
+          link.fetchPriority = fetchPriority;
+        }
+        document.head.appendChild(link);
+      }
+
+      function ensureLoaderScriptLoaded(loaderUrl) {
+        if (
+          BUILD_KIND === "modern" &&
+          typeof window.createUnityInstance === "function"
+        ) {
+          logLoaderStep("Unity loader script already ready");
+          return Promise.resolve();
+        }
+        if (
+          BUILD_KIND === "legacy_json" &&
+          window.UnityLoader &&
+          typeof window.UnityLoader.instantiate === "function"
+        ) {
+          logLoaderStep("Legacy Unity loader already ready");
+          return Promise.resolve();
+        }
+        if (loaderScriptPromise) {
+          return loaderScriptPromise;
+        }
+
+        loaderScriptPromise = new Promise(function (resolve, reject) {
+          logLoaderStep("Loading Unity loader script");
+          const existing = document.querySelector("script[data-ocean-unity-loader='1']");
+          if (existing) {
+            if (existing.getAttribute("data-ocean-loader-ready") === "1") {
+              logLoaderStep("Unity loader script loaded");
+              resolve();
+              return;
+            }
+            if (existing.getAttribute("data-ocean-loader-error") === "1") {
+              loaderScriptPromise = null;
+              logLoaderStep("Unity loader script failed");
+              reject(new Error("Failed to load Unity loader script"));
+              return;
+            }
+            existing.addEventListener("load", function () {
+              logLoaderStep("Unity loader script loaded");
+              resolve();
+            }, { once: true });
+            existing.addEventListener("error", function () {
+              loaderScriptPromise = null;
+              logLoaderStep("Unity loader script failed");
+              reject(new Error("Failed to load Unity loader script"));
+            }, { once: true });
+            return;
+          }
+
+          const script = document.createElement("script");
+          script.src = loaderUrl;
+          script.async = true;
+          script.setAttribute("data-ocean-unity-loader", "1");
+          script.onload = function () {
+            script.setAttribute("data-ocean-loader-ready", "1");
+            logLoaderStep("Unity loader script loaded");
+            resolve();
+          };
+          script.onerror = function () {
+            script.setAttribute("data-ocean-loader-error", "1");
+            loaderScriptPromise = null;
+            logLoaderStep("Unity loader script failed");
+            reject(new Error("Failed to load Unity loader script"));
+          };
+          document.body.appendChild(script);
+        });
+
+        return loaderScriptPromise;
+      }
+
+      function buildUnityCacheControl(url) {
+        const cleanUrl = String(url || "").split("?")[0].toLowerCase();
+        const fileName = cleanUrl.split("/").pop() || "";
+        const hashedFile =
+          /^[0-9a-f](8,)[._-]/i.test(fileName) ||
+          /(?:^|[._-])[0-9a-f](8,)(?:[._-]|$)/i.test(fileName);
+        if (
+          hashedFile ||
+          cleanUrl.includes("/streamingassets/") ||
+          cleanUrl.endsWith(".unityweb")
+        ) {
+          return "immutable";
+        }
+        return "must-revalidate";
+      }
+
+      function computeUnityDevicePixelRatio() {
+        const nativeDpr = Number(window.devicePixelRatio) || 1;
+        const cap = requestedLaunchMode === "fullscreen" ? 1.5 : 1.15;
+        return Math.max(1, Math.min(nativeDpr, cap));
+      }
+
+      function warmUnityBuild() {
+        if (buildWarmupStarted || isLocalFileLaunch()) {
+          return;
+        }
+        buildWarmupStarted = true;
+
+        const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
+        const assetUrls = [
+          { url: loaderUrl, as: "script", fetchPriority: "high" },
+          { url: buildBuildAssetUrl(FRAMEWORK_FILE), as: "fetch", fetchPriority: "high" },
+          { url: buildBuildAssetUrl(WASM_FILE), as: "fetch", fetchPriority: "high" },
+          { url: buildBuildAssetUrl(DATA_FILE), as: "fetch", fetchPriority: "high" },
+        ];
+
+        assetUrls.forEach(function (entry) {
+          appendResourceHint(entry.url, "preload", entry.as, entry.fetchPriority);
+          appendResourceHint(entry.url, "prefetch", entry.as, entry.fetchPriority);
+        });
+
+        if (!ENABLE_SOURCE_URL_SPOOF) {
+          ensureLoaderScriptLoaded(loaderUrl).catch(function () {
+            // Ignore loader warmup failures until launch time.
+          });
+        }
+      }
+
+      function defineGetter(target, key, getter) {
+        if (!target || typeof getter !== "function") {
+          return false;
+        }
+        try {
+          Object.defineProperty(target, key, {
+            configurable: true,
+            enumerable: true,
+            get: getter,
+          });
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function installAuxiliaryAssetUrlRewrites(rewriteMap) {
+        if (!rewriteMap || typeof rewriteMap !== "object") {
+          return;
+        }
+        const entries = Object.entries(rewriteMap)
+          .filter(function (entry) {
+            return (
+              Array.isArray(entry) &&
+              typeof entry[0] === "string" &&
+              entry[0] &&
+              typeof entry[1] === "string" &&
+              entry[1]
+            );
+          })
+          .map(function (entry) {
+            return [entry[0], new URL(entry[1], LOCAL_PAGE_URL).toString()];
+          });
+        if (!entries.length) {
+          return;
+        }
+        const rewriteTable = new Map();
+        entries.forEach(function (entry) {
+          const sourceUrl = entry[0];
+          const localUrl = entry[1];
+          rewriteTable.set(sourceUrl, localUrl);
+          try {
+            const sourcePath = new URL(sourceUrl).pathname;
+            if (sourcePath) {
+              rewriteTable.set(sourcePath, localUrl);
+              rewriteTable.set(new URL(sourcePath, LOCAL_PAGE_URL).toString(), localUrl);
+            }
+          } catch (err) {
+            // Ignore URL parsing failures.
+          }
+        });
+        window.__unityStandaloneAuxiliaryAssetUrls = rewriteTable;
+        if (window.__unityStandaloneAuxiliaryAssetRewriteInstalled) {
+          return;
+        }
+        window.__unityStandaloneAuxiliaryAssetRewriteInstalled = true;
+
+        function rewriteUrlValue(value) {
+          if (typeof value !== "string" || !value) {
+            return value;
+          }
+          if (rewriteTable.has(value)) {
+            return rewriteTable.get(value);
+          }
+          try {
+            const absolute = new URL(value, LOCAL_PAGE_URL).toString();
+            if (rewriteTable.has(absolute)) {
+              return rewriteTable.get(absolute);
+            }
+          } catch (err) {
+            // Ignore URL parsing failures.
+          }
+          if (typeof SOURCE_PAGE_URL === "string" && SOURCE_PAGE_URL) {
+            try {
+              const absoluteSource = new URL(value, SOURCE_PAGE_URL).toString();
+              if (rewriteTable.has(absoluteSource)) {
+                return rewriteTable.get(absoluteSource);
+              }
+            } catch (err) {
+              // Ignore URL parsing failures.
+            }
+          }
+          try {
+            const absoluteLocal = new URL(value, LOCAL_PAGE_URL).toString();
+            return rewriteTable.get(absoluteLocal) || value;
+          } catch (err) {
+            return value;
+          }
+        }
+
+        if (typeof window.fetch === "function") {
+          const originalFetch = window.fetch.bind(window);
+          window.fetch = function (input, init) {
+            if (typeof input === "string") {
+              return originalFetch(rewriteUrlValue(input), init);
+            }
+            if (typeof Request !== "undefined" && input instanceof Request) {
+              return originalFetch(new Request(rewriteUrlValue(input.url), input), init);
+            }
+            return originalFetch(input, init);
+          };
+        }
+
+        if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+          const originalOpen = window.XMLHttpRequest.prototype.open;
+          window.XMLHttpRequest.prototype.open = function (method, url) {
+            arguments[1] = rewriteUrlValue(typeof url === "string" ? url : String(url || ""));
+            return originalOpen.apply(this, arguments);
+          };
+        }
+      }
+
+      function maybeSpoofSourcePageUrl() {
+        if (
+          sourceUrlSpoofApplied ||
+          !ENABLE_SOURCE_URL_SPOOF ||
+          typeof SOURCE_PAGE_URL !== "string" ||
+          !SOURCE_PAGE_URL
+        ) {
+          return;
+        }
+        let spoofUrl;
+        try {
+          spoofUrl = new URL(SOURCE_PAGE_URL);
+        } catch (err) {
+          console.warn("Invalid source page URL for spoofing:", err);
+          return;
+        }
+        sourceUrlSpoofApplied = true;
+        logLoaderStep("Source URL spoof enabled");
+        const actualLocation = window.location;
+        const spoofLocation = {
+          href: spoofUrl.toString(),
+          origin: spoofUrl.origin,
+          protocol: spoofUrl.protocol,
+          host: spoofUrl.host,
+          hostname: spoofUrl.hostname,
+          port: spoofUrl.port,
+          pathname: spoofUrl.pathname,
+          search: spoofUrl.search,
+          hash: spoofUrl.hash,
+          assign: function (value) {
+            return actualLocation.assign(value);
+          },
+          replace: function (value) {
+            return actualLocation.replace(value);
+          },
+          reload: function () {
+            return actualLocation.reload();
+          },
+          toString: function () {
+            return spoofUrl.toString();
+          },
+          valueOf: function () {
+            return spoofUrl.toString();
+          },
+        };
+        defineGetter(document, "URL", function () {
+          return spoofUrl.toString();
+        });
+        defineGetter(document, "documentURI", function () {
+          return spoofUrl.toString();
+        });
+        defineGetter(document, "baseURI", function () {
+          return spoofUrl.toString();
+        });
+        defineGetter(document, "referrer", function () {
+          return spoofUrl.origin + "/";
+        });
+        defineGetter(document, "location", function () {
+          return spoofLocation;
+        });
+        defineGetter(window, "origin", function () {
+          return spoofUrl.origin;
+        });
+        defineGetter(window, "location", function () {
+          return spoofLocation;
+        });
+        defineGetter(globalThis, "location", function () {
+          return spoofLocation;
+        });
+      }
+
+      function getEffectiveSourceUrl() {
+        if (typeof SOURCE_PAGE_URL === "string" && SOURCE_PAGE_URL) {
+          return SOURCE_PAGE_URL;
+        }
+        return LOCAL_PAGE_URL;
+      }
+
+      function getEffectiveSourceHost() {
+        const candidateUrls = [getEffectiveSourceUrl(), LOCAL_PAGE_URL];
+        for (const candidate of candidateUrls) {
+          try {
+            const parsed = new URL(candidate);
+            if (parsed.hostname) {
+              return parsed.hostname;
+            }
+          } catch (err) {
+            // Ignore invalid URL candidates.
+          }
+        }
+        return window.location && window.location.hostname
+          ? String(window.location.hostname)
+          : EMPTY;
+      }
+
+      function getLocalHostName() {
+        if (typeof LOCAL_HOST_NAME === "string" && LOCAL_HOST_NAME) {
+          return LOCAL_HOST_NAME;
+        }
+        return window.location && window.location.hostname
+          ? String(window.location.hostname)
+          : EMPTY;
+      }
+
+      function getEffectiveSourceSiteUrl() {
+        const candidateUrls = [getEffectiveSourceUrl(), SOURCE_PAGE_URL];
+        for (const candidate of candidateUrls) {
+          if (typeof candidate !== "string" || !candidate) {
+            continue;
+          }
+          try {
+            return new URL("./", candidate).toString();
+          } catch (err) {
+            // Ignore invalid URL candidates.
+          }
+        }
+        return EMPTY;
+      }
+
+      function getEffectiveGmsoftParamPayload() {
+        const sharedConfig =
+          window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object"
+            ? window.GMSOFT_OPTIONS
+            : window.config && typeof window.config === "object"
+              ? window.config
+              : {};
+        const localHost = getLocalHostName();
+        const sourceSiteUrl = getEffectiveSourceSiteUrl();
+        if (localHost) {
+          sharedConfig.domainHost = localHost;
+        }
+        if (!sharedConfig.sourceHtml && sourceSiteUrl) {
+          sharedConfig.sourceHtml = sourceSiteUrl;
+        }
+        if (!sharedConfig.sourceHtml && window.config && typeof window.config.sourceHtml === "string") {
+          sharedConfig.sourceHtml = window.config.sourceHtml;
+        }
+        if (
+          !sharedConfig.pub_id &&
+          typeof sharedConfig.pubId === "string" &&
+          sharedConfig.pubId
+        ) {
+          sharedConfig.pub_id = sharedConfig.pubId;
+        }
+        if (
+          !sharedConfig.pubId &&
+          typeof sharedConfig.pub_id === "string" &&
+          sharedConfig.pub_id
+        ) {
+          sharedConfig.pubId = sharedConfig.pub_id;
+        }
+        return JSON.stringify(sharedConfig);
+      }
+
+      installAuxiliaryAssetUrlRewrites(AUXILIARY_ASSET_REWRITES);
+
+      function resetLaunchState() {
+        started = false;
+        clearLaunchPanelHideTimer();
+        if (loadingScreen) {
+          loadingScreen.classList.remove("is-loading");
+        }
+        if (launchPanel) {
+          launchPanel.style.display = "";
+          launchPanel.classList.remove("is-hidden");
+        }
+        releaseLegacyConfigUrl();
+        setProgressVisibility(false);
+        setProgress(0);
+        setLoadState("idle");
+      }
+
+      function requestFullscreenMode() {
+        const target = document.documentElement || document.body || canvas || legacyContainer;
+        if (!target) {
+          return Promise.resolve(false);
+        }
+        if (
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.msFullscreenElement ||
+          document.mozFullScreenElement
+        ) {
+          return Promise.resolve(true);
+        }
+        const request =
+          target.requestFullscreen ||
+          target.webkitRequestFullscreen ||
+          target.webkitRequestFullScreen ||
+          target.msRequestFullscreen ||
+          target.mozRequestFullScreen;
+        if (typeof request !== "function") {
+          return Promise.resolve(false);
+        }
+        setFullscreenScrollLock(true);
+        try {
+          return Promise.resolve(request.call(target))
+            .then(function () {
+              syncFullscreenScrollLock();
+              return true;
+            })
+            .catch(function (err) {
+              setFullscreenScrollLock(false);
+              console.warn("Fullscreen request failed:", err);
+              return false;
+            });
+        } catch (err) {
+          setFullscreenScrollLock(false);
+          console.warn("Fullscreen request failed:", err);
+          return Promise.resolve(false);
+        }
+      }
+
+      function consumeAutoStartFlag() {
+        const currentUrl = new URL(LOCAL_PAGE_URL);
+        const shouldAutoStart = currentUrl.searchParams.get("autostart") === "1";
+        if (shouldAutoStart) {
+          currentUrl.searchParams.delete("autostart");
+          currentUrl.searchParams.delete("launchMode");
+          const cleanedUrl = currentUrl.pathname + currentUrl.search + currentUrl.hash;
+          if (window.history && typeof window.history.replaceState === "function") {
+            window.history.replaceState(null, "", cleanedUrl || currentUrl.pathname);
+          }
+        }
+        return shouldAutoStart;
+      }
+
+      function startFullscreenGame() {
+        if (isLocalFileLaunch()) {
+          showHttpRequiredMessage();
+          return;
+        }
+        const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
+        if (!popup || popup.closed) {
+          setStatus("New tab blocked. Allow popups or use launch here.");
+          return;
+        }
+        try {
+          popup.opener = null;
+        } catch (err) {
+          // Ignore opener hardening failures.
+        }
+        setStatus("Opened fullscreen in a new tab");
+      }
+
+      function ensureStorageAccess() {
+        const hasApi =
+          typeof document.hasStorageAccess === "function" &&
+          typeof document.requestStorageAccess === "function";
+        if (!hasApi) {
+          logLoaderStep("Storage access API unavailable");
+          return Promise.resolve();
+        }
+        logLoaderStep("Checking storage access");
+        return document.hasStorageAccess()
+          .then(function (hasAccess) {
+            if (hasAccess) {
+              logLoaderStep("Storage access already granted");
+              return;
+            }
+            logLoaderStep("Requesting storage access");
+            return document.requestStorageAccess().catch(function () {
+              // Continue without hard-failing game load.
+              logLoaderStep("Storage access request failed");
+            });
+          })
+          .catch(function () {
+            // Continue without hard-failing game load.
+            logLoaderStep("Storage access check failed");
+          });
+      }
+
+      function buildLegacyConfig() {
+        const config = JSON.parse(JSON.stringify(LEGACY_CONFIG || {}));
+        Object.keys(config).forEach(function (key) {
+          const value = config[key];
+          if (typeof value !== "string" || !value || /^data:/i.test(value)) {
+            return;
+          }
+          if (!key.endsWith("Url")) {
+            return;
+          }
+          if (/^[a-z][a-z0-9+.-]*:/i.test(value)) {
+            return;
+          }
+          const relativeValue = value.replace(/^\.?\//, "");
+          config[key] = buildBuildAssetUrl(
+            relativeValue,
+            key !== "wasmCodeUrl"
+          );
+        });
+        return config;
+      }
+
+      function createFirebaseRefStub() {
+        return {
+          transaction: function (updater) {
+            if (typeof updater === "function") {
+              try {
+                updater(null);
+              } catch (err) {
+                // Ignore local stub transaction updater errors.
+              }
+            }
+            return Promise.resolve({
+              val: function () {
+                return null;
+              },
+            });
+          },
+          once: function () {
+            return Promise.resolve({
+              val: function () {
+                return null;
+              },
+            });
+          },
+          set: function () {
+            return Promise.resolve();
+          },
+          update: function () {
+            return Promise.resolve();
+          },
+          remove: function () {
+            return Promise.resolve();
+          },
+          push: function () {
+            return createFirebaseRefStub();
+          },
+          child: function () {
+            return createFirebaseRefStub();
+          },
+          orderByChild: function () {
+            return this;
+          },
+          equalTo: function () {
+            return this;
+          },
+          limitToFirst: function () {
+            return this;
+          },
+          on: function (_eventName, callback) {
+            if (typeof callback === "function") {
+              callback({
+                val: function () {
+                  return null;
+                },
+              });
+            }
+            return callback;
+          },
+          off: function () {
+            return;
+          },
+        };
+      }
+
+      function createFirebaseStub() {
+        const analytics = {
+          setUserProperties: function () {
+            return;
+          },
+          logEvent: function () {
+            return;
+          },
+        };
+        const auth = {
+          currentUser: null,
+          signInAnonymously: function () {
+            return Promise.resolve({});
+          },
+          signInWithEmailAndPassword: function () {
+            return Promise.resolve({});
+          },
+          createUserWithEmailAndPassword: function () {
+            return Promise.resolve({});
+          },
+          signOut: function () {
+            return Promise.resolve();
+          },
+          onAuthStateChanged: function (callback) {
+            if (typeof callback === "function") {
+              callback(null);
+            }
+            return function () {
+              return;
+            };
+          },
+        };
+        const firestoreDoc = {
+          get: function () {
+            return Promise.resolve({
+              exists: false,
+              data: function () {
+                return {};
+              },
+            });
+          },
+          set: function () {
+            return Promise.resolve();
+          },
+          update: function () {
+            return Promise.resolve();
+          },
+        };
+        const firestore = {
+          collection: function () {
+            return {
+              doc: function () {
+                return firestoreDoc;
+              },
+              add: function () {
+                return Promise.resolve({});
+              },
+              get: function () {
+                return Promise.resolve({
+                  docs: [],
+                });
+              },
+            };
+          },
+        };
+        return {
+          initializeApp: function () {
+            return {};
+          },
+          analytics: function () {
+            return analytics;
+          },
+          database: function () {
+            return {
+              ref: function () {
+                return createFirebaseRefStub();
+              },
+            };
+          },
+          auth: function () {
+            return auth;
+          },
+          firestore: function () {
+            return firestore;
+          },
+        };
+      }
+
+      function installGlobalSupportStubs() {
+        if (!window.firebase || typeof window.firebase !== "object") {
+          window.firebase = createFirebaseStub();
+        }
+        globalThis.firebase = window.firebase;
+
+        if (typeof window.firebaseSetUserProperties !== "function") {
+          window.firebaseSetUserProperties = function (props) {
+            try {
+              return window.firebase.analytics().setUserProperties(props || {});
+            } catch (err) {
+              return;
+            }
+          };
+        }
+        if (typeof window.firebaseLogEvent !== "function") {
+          window.firebaseLogEvent = function (eventName) {
+            try {
+              return window.firebase.analytics().logEvent(eventName || "");
+            } catch (err) {
+              return;
+            }
+          };
+        }
+        if (typeof window.firebaseLogEventParameter !== "function") {
+          window.firebaseLogEventParameter = function (eventName, eventParams) {
+            try {
+              return window.firebase.analytics().logEvent(eventName || "", eventParams || {});
+            } catch (err) {
+              return;
+            }
+          };
+        }
+
+        if (!window.GMDEBUG || typeof window.GMDEBUG !== "object") {
+          window.GMDEBUG = {};
+        }
+        globalThis.GMDEBUG = window.GMDEBUG;
+
+        if (typeof window.adConfig !== "function") {
+          window.adConfig = function (options) {
+            if (options && typeof options.onReady === "function") {
+              options.onReady();
+            }
+          };
+        }
+
+        if (!Array.isArray(window.adsbygoogle)) {
+          window.adsbygoogle = [];
+        }
+
+        if (!window.LocalAds || typeof window.LocalAds !== "object") {
+          window.LocalAds = {
+            fetchAd: function (callback) {
+              if (typeof callback === "function") {
+                callback({});
+              }
+            },
+            refetchAd: function (callback) {
+              if (typeof callback === "function") {
+                callback({});
+              }
+            },
+            registerRewardCallbacks: function (callbacks) {
+              if (callbacks && typeof callbacks.onReady === "function") {
+                callbacks.onReady();
+              }
+            },
+            showRewardAd: function () {
+              return;
+            },
+            showAd: function () {
+              return;
+            },
+            available: function () {
+              return false;
+            },
+          };
+        }
+
+        if (!window.preroll || typeof window.preroll !== "object") {
+          window.preroll = {
+            config: {
+              loaderObjectName: "LocalAds",
+            },
+          };
+        }
+        if (!window.preroll.config || typeof window.preroll.config !== "object") {
+          window.preroll.config = {
+            loaderObjectName: "LocalAds",
+          };
+        }
+        if (!window.preroll.config.loaderObjectName) {
+          window.preroll.config.loaderObjectName = "LocalAds";
+        }
+
+        if (typeof window.isDiffHost !== "function") {
+          window.isDiffHost = function () {
+            try {
+              if (window.top && window === window.top) {
+                return false;
+              }
+              if (window.top.location.hostname === window.location.hostname) {
+                return false;
+              }
+            } catch (err) {
+              return true;
+            }
+            return true;
+          };
+        }
+
+        if (typeof window.isHostOnGD !== "function") {
+          window.isHostOnGD = function () {
+            const domainParts = String(window.location.hostname || "").split(".");
+            const mainDomain = domainParts.slice(-2).join(".");
+            return mainDomain === "gamedistribution.com";
+          };
+        }
+        if (typeof window.isHostOnGDSDK !== "function") {
+          window.isHostOnGDSDK = window.isHostOnGD;
+        }
+      }
+
+      function applyEntryPageSupport(unityConfig) {
+        logLoaderStep("Preparing game config");
+        installGlobalSupportStubs();
+        const extractedConfig = Object.assign({}, ENTRY_PAGE_CONFIG || {});
+        if (extractedConfig.gdHost === "__standalone_isHostOnGD__") {
+          extractedConfig.gdHost = window.isHostOnGD();
+        }
+        if (!extractedConfig.streamingAssetsUrl && STREAMING_ASSETS_URL) {
+          extractedConfig.streamingAssetsUrl = STREAMING_ASSETS_URL;
+        }
+        extractedConfig.enableAds = false;
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "eventLog")) {
+          extractedConfig.eventLog = false;
+        }
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "enablePromotion")) {
+          extractedConfig.enablePromotion = false;
+        }
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "enableMoreGame")) {
+          extractedConfig.enableMoreGame = "no";
+        }
+
+        const mergedConfig = Object.assign({}, unityConfig, extractedConfig);
+        mergedConfig.dataUrl = unityConfig.dataUrl;
+        mergedConfig.frameworkUrl = unityConfig.frameworkUrl;
+        mergedConfig.codeUrl = unityConfig.codeUrl;
+        mergedConfig.cacheControl = unityConfig.cacheControl;
+        mergedConfig.devicePixelRatio = unityConfig.devicePixelRatio;
+        mergedConfig.matchWebGLToCanvasSize = unityConfig.matchWebGLToCanvasSize;
+        mergedConfig.webglContextAttributes = unityConfig.webglContextAttributes;
+        mergedConfig.referrer = document.referrer || "";
+        mergedConfig.enableAds = false;
+        mergedConfig.allow_embed = "yes";
+        mergedConfig.allow_host = "yes";
+        mergedConfig.allow_play = "yes";
+        mergedConfig.sdkversion = Number(mergedConfig.sdkversion) || 5;
+        mergedConfig.unlockTimer = Number(mergedConfig.unlockTimer) || 60;
+        mergedConfig.timeShowInter = Number(mergedConfig.timeShowInter) || 60;
+        mergedConfig.timeShowReward = Number(mergedConfig.timeShowReward) || 60;
+        mergedConfig.adsDebug = true;
+        mergedConfig.game = mergedConfig.game || null;
+        mergedConfig.promotion = mergedConfig.promotion || null;
+        mergedConfig.companyName = mergedConfig.companyName || PRODUCT_NAME;
+        mergedConfig.productName = mergedConfig.productName || PRODUCT_NAME;
+        mergedConfig.productVersion = mergedConfig.productVersion || "1.0.0";
+        if (!mergedConfig.pub_id && typeof mergedConfig.pubId === "string") {
+          mergedConfig.pub_id = mergedConfig.pubId;
+        }
+        if (!mergedConfig.pubId && typeof mergedConfig.pub_id === "string") {
+          mergedConfig.pubId = mergedConfig.pub_id;
+        }
+
+        const gmsoftDefaults = {
+          allow_embed: "yes",
+          allow_host: "yes",
+          allow_play: "yes",
+          debug_mode: "yes",
+          enableAds: false,
+          enablePreroll: false,
+          domainHost: getLocalHostName(),
+          sourceHtml: getEffectiveSourceSiteUrl(),
+          gameId: typeof mergedConfig.gameId === "string" ? mergedConfig.gameId : "",
+          hostindex: Number(extractedConfig.hostindex) || 0,
+          sdkType: typeof mergedConfig.sdkType === "string" && mergedConfig.sdkType
+            ? mergedConfig.sdkType
+            : "disabled",
+          sdkversion: Number(mergedConfig.sdkversion) || 5,
+          unlockTimer: Number(mergedConfig.unlockTimer) || 60,
+          timeShowInter: Number(mergedConfig.timeShowInter) || 60,
+          timeShowReward: Number(mergedConfig.timeShowReward) || 60,
+          adsDebug: true,
+          game: mergedConfig.game || null,
+          promotion: mergedConfig.promotion || null,
+        };
+        Object.assign(mergedConfig, gmsoftDefaults);
+        if (window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object") {
+          Object.assign(mergedConfig, window.GMSOFT_OPTIONS);
+        }
+        mergedConfig.domainHost = getLocalHostName() || mergedConfig.domainHost || "";
+        mergedConfig.sourceHtml =
+          getEffectiveSourceSiteUrl() ||
+          mergedConfig.sourceHtml ||
+          "";
+        mergedConfig.enableAds = false;
+        mergedConfig.enablePreroll = false;
+        mergedConfig.allow_embed = "yes";
+        mergedConfig.allow_host = "yes";
+        mergedConfig.allow_play = "yes";
+        if (typeof mergedConfig.gameId === "string" && mergedConfig.gameId) {
+          mergedConfig.gameId = mergedConfig.gameId;
+        }
+
+        window.config = mergedConfig;
+        globalThis.config = mergedConfig;
+        window.GMSOFT_OPTIONS = mergedConfig;
+        globalThis.GMSOFT_OPTIONS = mergedConfig;
+        return mergedConfig;
+      }
+
+      function maybeBootstrapUnitySupport(unityInstance) {
+        if (
+          !unityInstance ||
+          typeof unityInstance.SendMessage !== "function" ||
+          !ENTRY_PAGE_CONFIG ||
+          typeof ENTRY_PAGE_CONFIG !== "object"
+        ) {
+          return;
+        }
+        const looksLikeGmsoftBuild =
+          Boolean(ENTRY_PAGE_CONFIG.gameId) ||
+          Boolean(ENTRY_PAGE_CONFIG.buildAPI) ||
+          Object.prototype.hasOwnProperty.call(ENTRY_PAGE_CONFIG, "hostindex");
+        if (!looksLikeGmsoftBuild) {
+          return;
+        }
+
+        function safeSend(objectName, methodName, value) {
+          try {
+            if (typeof value === "undefined") {
+              unityInstance.SendMessage(objectName, methodName);
+            } else {
+              unityInstance.SendMessage(objectName, methodName, value);
+            }
+          } catch (err) {
+            // Ignore unsupported bridge calls for non-GmSoft builds.
+          }
+        }
+
+        function syncGmsoftPayload() {
+          if (!window.GMSOFT_OPTIONS || typeof window.GMSOFT_OPTIONS !== "object") {
+            return;
+          }
+          const localHost = getLocalHostName();
+          if (localHost) {
+            window.GMSOFT_OPTIONS.domainHost = localHost;
+          }
+          if (!window.GMSOFT_OPTIONS.sourceHtml) {
+            window.GMSOFT_OPTIONS.sourceHtml = getEffectiveSourceSiteUrl();
+          }
+          if (
+            !window.GMSOFT_OPTIONS.sourceHtml &&
+            window.config &&
+            typeof window.config.sourceHtml === "string"
+          ) {
+            window.GMSOFT_OPTIONS.sourceHtml = window.config.sourceHtml;
+          }
+          const payload = getEffectiveGmsoftParamPayload();
+          safeSend("GmSoft", "SetUnityHostName", localHost || "");
+          safeSend("GmSoft", "SetParam", payload);
+        }
+
+        syncGmsoftPayload();
+        [300, 900, 1800, 3200, 5200].forEach(function (delay) {
+          window.setTimeout(syncGmsoftPayload, delay);
+        });
+        try {
+          document.dispatchEvent(new CustomEvent("gmsoftSdkReady"));
+        } catch (err) {
+          // Ignore event dispatch failures.
+        }
+      }
+
+      function startModernGame(loaderUrl) {
+        logLoaderStep("Starting Unity runtime");
+        const unityConfig = {
+          dataUrl: buildBuildAssetUrl(DATA_FILE),
+          frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
+          codeUrl: buildBuildAssetUrl(WASM_FILE),
+          streamingAssetsUrl: STREAMING_ASSETS_URL || buildBuildAssetUrl("StreamingAssets"),
+          companyName: PRODUCT_NAME,
+          productName: PRODUCT_NAME,
+          productVersion: "1.0.0",
+          cacheControl: buildUnityCacheControl,
+          devicePixelRatio: computeUnityDevicePixelRatio(),
+          matchWebGLToCanvasSize: true,
+          webglContextAttributes: {
+            preserveDrawingBuffer: false,
+            powerPreference: "high-performance",
+          },
+        };
+        const config = applyEntryPageSupport(unityConfig);
+  config.decompressionFallback = true;
+        ensureLoaderScriptLoaded(loaderUrl)
+          .then(function () {
+          logLoaderStep("Creating Unity instance");
+          if (typeof createUnityInstance !== "function") {
+            resetLaunchState();
+            setLoadState("failed");
+            setStatus("Loader error: createUnityInstance is missing");
+            return;
+          }
+
+          createUnityInstance(canvas, config, function (progress) {
+            const percent = setProgress(progress);
+            setStatus("Loading " + percent + "%");
+          })
+          .then(function (unityInstance) {
+            window.unityInstance = unityInstance;
+            window.gameInstance = unityInstance;
+            maybeBootstrapUnitySupport(unityInstance);
+            setProgress(1);
+            logLoaderStep("Unity instance ready");
+            setStatus("Ready");
+            window.setTimeout(dismissLoadingScreen, 380);
+          })
+          .catch(function (err) {
+            console.error(err);
+            resetLaunchState();
+            setLoadState("failed");
+            setStatus("Failed to load game");
+            alert("Unity failed to load: " + err);
+          });
+        })
+        .catch(function (err) {
+          console.error(err);
+          resetLaunchState();
+          setLoadState("failed");
+          setStatus("Failed to load Unity loader script");
+        });
+      }
+
+      function startLegacyGame(loaderUrl) {
+        if (!legacyContainer) {
+          resetLaunchState();
+          setStatus("Legacy Unity container is missing");
+          return;
+        }
+
+        logLoaderStep("Preparing legacy Unity config");
+        const configBlob = new Blob(
+          [JSON.stringify(buildLegacyConfig())],
+          { type: "application/json" }
+        );
+        legacyConfigUrl =
+          typeof URL.createObjectURL === "function" ? URL.createObjectURL(configBlob) : "";
+        if (!legacyConfigUrl) {
+          resetLaunchState();
+          setStatus("Failed to prepare legacy Unity config");
+          return;
+        }
+
+        ensureLoaderScriptLoaded(loaderUrl)
+          .then(function () {
+          logLoaderStep("Creating legacy Unity instance");
+          const instantiate =
+            window.UnityLoader && typeof window.UnityLoader.instantiate === "function"
+              ? window.UnityLoader.instantiate
+              : null;
+          if (!instantiate) {
+            resetLaunchState();
+            setLoadState("failed");
+            setStatus("Loader error: UnityLoader.instantiate is missing");
+            return;
+          }
+
+          try {
+            instantiate(legacyContainer, legacyConfigUrl, {
+              onProgress: function (_instance, progress) {
+                const percent = setProgress(progress);
+                setStatus("Loading " + percent + "%");
+                if (progress >= 1) {
+                  window.setTimeout(function () {
+                    releaseLegacyConfigUrl();
+                    dismissLoadingScreen();
+                    logLoaderStep("Legacy Unity instance ready");
+                    setStatus("Ready");
+                  }, 380);
+                }
+              },
+            });
+          } catch (err) {
+            console.error(err);
+            resetLaunchState();
+            setLoadState("failed");
+            setStatus("Failed to load game");
+            alert("Unity failed to load: " + err);
+          }
+        })
+        .catch(function () {
+          resetLaunchState();
+          setLoadState("failed");
+          setStatus("Failed to load Unity loader script");
+        });
+      }
+
+      function startGame() {
+        if (isLocalFileLaunch()) {
+          showHttpRequiredMessage();
+          return;
+        }
+        if (started) {
+          return;
+        }
+        logLoaderStep("Launch requested");
+        started = true;
+        setLoadState("loading");
+        if (loadingScreen) {
+          loadingScreen.classList.add("is-loading");
+        }
+        if (launchPanel) {
+          clearLaunchPanelHideTimer();
+          launchPanel.style.display = "";
+          launchPanel.classList.add("is-hidden");
+          launchPanelHideTimer = window.setTimeout(function () {
+            if (launchPanel && launchPanel.classList.contains("is-hidden")) {
+              launchPanel.style.display = "none";
+            }
+            launchPanelHideTimer = 0;
+          }, 240);
+        }
+        setProgressVisibility(true);
+        setProgress(0);
+        setStatus("Loading 0%");
+
+        ensureStorageAccess().finally(function () {
+          const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
+          maybeSpoofSourcePageUrl();
+          if (BUILD_KIND === "legacy_json") {
+            startLegacyGame(loaderUrl);
+            return;
+          }
+          startModernGame(loaderUrl);
+        });
+      }
+
+      setProgressVisibility(false);
+      setProgress(0);
+      setLoadState("idle");
+      logLoaderStep("Shell initialized");
+      setStatus("Choose how you want to launch");
+
+      window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
+      window.addEventListener("touchmove", preventFullscreenScroll, { passive: false });
+      window.addEventListener("keydown", preventFullscreenScroll, { passive: false });
+      window.addEventListener("scroll", enforceFullscreenScrollTop, { passive: true });
+      window.addEventListener("fullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("mozfullscreenchange", syncFullscreenScrollLock);
+      window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
+      syncFullscreenScrollLock();
+
+      launchFullscreenBtn.addEventListener("click", startFullscreenGame);
+      launchFrameBtn.addEventListener("click", startGame);
+
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(warmUnityBuild, { timeout: 1200 });
+      } else {
+        window.setTimeout(warmUnityBuild, 240);
+      }
+
+      if (consumeAutoStartFlag()) {
+        startGame();
+      }
+    })();
+  </script>
+</body>
+</html>

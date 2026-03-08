@@ -1,0 +1,44 @@
+{
+  "count": 10,
+  "functions": [
+    "focus",
+    "gameLoaded",
+    "gameOverParent",
+    "getComputedStyle",
+    "getUserMedia",
+    "mapsClose",
+    "mapsOpen",
+    "onGamePlayPressed",
+    "sendMessageToUnity",
+    "showAdsBanner"
+  ],
+  "window_root_count": 13,
+  "window_roots": [
+    "HasAdBlock",
+    "focus",
+    "gameLoaded",
+    "gameOverParent",
+    "getComputedStyle",
+    "getUserMedia",
+    "mapsClose",
+    "mapsOpen",
+    "onGamePlayPressed",
+    "sendMessageToUnity",
+    "showAdsBanner",
+    "top",
+    "warnedAboutManualFilesystemSyncGettingDeprecated"
+  ],
+  "window_callable_chain_count": 10,
+  "window_callable_chains": [
+    "focus",
+    "gameLoaded",
+    "gameOverParent",
+    "getComputedStyle",
+    "getUserMedia",
+    "mapsClose",
+    "mapsOpen",
+    "onGamePlayPressed",
+    "sendMessageToUnity",
+    "showAdsBanner"
+  ]
+}

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import os
 import queue
 import re
 import subprocess
 import sys
 import threading
+import webbrowser
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -14,7 +16,9 @@ from tkinter.scrolledtext import ScrolledText
 
 BASE_DIR = Path(__file__).resolve().parent
 SCRIPT_PATH = BASE_DIR / "unity_standalone.py"
+FINDER_SCRIPT_PATH = BASE_DIR / "unity_standalone_finder.py"
 OUTPUT_DIR_PATTERN = re.compile(r'"output_dir"\s*:\s*"([^"]+)"')
+FINDER_RESULT_PREFIX = "[finder-result] "
 DEFAULT_SIZE = "980x760"
 
 
@@ -26,6 +30,9 @@ class UnityStandaloneGui(tk.Tk):
         self.minsize(860, 620)
 
         self.mode_var = tk.StringVar(value="entry")
+        self.game_name_var = tk.StringVar()
+        self.candidate_url_var = tk.StringVar()
+        self.candidate_summary_var = tk.StringVar(value="Search results will appear here.")
         self.entry_url_var = tk.StringVar()
         self.output_dir_var = tk.StringVar()
         self.loader_url_var = tk.StringVar()
@@ -38,9 +45,14 @@ class UnityStandaloneGui(tk.Tk):
         self.process: subprocess.Popen[str] | None = None
         self.event_queue: queue.Queue[tuple[str, object]] = queue.Queue()
         self.last_output_dir = ""
+        self.last_finder_result: dict[str, object] | None = None
+        self.finder_candidates: list[dict[str, object]] = []
+        self.finder_candidate_index = -1
+        self.current_action = ""
         self.locked_widgets: list[tk.Widget] = []
 
         self._build_ui()
+        self._sync_candidate_controls()
         self._sync_mode()
         self.protocol("WM_DELETE_WINDOW", self._handle_close)
         self.after(100, self._poll_events)
@@ -60,7 +72,7 @@ class UnityStandaloneGui(tk.Tk):
         ).grid(row=0, column=0, sticky="w")
         ttk.Label(
             header,
-            text="Local GUI for entry URLs or direct Unity asset URLs.",
+            text="Search by game name, entry URL, or direct Unity asset URLs.",
         ).grid(row=1, column=0, sticky="w", pady=(4, 0))
 
         form = ttk.Frame(self, padding=(16, 0, 16, 8))
@@ -93,9 +105,75 @@ class UnityStandaloneGui(tk.Tk):
         self.entry_frame = ttk.LabelFrame(form, text="Entry URL", padding=12)
         self.entry_frame.grid(row=1, column=0, sticky="ew", pady=(10, 0))
         self.entry_frame.columnconfigure(1, weight=1)
+        ttk.Label(self.entry_frame, text="Game name").grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=(0, 10),
+            pady=4,
+        )
+        game_name_entry = ttk.Entry(self.entry_frame, textvariable=self.game_name_var)
+        game_name_entry.grid(row=0, column=1, sticky="ew", pady=4)
+        self.find_button = ttk.Button(
+            self.entry_frame,
+            text="Find Best URL",
+            command=self.start_find,
+        )
+        self.find_button.grid(row=0, column=2, sticky="w", padx=(8, 0), pady=4)
+        ttk.Label(
+            self.entry_frame,
+            text="Search the web and pick the best supported source for the builder.",
+        ).grid(row=1, column=1, columnspan=2, sticky="w", pady=(0, 6))
+        ttk.Separator(self.entry_frame, orient="horizontal").grid(
+            row=2,
+            column=0,
+            columnspan=3,
+            sticky="ew",
+            pady=(2, 8),
+        )
+        self.locked_widgets.extend([game_name_entry, self.find_button])
+        candidate_frame = ttk.LabelFrame(self.entry_frame, text="Finder Candidate", padding=10)
+        candidate_frame.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        candidate_frame.columnconfigure(0, weight=1)
+        candidate_url_entry = ttk.Entry(
+            candidate_frame,
+            textvariable=self.candidate_url_var,
+            state="readonly",
+        )
+        candidate_url_entry.grid(row=0, column=0, columnspan=4, sticky="ew")
+        ttk.Label(
+            candidate_frame,
+            textvariable=self.candidate_summary_var,
+            wraplength=760,
+            justify="left",
+        ).grid(row=1, column=0, columnspan=4, sticky="w", pady=(6, 8))
+        self.prev_candidate_button = ttk.Button(
+            candidate_frame,
+            text="Previous",
+            command=self.show_previous_candidate,
+        )
+        self.prev_candidate_button.grid(row=2, column=0, sticky="w")
+        self.open_candidate_button = ttk.Button(
+            candidate_frame,
+            text="Open",
+            command=self.open_candidate_link,
+        )
+        self.open_candidate_button.grid(row=2, column=1, sticky="w", padx=(8, 0))
+        self.next_candidate_button = ttk.Button(
+            candidate_frame,
+            text="Next",
+            command=self.show_next_candidate,
+        )
+        self.next_candidate_button.grid(row=2, column=2, sticky="w", padx=(8, 0))
+        self.accept_candidate_button = ttk.Button(
+            candidate_frame,
+            text="Accept",
+            command=self.accept_candidate,
+        )
+        self.accept_candidate_button.grid(row=2, column=3, sticky="e", padx=(8, 0))
         self._add_labeled_entry(
             self.entry_frame,
-            row=0,
+            row=4,
             label="Game URL",
             variable=self.entry_url_var,
             example="https://melonplayground.io/",
@@ -214,6 +292,16 @@ class UnityStandaloneGui(tk.Tk):
                 continue
         self.build_button.configure(state="disabled" if is_running else "normal")
         self.stop_button.configure(state="normal" if is_running else "disabled")
+        if is_running:
+            for button in (
+                self.prev_candidate_button,
+                self.open_candidate_button,
+                self.next_candidate_button,
+                self.accept_candidate_button,
+            ):
+                button.configure(state="disabled")
+        else:
+            self._sync_candidate_controls()
 
     def append_log(self, text: str) -> None:
         self.log_text.configure(state="normal")
@@ -223,6 +311,16 @@ class UnityStandaloneGui(tk.Tk):
 
         for match in OUTPUT_DIR_PATTERN.finditer(text):
             self.last_output_dir = bytes(match.group(1), "utf-8").decode("unicode_escape")
+
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith(FINDER_RESULT_PREFIX):
+                continue
+            try:
+                payload = json.loads(stripped[len(FINDER_RESULT_PREFIX) :])
+            except json.JSONDecodeError:
+                continue
+            self._apply_finder_result(payload)
 
     def clear_log(self) -> None:
         self.log_text.configure(state="normal")
@@ -259,21 +357,122 @@ class UnityStandaloneGui(tk.Tk):
 
         return command
 
-    def start_build(self) -> None:
-        if self.process is not None:
-            return
-        if not SCRIPT_PATH.exists():
-            messagebox.showerror("Missing Script", f"Could not find {SCRIPT_PATH}")
+    def finder_command(self) -> list[str]:
+        game_name = self.game_name_var.get().strip()
+        if not game_name:
+            raise ValueError("Game name is required.")
+        return [sys.executable, "-u", str(FINDER_SCRIPT_PATH), game_name]
+
+    def _apply_finder_result(self, payload: dict[str, object]) -> None:
+        self.last_finder_result = payload
+        candidates = payload.get("top_candidates")
+        if isinstance(candidates, list):
+            self.finder_candidates = [item for item in candidates if isinstance(item, dict)]
+        else:
+            self.finder_candidates = []
+        self.finder_candidate_index = 0 if self.finder_candidates else -1
+        self._refresh_candidate_preview()
+
+    def _selected_candidate(self) -> dict[str, object] | None:
+        if self.finder_candidate_index < 0:
+            return None
+        if self.finder_candidate_index >= len(self.finder_candidates):
+            return None
+        return self.finder_candidates[self.finder_candidate_index]
+
+    def _refresh_candidate_preview(self) -> None:
+        candidate = self._selected_candidate()
+        if candidate is None:
+            self.candidate_url_var.set("")
+            self.candidate_summary_var.set("Search results will appear here.")
+            self._sync_candidate_controls()
             return
 
-        try:
-            command = self.build_command()
-        except ValueError as exc:
-            messagebox.showerror("Missing Input", str(exc))
-            return
+        self.candidate_url_var.set(str(candidate.get("source_url") or ""))
+        position = f"{self.finder_candidate_index + 1}/{len(self.finder_candidates)}"
+        confidence_label = str(candidate.get("confidence_label") or "").strip()
+        confidence_value = str(candidate.get("confidence") or "").strip()
+        summary = position
+        if confidence_label:
+            summary += f"  {confidence_label}"
+            if confidence_value:
+                summary += f" ({confidence_value})"
+        summary += f"  {candidate.get('entry_kind') or 'unknown'}"
+        build_kind = str(candidate.get("build_kind") or "").strip()
+        if build_kind:
+            summary += f" / {build_kind}"
+        compatibility_summary = str(candidate.get("compatibility_summary") or "").strip()
+        if compatibility_summary:
+            summary += f"  {compatibility_summary}"
+        resolved_entry_url = str(candidate.get("resolved_entry_url") or "").strip()
+        if resolved_entry_url:
+            summary += f"  ->  {resolved_entry_url}"
+        reason = str(candidate.get("reason") or "").strip()
+        if reason:
+            summary += f"  [{reason}]"
+        self.candidate_summary_var.set(summary)
+        self._sync_candidate_controls()
 
-        self.last_output_dir = ""
-        self.status_var.set("Starting build...")
+    def _sync_candidate_controls(self) -> None:
+        has_candidate = self._selected_candidate() is not None
+        prev_state = "normal" if has_candidate and self.finder_candidate_index > 0 else "disabled"
+        next_state = (
+            "normal"
+            if has_candidate and self.finder_candidate_index < len(self.finder_candidates) - 1
+            else "disabled"
+        )
+        shared_state = "normal" if has_candidate else "disabled"
+        self.prev_candidate_button.configure(state=prev_state)
+        self.next_candidate_button.configure(state=next_state)
+        self.open_candidate_button.configure(state=shared_state)
+        self.accept_candidate_button.configure(state=shared_state)
+
+    def show_previous_candidate(self) -> None:
+        if self.finder_candidate_index <= 0:
+            return
+        self.finder_candidate_index -= 1
+        self._refresh_candidate_preview()
+
+    def show_next_candidate(self) -> None:
+        if self.finder_candidate_index >= len(self.finder_candidates) - 1:
+            return
+        self.finder_candidate_index += 1
+        self._refresh_candidate_preview()
+
+    def open_candidate_link(self) -> None:
+        candidate = self._selected_candidate()
+        if candidate is None:
+            return
+        url = str(candidate.get("source_url") or "").strip()
+        if url:
+            webbrowser.open(url)
+
+    def accept_candidate(self) -> None:
+        candidate = self._selected_candidate()
+        if candidate is None:
+            return
+        url = str(candidate.get("source_url") or "").strip()
+        if not url:
+            return
+        self.mode_var.set("entry")
+        self._sync_mode()
+        self.entry_url_var.set(url)
+        if not self.output_dir_var.get().strip():
+            suggested_output_name = str(candidate.get("suggested_output_name") or "").strip()
+            if suggested_output_name:
+                self.output_dir_var.set(suggested_output_name)
+        self.status_var.set("Candidate accepted")
+        self.append_log(f"[gui] Accepted finder candidate: {url}\n")
+
+    def _start_process(self, command: list[str], action_name: str) -> None:
+        if action_name == "find":
+            self.last_finder_result = None
+            self.finder_candidates = []
+            self.finder_candidate_index = -1
+            self._refresh_candidate_preview()
+        self.current_action = action_name
+        action_label = "search" if action_name == "find" else action_name
+        self.status_var.set(f"Starting {action_label}...")
         self.append_log("$ " + self._format_command(command) + "\n")
         self._set_running_state(True)
 
@@ -292,6 +491,7 @@ class UnityStandaloneGui(tk.Tk):
             )
         except OSError as exc:
             self.process = None
+            self.current_action = ""
             self._set_running_state(False)
             self.status_var.set("Failed to start")
             messagebox.showerror("Launch Error", str(exc))
@@ -299,11 +499,40 @@ class UnityStandaloneGui(tk.Tk):
 
         threading.Thread(target=self._read_process_output, daemon=True).start()
 
+    def start_build(self) -> None:
+        if self.process is not None:
+            return
+        if not SCRIPT_PATH.exists():
+            messagebox.showerror("Missing Script", f"Could not find {SCRIPT_PATH}")
+            return
+
+        try:
+            command = self.build_command()
+        except ValueError as exc:
+            messagebox.showerror("Missing Input", str(exc))
+            return
+        self.last_output_dir = ""
+        self._start_process(command, "build")
+
+    def start_find(self) -> None:
+        if self.process is not None:
+            return
+        if not FINDER_SCRIPT_PATH.exists():
+            messagebox.showerror("Missing Script", f"Could not find {FINDER_SCRIPT_PATH}")
+            return
+
+        try:
+            command = self.finder_command()
+        except ValueError as exc:
+            messagebox.showerror("Missing Input", str(exc))
+            return
+        self._start_process(command, "find")
+
     def stop_build(self) -> None:
         if self.process is None:
             return
         self.status_var.set("Stopping...")
-        self.append_log("[gui] Stopping build...\n")
+        self.append_log("[gui] Stopping current action...\n")
         process = self.process
         process.terminate()
         threading.Thread(target=self._force_kill_if_needed, args=(process,), daemon=True).start()
@@ -348,14 +577,28 @@ class UnityStandaloneGui(tk.Tk):
                 self.append_log(str(payload))
             elif event_type == "done":
                 return_code = int(payload)
+                action_name = self.current_action
                 self.process = None
+                self.current_action = ""
                 self._set_running_state(False)
                 if return_code == 0:
-                    self.status_var.set("Build complete")
-                    self.append_log("[gui] Build complete.\n")
+                    if action_name == "find":
+                        if self.last_finder_result is not None:
+                            self.status_var.set("Source found")
+                            self.append_log("[gui] Search complete. Review candidates and click Accept.\n")
+                        else:
+                            self.status_var.set("Search complete")
+                            self.append_log("[gui] Search complete.\n")
+                    else:
+                        self.status_var.set("Build complete")
+                        self.append_log("[gui] Build complete.\n")
                 else:
-                    self.status_var.set(f"Build failed ({return_code})")
-                    self.append_log(f"[gui] Build failed with exit code {return_code}.\n")
+                    if action_name == "find":
+                        self.status_var.set(f"Search failed ({return_code})")
+                        self.append_log(f"[gui] Search failed with exit code {return_code}.\n")
+                    else:
+                        self.status_var.set(f"Build failed ({return_code})")
+                        self.append_log(f"[gui] Build failed with exit code {return_code}.\n")
 
         self.after(100, self._poll_events)
 
