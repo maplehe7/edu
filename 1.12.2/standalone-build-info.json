@@ -27,6 +27,11 @@
     "canonical_links": 0
   },
   "html_runtime_mirror": {},
+  "eagler_wrapper_patches": {
+    "countdown_guarded": 1,
+    "countdown_autostart_injected": 1,
+    "mobile_autolaunch_injected": 1
+  },
   "source_external_script_urls": [],
   "source_external_stylesheet_urls": [],
   "source_external_frame_urls": [],

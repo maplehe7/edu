@@ -3054,6 +3054,11 @@ def absolutize_markup_urls(document_html: str, source_url: str) -> str:
         r"(\b(?:src|href|action|poster)\s*=\s*)(['\"])([^\"']+)\2",
         re.IGNORECASE,
     )
+    tag_pattern = re.compile(r"<[^>]+>", re.DOTALL)
+    protected_block_pattern = re.compile(
+        r"(<script\b[\s\S]*?</script>|<style\b[\s\S]*?</style>)",
+        re.IGNORECASE,
+    )
 
     def replace_attr(match: re.Match[str]) -> str:
         prefix, quote, raw_value = match.groups()
@@ -3067,7 +3072,23 @@ def absolutize_markup_urls(document_html: str, source_url: str) -> str:
         absolute = normalize_url(urllib.parse.urljoin(source_url, decode_js_string_literal(value)))
         return f"{prefix}{quote}{html.escape(absolute, quote=True)}{quote}"
 
-    return attr_pattern.sub(replace_attr, document_html)
+    def rewrite_tag_attributes(fragment: str) -> str:
+        return tag_pattern.sub(lambda tag_match: attr_pattern.sub(replace_attr, tag_match.group(0)), fragment)
+
+    rebuilt: list[str] = []
+    last_index = 0
+    for block_match in protected_block_pattern.finditer(document_html):
+        rebuilt.append(rewrite_tag_attributes(document_html[last_index:block_match.start()]))
+        protected_block = block_match.group(0)
+        opening_tag_end = protected_block.find(">")
+        if opening_tag_end == -1:
+            rebuilt.append(protected_block)
+        else:
+            rebuilt.append(attr_pattern.sub(replace_attr, protected_block[: opening_tag_end + 1]))
+            rebuilt.append(protected_block[opening_tag_end + 1 :])
+        last_index = block_match.end()
+    rebuilt.append(rewrite_tag_attributes(document_html[last_index:]))
+    return "".join(rebuilt)
 
 
 def extract_html_external_links(document_html: str) -> dict[str, list[str]]:
@@ -3277,6 +3298,171 @@ def strip_nonessential_html_markup(document_html: str) -> tuple[str, dict[str, i
 
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     return cleaned, removal_counts
+
+
+def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str, int]]:
+    patched = document_html
+    patch_counts = {
+        "countdown_guarded": 0,
+        "countdown_autostart_injected": 0,
+        "mobile_autolaunch_injected": 0,
+    }
+
+    patched, guarded_count = re.subn(
+        r"""document\.getElementById\((['"])launch_countdown_screen\1\)\.remove\(\);\s*main\(\);""",
+        (
+            'var __oceanLaunchCountdown = document.getElementById("launch_countdown_screen"); '
+            'if (__oceanLaunchCountdown) { __oceanLaunchCountdown.remove(); } '
+            'if (typeof main === "function") { main(); }'
+        ),
+        patched,
+        flags=re.IGNORECASE,
+    )
+    patched, remove_child_guarded_count = re.subn(
+        r"""document\.body\.removeChild\(\s*document\.getElementById\((['"])launch_countdown_screen\1\)\s*\);""",
+        (
+            'var __oceanLaunchCountdown = document.getElementById("launch_countdown_screen"); '
+            'if (__oceanLaunchCountdown && __oceanLaunchCountdown.parentNode) { '
+            '__oceanLaunchCountdown.parentNode.removeChild(__oceanLaunchCountdown); }'
+        ),
+        patched,
+        flags=re.IGNORECASE,
+    )
+    patch_counts["countdown_guarded"] = guarded_count + remove_child_guarded_count
+
+    needs_countdown_autostart = (
+        "launch_countdown_screen" in patched and "launchCountdownNumber" in patched
+    )
+    needs_mobile_autolaunch = "_eaglercraftX_mobile_launch_client" in patched
+
+    if not needs_countdown_autostart and not needs_mobile_autolaunch:
+        return patched, patch_counts
+
+    helper_script = """
+<script>
+(function () {
+  var countdownHandled = false;
+
+  function removeCountdownNode() {
+    var countdown = document.getElementById("launch_countdown_screen");
+    if (!countdown) {
+      return false;
+    }
+    countdown.style.display = "none";
+    return true;
+  }
+
+  function fastForwardCountdown() {
+    if (countdownHandled) {
+      return;
+    }
+    if (typeof window.launchTick === "function") {
+      countdownHandled = true;
+      if (window.launchInterval) {
+        try {
+          clearInterval(window.launchInterval);
+        } catch (err) {
+        }
+        window.launchInterval = null;
+      }
+      if (typeof window.launchCounter !== "number" || !isFinite(window.launchCounter)) {
+        window.launchCounter = 100;
+      } else {
+        window.launchCounter = 100;
+      }
+      removeCountdownNode();
+      window.setTimeout(function () {
+        try {
+          window.launchTick();
+        } catch (err) {
+          var countdown = document.getElementById("launch_countdown_screen");
+          if (countdown && countdown.parentNode) {
+            countdown.parentNode.removeChild(countdown);
+          }
+          if (!window.__oceanEaglerMainStarted && typeof window.main === "function") {
+            window.__oceanEaglerMainStarted = true;
+            window.main();
+          }
+        }
+      }, 0);
+      return;
+    }
+    if (!window.__oceanEaglerMainStarted && typeof window.main === "function") {
+      countdownHandled = true;
+      var countdown = document.getElementById("launch_countdown_screen");
+      if (countdown && countdown.parentNode) {
+        countdown.parentNode.removeChild(countdown);
+      }
+      window.__oceanEaglerMainStarted = true;
+      window.main();
+    }
+  }
+
+  function clickMobileLaunchButton() {
+    var button = document.querySelector("._eaglercraftX_mobile_launch_client");
+    if (!button) {
+      return false;
+    }
+    try {
+      button.click();
+    } catch (err) {
+    }
+    var popup = button.closest ? button.closest("div") : button.parentNode;
+    if (popup && popup.parentNode && popup !== document.body) {
+      popup.style.display = "none";
+    }
+    return true;
+  }
+
+  function applyEaglerOverrides() {
+    if (window.eaglercraftXOpts && typeof window.eaglercraftXOpts === "object") {
+      window.eaglercraftXOpts.useVisualViewport = false;
+    }
+    clickMobileLaunchButton();
+    fastForwardCountdown();
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    window.setTimeout(applyEaglerOverrides, 0);
+  } else {
+    window.addEventListener("load", function () {
+      window.setTimeout(applyEaglerOverrides, 0);
+    }, { once: true });
+  }
+
+  if (typeof MutationObserver === "function") {
+    var observer = new MutationObserver(function () {
+      var touched = clickMobileLaunchButton();
+      if (touched) {
+        window.setTimeout(fastForwardCountdown, 0);
+      }
+    });
+    observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
+    window.setTimeout(function () {
+      observer.disconnect();
+    }, 15000);
+  }
+})();
+</script>
+""".strip()
+
+    lower_patched = patched.lower()
+    body_close_index = lower_patched.rfind("</body>")
+    if body_close_index != -1:
+        patched = patched[:body_close_index] + helper_script + "\n" + patched[body_close_index:]
+    else:
+        html_close_index = lower_patched.rfind("</html>")
+        if html_close_index != -1:
+            patched = patched[:html_close_index] + helper_script + "\n" + patched[html_close_index:]
+        else:
+            patched += "\n" + helper_script
+
+    if needs_countdown_autostart:
+        patch_counts["countdown_autostart_injected"] = 1
+    if needs_mobile_autolaunch:
+        patch_counts["mobile_autolaunch_injected"] = 1
+
+    return patched, patch_counts
 
 
 def generate_local_websdkwrapper_stub() -> str:
@@ -7779,6 +7965,9 @@ def export_html_entry(
     localized_source_html, nonessential_markup_removed = strip_nonessential_html_markup(
         localized_source_html
     )
+    localized_source_html, eagler_wrapper_patches = patch_inline_eagler_wrapper_html(
+        localized_source_html
+    )
     external_links = extract_html_external_links(localized_source_html)
     embedded_entry_name = "game-root.html"
     embedded_entry_content = generate_html_entry_index_html(
@@ -7823,6 +8012,7 @@ def export_html_entry(
         "embedded_ad_blocks_removed": ad_removal_counts,
         "nonessential_markup_removed": nonessential_markup_removed,
         "html_runtime_mirror": mirrored_html_summary,
+        "eagler_wrapper_patches": eagler_wrapper_patches,
         "source_external_script_urls": original_external_links["scripts"],
         "source_external_stylesheet_urls": original_external_links["stylesheets"],
         "source_external_frame_urls": original_external_links["frames"],

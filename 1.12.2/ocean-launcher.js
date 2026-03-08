@@ -966,10 +966,9 @@
       frame.title = embedTitle;
       frame.loading = "eager";
       frame.referrerPolicy = "strict-origin-when-cross-origin";
-      frame.setAttribute("allowfullscreen", "");
       frame.setAttribute(
         "allow",
-        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write; storage-access-by-user-activation"
+        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write"
       );
 
       function settleWith(fn, value) {

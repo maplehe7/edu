@@ -428,7 +428,7 @@
     </div>
   </div>
 
-  <script src="./support/gameloader-helper.js"></script>
+
   <script>
     (function () {
       const TRUE = "true";
@@ -436,7 +436,7 @@
       const EMPTY = "";
       const ZERO = "0";
       const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
-      const SOURCE_PAGE_URL = "https://bitlifeonline.github.io/ragdoll-archers/";
+      const SOURCE_PAGE_URL = "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/41/index.html";
       const ENABLE_SOURCE_URL_SPOOF = true;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
@@ -980,8 +980,8 @@
       };
 
       const dynamicFunctionNames = ["getUserMedia", "unityStringify"];
-      const dynamicWindowRootNames = ["CrazyGames", "Crazygames", "UnitySDK", "crazySdkInitOptions", "getUserMedia", "unityStringify"];
-      const dynamicWindowCallableChains = ["CrazyGames.SDK.ad.hasAdblock", "CrazyGames.SDK.ad.requestAd", "CrazyGames.SDK.addInitCallback", "CrazyGames.SDK.banner.requestOverlayBanners", "CrazyGames.SDK.game.gameplayStart", "CrazyGames.SDK.game.gameplayStop", "CrazyGames.SDK.game.happytime", "CrazyGames.SDK.user.addAuthListener", "CrazyGames.SDK.user.addScore", "CrazyGames.SDK.user.getUser", "CrazyGames.SDK.user.getUserToken", "CrazyGames.SDK.user.getXsollaUserToken", "CrazyGames.SDK.user.showAccountLinkPrompt", "CrazyGames.SDK.user.showAuthPrompt", "Crazygames.requestInviteUrl", "UnitySDK.ensureLoaded", "UnitySDK.lockPointer", "UnitySDK.onSdkScriptLoaded", "UnitySDK.unlockPointer", "getUserMedia", "unityStringify"];
+      const dynamicWindowRootNames = ["CrazyGames", "UnitySDK", "getUserMedia", "unityStringify"];
+      const dynamicWindowCallableChains = ["CrazyGames.SDK.ad.hasAdblock", "CrazyGames.SDK.ad.requestAd", "CrazyGames.SDK.banner.requestOverlayBanners", "CrazyGames.SDK.data.clear", "CrazyGames.SDK.data.getItem", "CrazyGames.SDK.data.removeItem", "CrazyGames.SDK.data.setItem", "CrazyGames.SDK.data.syncUnityGameData", "CrazyGames.SDK.game.gameplayStart", "CrazyGames.SDK.game.gameplayStop", "CrazyGames.SDK.game.happytime", "CrazyGames.SDK.game.hideInviteButton", "CrazyGames.SDK.game.inviteLink", "CrazyGames.SDK.game.showInviteButton", "CrazyGames.SDK.init", "CrazyGames.SDK.user.addAuthListener", "CrazyGames.SDK.user.addScore", "CrazyGames.SDK.user.getUser", "CrazyGames.SDK.user.getUserToken", "CrazyGames.SDK.user.getXsollaUserToken", "CrazyGames.SDK.user.showAccountLinkPrompt", "CrazyGames.SDK.user.showAuthPrompt", "UnitySDK.lockPointer", "UnitySDK.unlockPointer", "getUserMedia", "unityStringify"];
       const fixedGlobalFunctionNames = [
         "InitSDK",
         "RequestAdSDK",
@@ -1600,17 +1600,17 @@
       const PRODUCT_NAME = "Ragdoll Archers";
       const BUILD_KIND = "modern";
       const BUILD_DIR = "Build";
-      const LOADER_FILE = "v111.loader.js";
-      const DATA_FILE = "6697b6deba8b617c67b69c55dcd07cb1.data.unityweb";
-      const FRAMEWORK_FILE = "0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb";
-      const WASM_FILE = "b3397c29f6878557c1c614cbf9e196ea.wasm.unityweb";
+      const LOADER_FILE = "76f034cff49013ce85bd6945ebf32347.loader.js";
+      const DATA_FILE = "b78e2f19aeeb36e72ad0c25ba1389c0c.data.br";
+      const FRAMEWORK_FILE = "eb8d005d31d7319e73a2be6cf35778c9.framework.js.br";
+      const WASM_FILE = "d47cbbbcaabab6b66593391aec42e135.wasm.br";
       const LEGACY_CONFIG = {};
       const SOURCE_PAGE_URL =
-        window.__unityStandaloneSourcePageUrl || "https://bitlifeonline.github.io/ragdoll-archers/";
+        window.__unityStandaloneSourcePageUrl || "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/41/index.html";
       const ENABLE_SOURCE_URL_SPOOF = true;
       const ORIGINAL_FOLDER_URL = "";
-      const STREAMING_ASSETS_URL = "https://bitlifeonline.github.io/ragdoll-archers/StreamingAssets";
-      const BUILD_CACHE_BUSTER = "2ef2b05806a9";
+      const STREAMING_ASSETS_URL = "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/41/StreamingAssets";
+      const BUILD_CACHE_BUSTER = "6f203595e697";
       const ENTRY_PAGE_CONFIG = {"streamingAssetsUrl": "StreamingAssets", "companyName": "Ericetto", "productName": "Ragdoll Archers", "productVersion": "0.1"};
       const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =
