@@ -396,6 +396,57 @@ def looks_like_eagler_entry_html(index_html: str) -> bool:
     )
 
 
+def looks_like_html_game_entry_html(index_html: str) -> bool:
+    lower = index_html.lower()
+    if ("<html" not in lower and "<body" not in lower) or looks_like_unity_entry_html(index_html):
+        return False
+    if looks_like_eagler_entry_html(index_html):
+        return False
+    if any(
+        marker in lower
+        for marker in (
+            "_docs_flag_initialdata",
+            "sites-viewer-frontend",
+            "goog.script.init(",
+            "id=\"sandboxframe\"",
+            "id='sandboxframe'",
+            "innerframegapiinitialized",
+            "updateuserhtmlframe(",
+        )
+    ):
+        return False
+
+    score = 0
+    if re.search(r"<script\b[^>]*\bsrc\s*=", index_html, re.IGNORECASE):
+        score += 2
+    if "<canvas" in lower:
+        score += 3
+    if "touch-action: none" in lower or "touch-action:none" in lower:
+        score += 1
+    if "overflow: hidden" in lower or "overflow:hidden" in lower:
+        score += 1
+    if "position: fixed" in lower or "position: absolute" in lower:
+        score += 1
+    if any(
+        marker in lower
+        for marker in (
+            "gamesnacks.js",
+            "voodoo-h5sdk",
+            "mpconfig",
+            "miniplay",
+            "phaser",
+            "pixi",
+            "c3runtime",
+            "playcanvas",
+            "babylon",
+        )
+    ):
+        score += 2
+    if "<iframe" in lower and "<canvas" not in lower and "<script" not in lower:
+        score -= 3
+    return score >= 4
+
+
 def is_ignored_embedded_url(url: str) -> bool:
     lower = url.lower()
     ignored_fragments = (
@@ -493,6 +544,8 @@ def detect_supported_entry_kind(index_html: str) -> str:
         return "unity"
     if looks_like_eagler_entry_html(index_html):
         return "eaglercraft"
+    if looks_like_html_game_entry_html(index_html):
+        return "html"
     return ""
 
 
@@ -1725,6 +1778,104 @@ def infer_product_name_from_entry(index_html: str, fallback: str) -> str:
     cleaned = re.sub(r"\s+", " ", title).strip()
     cleaned = re.sub(r"\s+online\s*$", "", cleaned, flags=re.IGNORECASE).strip()
     return cleaned or fallback
+
+
+def infer_display_title(title: str, root_url: str, fallback: str = "Standalone Game") -> str:
+    cleaned_title = re.sub(r"\s+", " ", title).strip()
+    if cleaned_title:
+        return cleaned_title
+
+    parsed = urllib.parse.urlparse(root_url)
+    path_segments = [segment for segment in parsed.path.split("/") if segment]
+    if path_segments:
+        source = urllib.parse.unquote(path_segments[-1])
+    else:
+        source = parsed.netloc.split(".", 1)[0]
+
+    source = re.sub(r"[-_.]+", " ", source)
+    source = re.sub(r"\s+", " ", source).strip()
+    if not source:
+        return fallback
+    return " ".join(word.capitalize() for word in source.split())
+
+
+def absolutize_markup_urls(document_html: str, source_url: str) -> str:
+    if not source_url:
+        return document_html
+
+    attr_pattern = re.compile(
+        r"(\b(?:src|href|action|poster)\s*=\s*)(['\"])([^\"']+)\2",
+        re.IGNORECASE,
+    )
+
+    def replace_attr(match: re.Match[str]) -> str:
+        prefix, quote, raw_value = match.groups()
+        value = html.unescape(raw_value).strip()
+        lowered = value.lower()
+        if (
+            not value
+            or lowered.startswith(("#", "data:", "javascript:", "mailto:", "tel:", "blob:"))
+        ):
+            return match.group(0)
+        absolute = normalize_url(urllib.parse.urljoin(source_url, decode_js_string_literal(value)))
+        return f"{prefix}{quote}{html.escape(absolute, quote=True)}{quote}"
+
+    return attr_pattern.sub(replace_attr, document_html)
+
+
+def extract_html_external_links(document_html: str) -> dict[str, list[str]]:
+    def dedupe(values: list[str]) -> list[str]:
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for value in values:
+            if not value or value in seen:
+                continue
+            seen.add(value)
+            ordered.append(value)
+        return ordered
+
+    script_urls = dedupe(
+        [
+            html.unescape(match).strip()
+            for match in re.findall(
+                r"""<script[^>]+src=["']([^"']+)["']""",
+                document_html,
+                re.IGNORECASE,
+            )
+        ]
+    )
+
+    stylesheet_urls: list[str] = []
+    other_link_urls: list[str] = []
+    for tag in re.findall(r"""<link\b[^>]*>""", document_html, re.IGNORECASE):
+        href_match = re.search(r"""href=["']([^"']+)["']""", tag, re.IGNORECASE)
+        if not href_match:
+            continue
+        href = html.unescape(href_match.group(1)).strip()
+        rel_match = re.search(r"""rel=["']([^"']+)["']""", tag, re.IGNORECASE)
+        rel_value = rel_match.group(1).lower() if rel_match else ""
+        if "stylesheet" in rel_value:
+            stylesheet_urls.append(href)
+        else:
+            other_link_urls.append(href)
+
+    iframe_urls = dedupe(
+        [
+            html.unescape(match).strip()
+            for match in re.findall(
+                r"""<iframe[^>]+src=["']([^"']+)["']""",
+                document_html,
+                re.IGNORECASE,
+            )
+        ]
+    )
+
+    return {
+        "scripts": script_urls,
+        "stylesheets": dedupe(stylesheet_urls),
+        "frames": iframe_urls,
+        "other_links": dedupe(other_link_urls),
+    }
 
 
 def generate_crazygames_sdk_stub() -> str:
@@ -4373,14 +4524,14 @@ def download_legacy_assets(
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Download a Unity WebGL build and generate a standalone "
-            "index.html with runtime stubs for missing integration APIs."
+            "Download a Unity WebGL build, Eagler bundle, or extracted HTML5 entry "
+            "and generate a standalone package."
         )
     )
     parser.add_argument(
         "entry_url",
         nargs="?",
-        help="Optional entry page URL (any host) to auto-detect Unity asset URLs.",
+        help="Optional entry page URL (any host) to auto-detect a supported game entry.",
     )
     parser.add_argument(
         "--loader-url",
@@ -4545,6 +4696,163 @@ def copy_eagler_support_files(output_dir: Path) -> list[str]:
         shutil.copyfile(source, output_dir / name)
         copied.append(name)
     return copied
+
+
+def generate_html_entry_index_html(title: str, source_html: str) -> str:
+    document = source_html.strip()
+    if not document:
+        raise FetchError("Detected HTML entry was empty.")
+
+    title_tag = f"<title>{html.escape(title)}</title>"
+    viewport_tag = (
+        '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />'
+    )
+    charset_tag = '<meta charset="utf-8" />'
+    preserved_base_tag = ""
+
+    def strip_base_tag(match: re.Match[str]) -> str:
+        nonlocal preserved_base_tag
+        if not preserved_base_tag:
+            target_match = re.search(r"\btarget\s*=\s*(['\"])(.*?)\1", match.group(0), re.IGNORECASE)
+            if target_match:
+                preserved_base_tag = (
+                    f'<base target="{html.escape(target_match.group(2), quote=True)}" />'
+                )
+        return ""
+
+    document = re.sub(r"<base\b[^>]*>", strip_base_tag, document, flags=re.IGNORECASE)
+
+    injections: list[str] = []
+    if not re.search(r"<meta\b[^>]*charset\s*=", document, re.IGNORECASE):
+        injections.append(charset_tag)
+    if not re.search(r"<meta\b[^>]*name\s*=\s*['\"]viewport['\"]", document, re.IGNORECASE):
+        injections.append(viewport_tag)
+    if preserved_base_tag:
+        injections.append(preserved_base_tag)
+    if title and not re.search(r"<title\b", document, re.IGNORECASE):
+        injections.append(title_tag)
+
+    injection = "\n".join(injections)
+    if re.search(r"<head\b[^>]*>", document, re.IGNORECASE):
+        if injection:
+            document = re.sub(
+                r"(<head\b[^>]*>)",
+                r"\1\n" + injection + "\n",
+                document,
+                count=1,
+                flags=re.IGNORECASE,
+            )
+    elif re.search(r"<html\b[^>]*>", document, re.IGNORECASE):
+        head_block = "<head>\n"
+        if injection:
+            head_block += injection + "\n"
+        head_block += "</head>\n"
+        document = re.sub(
+            r"(<html\b[^>]*>)",
+            r"\1\n" + head_block,
+            document,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    else:
+        body = document
+        document = (
+            "<!DOCTYPE html>\n"
+            "<html lang=\"en\">\n"
+            "<head>\n"
+            f"{charset_tag}\n"
+            f"{viewport_tag}\n"
+            + (f"{preserved_base_tag}\n" if preserved_base_tag else "")
+            + (f"{title_tag}\n" if title else "")
+            + "</head>\n"
+            "<body>\n"
+            f"{body}\n"
+            "</body>\n"
+            "</html>\n"
+        )
+
+    if not re.match(r"<!doctype\s+html", document, re.IGNORECASE):
+        document = "<!DOCTYPE html>\n" + document
+
+    return document
+
+
+def export_html_entry(
+    output_dir: Path,
+    progress_file: Path,
+    detected_entry: DetectedEntry,
+    input_url: str,
+    root_url: str,
+) -> dict[str, Any]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    title = infer_display_title(extract_html_title(detected_entry.index_html), root_url)
+    progress_payload = load_json_file(progress_file)
+    progress_payload.update(
+        {
+            "mode": "entry_auto",
+            "entry_kind": "html",
+            "root_url": root_url,
+            "input_url": input_url,
+            "resolved_entry_url": detected_entry.index_url,
+            "title": title,
+            "completed": False,
+        }
+    )
+    save_json_file(progress_file, progress_payload)
+
+    normalized_source_html = absolutize_markup_urls(
+        detected_entry.index_html,
+        detected_entry.index_url,
+    )
+    external_links = extract_html_external_links(normalized_source_html)
+    index_content = generate_html_entry_index_html(
+        title=title,
+        source_html=normalized_source_html,
+    )
+    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
+
+    required_functions_payload = {
+        "count": 0,
+        "functions": [],
+        "window_root_count": 0,
+        "window_roots": [],
+        "window_callable_chain_count": 0,
+        "window_callable_chains": [],
+    }
+    (output_dir / "required-functions.json").write_text(
+        json.dumps(required_functions_payload, indent=2),
+        encoding="utf-8",
+    )
+
+    summary = {
+        "output_dir": str(output_dir),
+        "index_html": str(output_dir / "index.html"),
+        "required_functions_file": str(output_dir / "required-functions.json"),
+        "mode": "entry_auto",
+        "entry_kind": "html",
+        "title": title,
+        "input_url": input_url,
+        "root_url": root_url,
+        "resolved_entry_url": detected_entry.index_url,
+        "html_source_mode": "absolutized_embed_root",
+        "external_script_urls": external_links["scripts"],
+        "external_stylesheet_urls": external_links["stylesheets"],
+        "external_frame_urls": external_links["frames"],
+        "external_other_urls": external_links["other_links"],
+        "progress_file": str(progress_file),
+    }
+    (output_dir / "standalone-build-info.json").write_text(
+        json.dumps(summary, indent=2),
+        encoding="utf-8",
+    )
+
+    progress_payload = load_json_file(progress_file)
+    progress_payload["completed"] = True
+    progress_payload["summary"] = summary
+    save_json_file(progress_file, progress_payload)
+
+    return summary
 
 
 def generate_eagler_index_html(
@@ -4844,6 +5152,7 @@ def main(argv: Sequence[str]) -> int:
     legacy_config: dict[str, Any] = {}
     detected_build: DetectedBuild | None = None
     detected_eagler_entry: DetectedEaglerEntry | None = None
+    detected_html_entry: DetectedEntry | None = None
 
     if direct_mode:
         loader_url = normalize_url(args.loader_url)
@@ -4875,7 +5184,7 @@ def main(argv: Sequence[str]) -> int:
 
             log(f"Detected build kind: {build_kind}")
             log(f"Resolved loader URL: {loader_url}")
-        else:
+        elif entry_kind == "eaglercraft":
             detected_eagler_entry = detect_eagler_entry(
                 detected_entry.index_url,
                 detected_entry.index_html,
@@ -4884,6 +5193,9 @@ def main(argv: Sequence[str]) -> int:
             log(f"Resolved Eagler assets URL: {detected_eagler_entry.assets_url}")
             if detected_eagler_entry.locales_url:
                 log(f"Resolved Eagler locales URL: {detected_eagler_entry.locales_url}")
+        else:
+            detected_html_entry = detected_entry
+            log(f"Resolved HTML entry URL: {detected_html_entry.index_url}")
 
     if direct_mode:
         output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
@@ -4892,6 +5204,12 @@ def main(argv: Sequence[str]) -> int:
             detected_eagler_entry.title,
             root_url,
             fallback_name="eaglercraft",
+        )
+    elif entry_kind == "html" and detected_html_entry is not None:
+        output_name = args.out_dir.strip() or infer_output_name_from_entry(
+            extract_html_title(detected_html_entry.index_html),
+            root_url,
+            fallback_name="html-game",
         )
     else:
         output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
@@ -4921,6 +5239,18 @@ def main(argv: Sequence[str]) -> int:
             output_dir=output_dir,
             progress_file=progress_file,
             detected_entry=detected_eagler_entry,
+            input_url=input_url,
+            root_url=root_url,
+        )
+        log("Done.")
+        log(json.dumps(summary, indent=2))
+        return 0
+
+    if entry_kind == "html" and detected_html_entry is not None:
+        summary = export_html_entry(
+            output_dir=output_dir,
+            progress_file=progress_file,
+            detected_entry=detected_html_entry,
             input_url=input_url,
             root_url=root_url,
         )

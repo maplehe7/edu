@@ -1,0 +1,24 @@
+{
+  "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Spiral Roll",
+  "index_html": "C:\\Users\\hello\\Downloads\\edu\\Spiral Roll\\index.html",
+  "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Spiral Roll\\required-functions.json",
+  "mode": "entry_auto",
+  "entry_kind": "html",
+  "title": "Spiral Roll",
+  "input_url": "https://sites.google.com/classroom.center/view-1/spiral-roll",
+  "root_url": "https://sites.google.com/classroom.center/view-1/spiral-roll/",
+  "resolved_entry_url": "https://cdn.jsdelivr.net/gh/99-classroom/kol@main/spiral-roll.xml",
+  "html_source_mode": "absolutized_embed_root",
+  "external_script_urls": [
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/mains.js",
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/gamesnacks.js",
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js",
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/main.js"
+  ],
+  "external_stylesheet_urls": [],
+  "external_frame_urls": [
+    "https://script.google.com/macros/s/AKfycbxLG5DHBe-sIbduDvwQZYJ3oaX_ha7rsvroprCFkQsnpZK_PEdipNia5ghxI_sdXYpv/exec"
+  ],
+  "external_other_urls": [],
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Spiral Roll\\.standalone-progress.json"
+}
