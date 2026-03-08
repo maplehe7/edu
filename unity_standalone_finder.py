@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import http.client
 import html
 import json
@@ -39,16 +40,10 @@ SEARCH_QUERY_TEMPLATES = (
     '"{name}" browser game',
     '"{name}" html5 game',
     '"{name}" online game',
-    '"{name}" crazygames',
     '"{name}" game',
-    '"{name}" unblocked game',
     "{name} unity webgl",
     "{name} browser game",
     "{name} game",
-    'site:crazygames.com/game "{name}"',
-    'site:1games.io/game "{name}"',
-    'site:gamecomets.com/game "{name}"',
-    'site:sites.google.com "{name}"',
 )
 BLOCKED_HOSTS = {
     "apps.microsoft.com",
@@ -145,8 +140,12 @@ UNITY_REQUIRED_ASSET_KEYS = {
     "legacy_json": ("loader", "dataUrl", "wasmCodeUrl", "wasmFrameworkUrl"),
 }
 PROBE_TIMEOUT_SECONDS = 12
+SEARCH_TIMEOUT_SECONDS = 10
 PROBE_CANDIDATE_LIMIT = 3
+FINDER_EVAL_WORKERS = 4
 PROBE_RESULT_CACHE: dict[tuple[str, str], bool] = {}
+SUPPORTED_ENTRY_CACHE: dict[str, object | None] = {}
+DETECTED_BUILD_CACHE: dict[str, object | None] = {}
 PREFERRED_HOST_SCORES = {
     "games.crazygames.com": 16,
     "crazygames.com": 14,
@@ -228,7 +227,7 @@ def fetch_search_results(query: str, limit: int = 8) -> list[tuple[str, str]]:
         headers={**REQUEST_HEADERS, "Accept": "application/rss+xml, application/xml, text/xml"},
     )
     try:
-        with urllib.request.urlopen(bing_request, timeout=25) as response:
+        with urllib.request.urlopen(bing_request, timeout=SEARCH_TIMEOUT_SECONDS) as response:
             rss_text = response.read().decode("utf-8", errors="replace")
         root = ET.fromstring(rss_text)
         results: list[tuple[str, str]] = []
@@ -256,7 +255,7 @@ def fetch_search_results(query: str, limit: int = 8) -> list[tuple[str, str]]:
             headers={**REQUEST_HEADERS, "Accept": "text/html"},
         )
         try:
-            with urllib.request.urlopen(request, timeout=25) as response:
+            with urllib.request.urlopen(request, timeout=SEARCH_TIMEOUT_SECONDS) as response:
                 page_html = response.read().decode("utf-8", errors="replace")
         except Exception as exc:
             last_error = exc
@@ -415,6 +414,17 @@ def has_phrase_match(game_name: str, *texts: str) -> bool:
     return any(phrase in normalize_text(text) for text in texts if text)
 
 
+def has_compact_name_match(game_name: str, *texts: str) -> bool:
+    compact_name = "".join(search_tokens(game_name))
+    if not compact_name:
+        return False
+    return any(
+        compact_name in re.sub(r"[^a-z0-9]+", "", text.lower())
+        for text in texts
+        if text
+    )
+
+
 def game_hint_score(*texts: str) -> int:
     lowered = " ".join(texts).lower()
     score = 0
@@ -422,6 +432,22 @@ def game_hint_score(*texts: str) -> int:
         if term in lowered:
             score += 1
     return score
+
+
+def passes_result_prefilter(game_name: str, result_title: str, source_url: str) -> bool:
+    if is_blocked_url(source_url):
+        return False
+    if contains_any_term(result_title, BLOCKED_RESULT_TERMS):
+        return False
+    if has_phrase_match(game_name, result_title, source_url):
+        return True
+    if has_compact_name_match(game_name, result_title, source_url):
+        return True
+    if count_token_matches(game_name, result_title, source_url) > 0:
+        return True
+    if url_game_hint_score(source_url) >= 2 and game_hint_score(result_title, source_url) >= 2:
+        return True
+    return False
 
 
 def html_game_signal_score(index_html: str, *texts: str) -> int:
@@ -448,18 +474,57 @@ def evaluate_unity_asset_completeness(
     if not required_asset_keys:
         return 0, 0, []
 
-    available = 0
-    missing: list[str] = []
-    for asset_key in required_asset_keys:
+    def check_asset_key(asset_key: str) -> tuple[str, bool]:
         candidate_urls = list(candidates.get(asset_key, ())[:PROBE_CANDIDATE_LIMIT])
         if not candidate_urls:
-            missing.append(asset_key)
-            continue
-        if any(probe_url_exists(candidate_url, referer_url=referer_url) for candidate_url in candidate_urls):
-            available += 1
-        else:
-            missing.append(asset_key)
+            return asset_key, False
+        return asset_key, any(
+            probe_url_exists(candidate_url, referer_url=referer_url)
+            for candidate_url in candidate_urls
+        )
+
+    available = 0
+    missing: list[str] = []
+    max_workers = min(len(required_asset_keys), FINDER_EVAL_WORKERS)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_asset = {
+            executor.submit(check_asset_key, asset_key): asset_key
+            for asset_key in required_asset_keys
+        }
+        for future in concurrent.futures.as_completed(future_to_asset):
+            asset_key, asset_exists = future.result()
+            if asset_exists:
+                available += 1
+            else:
+                missing.append(asset_key)
+    missing.sort(key=required_asset_keys.index)
     return available, len(required_asset_keys), missing
+
+
+def get_supported_entry(source_url: str):
+    cached = SUPPORTED_ENTRY_CACHE.get(source_url, Ellipsis)
+    if cached is not Ellipsis:
+        return cached
+    try:
+        detected_entry = find_supported_entry(source_url, source_url)
+    except Exception:
+        SUPPORTED_ENTRY_CACHE[source_url] = None
+        return None
+    SUPPORTED_ENTRY_CACHE[source_url] = detected_entry
+    return detected_entry
+
+
+def get_detected_build(index_url: str, index_html: str):
+    cached = DETECTED_BUILD_CACHE.get(index_url, Ellipsis)
+    if cached is not Ellipsis:
+        return cached
+    try:
+        detected_build = detect_entry_build(index_url, index_html)
+    except Exception:
+        DETECTED_BUILD_CACHE[index_url] = None
+        return None
+    DETECTED_BUILD_CACHE[index_url] = detected_build
+    return detected_build
 
 
 def confidence_label_for_score(score: int) -> str:
@@ -481,9 +546,8 @@ def evaluate_candidate(
     if contains_any_term(result_title, BLOCKED_RESULT_TERMS):
         return None
 
-    try:
-        detected_entry = find_supported_entry(source_url, source_url)
-    except Exception:
+    detected_entry = get_supported_entry(source_url)
+    if detected_entry is None:
         return None
 
     if detected_entry.entry_kind == "remote_stream":
@@ -497,12 +561,11 @@ def evaluate_candidate(
     unity_missing_assets: list[str] = []
     compatibility_summary = ""
     if detected_entry.entry_kind == "unity":
-        try:
-            detected_build = detect_entry_build(
-                detected_entry.index_url,
-                detected_entry.index_html,
-            )
-        except Exception:
+        detected_build = get_detected_build(
+            detected_entry.index_url,
+            detected_entry.index_html,
+        )
+        if detected_build is None:
             return None
         build_kind = detected_build.build_kind
         unity_asset_available, unity_asset_total, unity_missing_assets = evaluate_unity_asset_completeness(
@@ -560,6 +623,11 @@ def evaluate_candidate(
         game_name,
         source_url,
         detected_entry.index_url,
+        source_page_url,
+    )
+    source_url_compact_match = has_compact_name_match(
+        game_name,
+        source_url,
         source_page_url,
     )
     game_hints = game_hint_score(
@@ -623,6 +691,8 @@ def evaluate_candidate(
         score += 18
     elif url_phrase_match:
         score += 8
+    if source_url_compact_match:
+        score += 12
 
     if detected_entry.index_url.rstrip("/") == source_url.rstrip("/"):
         score += 8
@@ -653,6 +723,8 @@ def evaluate_candidate(
             confidence += 6
         if display_phrase_match:
             confidence += 4
+        if source_url_compact_match:
+            confidence += 4
         confidence += min(matched_tokens * 3, 9)
         missing_asset_count = max(unity_asset_total - unity_asset_available, 0)
         confidence -= missing_asset_count * 14
@@ -665,6 +737,8 @@ def evaluate_candidate(
         if phrase_match:
             confidence += 12
         if display_phrase_match:
+            confidence += 4
+        if source_url_compact_match:
             confidence += 4
         confidence += min(matched_tokens * 5, 15)
         confidence += min(game_hints * 3, 12)
@@ -704,6 +778,41 @@ def evaluate_candidate(
     )
 
 
+def is_strong_candidate(candidate: FinderCandidate) -> bool:
+    if candidate.confidence < 88:
+        return False
+    if candidate.entry_kind == "unity":
+        if candidate.build_kind == "modern" and "missing" not in candidate.compatibility_summary:
+            return True
+        return candidate.confidence >= 93
+    if candidate.entry_kind == "html":
+        return candidate.confidence >= 92 and "html signals" in candidate.compatibility_summary
+    return candidate.confidence >= 88
+
+
+def should_stop_search(processed_queries: int, candidates: list[FinderCandidate]) -> bool:
+    if not candidates:
+        return False
+    ranked = sorted(
+        candidates,
+        key=lambda item: (
+            item.score,
+            item.entry_kind == "unity",
+            item.build_kind == "modern",
+        ),
+        reverse=True,
+    )
+    strong_candidates = [candidate for candidate in ranked if is_strong_candidate(candidate)]
+    best = ranked[0]
+    if processed_queries >= 2 and is_strong_candidate(best):
+        return True
+    if processed_queries >= 3 and len(strong_candidates) >= 2:
+        return True
+    if processed_queries >= 4 and best.confidence >= 84:
+        return True
+    return False
+
+
 def find_best_source(
     game_name: str,
     *,
@@ -712,35 +821,73 @@ def find_best_source(
 ) -> tuple[FinderCandidate, list[FinderCandidate]]:
     seen_urls: set[str] = set()
     candidates: list[FinderCandidate] = []
+    consecutive_queries_without_candidate = 0
 
+    processed_queries = 0
     for query in iter_search_queries(game_name):
+        processed_queries += 1
         print(f"[finder] Search query: {query}")
         try:
             results = fetch_search_results(query, limit=max_results_per_query)
         except Exception as exc:
             print(f"[finder] Search failed for query: {exc}")
             continue
-
+        pending_results: list[tuple[str, str]] = []
         for result_title, source_url in results:
             normalized_source_url = source_url.rstrip("/")
             if normalized_source_url in seen_urls:
                 continue
+            if not passes_result_prefilter(game_name, result_title, source_url):
+                print(f"[finder] Prefiltered: {source_url}")
+                continue
             seen_urls.add(normalized_source_url)
             print(f"[finder] Inspecting: {result_title or source_url}")
-            candidate = evaluate_candidate(game_name, query, result_title, source_url)
-            if candidate is None:
-                print(f"[finder] Rejected: {source_url}")
-                continue
-            candidates.append(candidate)
-            print(
-                "[finder] Accepted "
-                f"score={candidate.score} "
-                f"kind={candidate.entry_kind} "
-                f"build={candidate.build_kind or 'n/a'} "
-                f"-> {candidate.source_url}"
-            )
+            pending_results.append((result_title, source_url))
             if len(seen_urls) >= max_unique_candidates:
                 break
+
+        if pending_results:
+            accepted_in_query = 0
+            max_workers = min(FINDER_EVAL_WORKERS, len(pending_results))
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_result = {
+                    executor.submit(evaluate_candidate, game_name, query, result_title, source_url): (
+                        result_title,
+                        source_url,
+                    )
+                    for result_title, source_url in pending_results
+                }
+                for future in concurrent.futures.as_completed(future_to_result):
+                    _, source_url = future_to_result[future]
+                    try:
+                        candidate = future.result()
+                    except Exception:
+                        candidate = None
+                    if candidate is None:
+                        print(f"[finder] Rejected: {source_url}")
+                        continue
+                    candidates.append(candidate)
+                    accepted_in_query += 1
+                    print(
+                        "[finder] Accepted "
+                        f"score={candidate.score} "
+                        f"kind={candidate.entry_kind} "
+                        f"build={candidate.build_kind or 'n/a'} "
+                        f"-> {candidate.source_url}"
+                    )
+            if accepted_in_query:
+                consecutive_queries_without_candidate = 0
+            else:
+                consecutive_queries_without_candidate += 1
+        else:
+            consecutive_queries_without_candidate += 1
+
+        if should_stop_search(processed_queries, candidates):
+            print("[finder] Search stopped early after finding strong candidates.")
+            break
+        if not candidates and processed_queries >= 6 and consecutive_queries_without_candidate >= 6:
+            print("[finder] Search stopped early after repeated empty or incompatible queries.")
+            break
         if len(seen_urls) >= max_unique_candidates:
             break
 

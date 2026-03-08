@@ -1,44 +1,15 @@
 {
-  "count": 10,
+  "count": 1,
   "functions": [
-    "focus",
-    "gameLoaded",
-    "gameOverParent",
-    "getComputedStyle",
-    "getUserMedia",
-    "mapsClose",
-    "mapsOpen",
-    "onGamePlayPressed",
-    "sendMessageToUnity",
-    "showAdsBanner"
+    "getUserMedia"
   ],
-  "window_root_count": 13,
+  "window_root_count": 2,
   "window_roots": [
-    "HasAdBlock",
-    "focus",
-    "gameLoaded",
-    "gameOverParent",
-    "getComputedStyle",
     "getUserMedia",
-    "mapsClose",
-    "mapsOpen",
-    "onGamePlayPressed",
-    "sendMessageToUnity",
-    "showAdsBanner",
-    "top",
-    "warnedAboutManualFilesystemSyncGettingDeprecated"
+    "yandexMetricaCounterId"
   ],
-  "window_callable_chain_count": 10,
+  "window_callable_chain_count": 1,
   "window_callable_chains": [
-    "focus",
-    "gameLoaded",
-    "gameOverParent",
-    "getComputedStyle",
-    "getUserMedia",
-    "mapsClose",
-    "mapsOpen",
-    "onGamePlayPressed",
-    "sendMessageToUnity",
-    "showAdsBanner"
+    "getUserMedia"
   ]
 }

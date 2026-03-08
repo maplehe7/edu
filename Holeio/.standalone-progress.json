@@ -1,50 +1,50 @@
 {
   "candidate_urls": {
     "loader": [
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.loader.js"
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.loader.js"
     ],
     "framework": [
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.framework.js",
-      "https://www.holeio.com/b/4/e02abc0772c3f98f6cf3c2b6f0299a43.framework.js.unityweb",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.framework.js.unityweb",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.framework.js.gz",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.framework.js.br"
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.framework.js",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/3b82de6cb2078dc77d4349866ac525d0.framework.js.unityweb",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.framework.js.unityweb",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.framework.js.gz",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.framework.js.br"
     ],
     "data": [
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.data",
-      "https://www.holeio.com/b/4/8911c04fc4a011193bda1adc9f604d41.data.unityweb",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.data.unityweb",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.data.gz",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.data.br"
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.data",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/6e5743185ed781c2e78f168a9ccd8437.data.unityweb",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.data.unityweb",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.data.gz",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.data.br"
     ],
     "wasm": [
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.wasm",
-      "https://www.holeio.com/b/4/33f96c1b12865c28e9bb84c56538272c.wasm.unityweb",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.wasm.unityweb",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.wasm.gz",
-      "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.wasm.br"
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.wasm",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.wasm.unityweb",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/fac526674b2536fd68c6c0ff71354234.wasm.unityweb",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.wasm.gz",
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.wasm.br"
     ]
   },
   "assets": {
     "loader": {
-      "filename": "e49533548ddc8d90e5938cf4b1963e0b.loader.js",
-      "url": "https://www.holeio.com/b/4/e49533548ddc8d90e5938cf4b1963e0b.loader.js",
-      "size": 40624
+      "filename": "9853637125e801e9aae48e78dbbdcfca.loader.js",
+      "url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/9853637125e801e9aae48e78dbbdcfca.loader.js",
+      "size": 114374
     },
     "framework": {
-      "filename": "e02abc0772c3f98f6cf3c2b6f0299a43.framework.js.unityweb",
-      "url": "https://www.holeio.com/b/4/e02abc0772c3f98f6cf3c2b6f0299a43.framework.js.unityweb",
-      "size": 84872
+      "filename": "3b82de6cb2078dc77d4349866ac525d0.framework.js.unityweb",
+      "url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/3b82de6cb2078dc77d4349866ac525d0.framework.js.unityweb",
+      "size": 69981
     },
     "data": {
-      "filename": "8911c04fc4a011193bda1adc9f604d41.data.unityweb",
-      "url": "https://www.holeio.com/b/4/8911c04fc4a011193bda1adc9f604d41.data.unityweb",
-      "size": 4398235
+      "filename": "6e5743185ed781c2e78f168a9ccd8437.data.unityweb",
+      "url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/6e5743185ed781c2e78f168a9ccd8437.data.unityweb",
+      "size": 12684737
     },
     "wasm": {
-      "filename": "33f96c1b12865c28e9bb84c56538272c.wasm.unityweb",
-      "url": "https://www.holeio.com/b/4/33f96c1b12865c28e9bb84c56538272c.wasm.unityweb",
-      "size": 8909462
+      "filename": "fac526674b2536fd68c6c0ff71354234.wasm.unityweb",
+      "url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/Build/fac526674b2536fd68c6c0ff71354234.wasm.unityweb",
+      "size": 6086164
     }
   },
   "completed": true,
@@ -52,13 +52,13 @@
     "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Holeio",
     "index_html": "C:\\Users\\hello\\Downloads\\edu\\Holeio\\index.html",
     "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Holeio\\required-functions.json",
-    "loader": "e49533548ddc8d90e5938cf4b1963e0b.loader.js",
-    "framework": "e02abc0772c3f98f6cf3c2b6f0299a43.framework.js.unityweb",
-    "data": "8911c04fc4a011193bda1adc9f604d41.data.unityweb",
-    "wasm": "33f96c1b12865c28e9bb84c56538272c.wasm.unityweb",
-    "required_function_count": 10,
-    "window_root_count": 13,
-    "window_callable_chain_count": 10,
+    "loader": "9853637125e801e9aae48e78dbbdcfca.loader.js",
+    "framework": "3b82de6cb2078dc77d4349866ac525d0.framework.js.unityweb",
+    "data": "6e5743185ed781c2e78f168a9ccd8437.data.unityweb",
+    "wasm": "fac526674b2536fd68c6c0ff71354234.wasm.unityweb",
+    "required_function_count": 1,
+    "window_root_count": 2,
+    "window_callable_chain_count": 1,
     "used_br_assets": true,
     "used_compressed_assets": true,
     "site_lock_framework_patched": false,
@@ -67,18 +67,20 @@
     "sendmessage_value_compat_patched": false,
     "build_kind": "modern",
     "mode": "entry_auto",
-    "source_page_url": "https://www.holeio.com/",
+    "source_page_url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/1.xml",
     "source_url_spoof_enabled": true,
     "original_folder_url": "",
-    "streaming_assets_url": "https://www.holeio.com/b/4/StreamingAssets",
-    "asset_cache_buster": "0729e0590353",
+    "streaming_assets_url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/StreamingAssets",
+    "asset_cache_buster": "6bb49434cba4",
     "gmsoft_like_build": false,
     "page_config_keys": [
-      "autoSyncPersistentDataPath",
       "companyName",
       "devicePixelRatio",
+      "powerPreference",
+      "preserveDrawingBuffer",
       "productName",
-      "productVersion"
+      "productVersion",
+      "streamingAssetsUrl"
     ],
     "auxiliary_asset_rewrites": {},
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Holeio\\.standalone-progress.json"

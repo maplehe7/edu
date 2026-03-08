@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Holeio</title>
+  <title>Hayna@main</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -438,7 +438,7 @@
       const EMPTY = "";
       const ZERO = "0";
       const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
-      const SOURCE_PAGE_URL = "https://www.holeio.com/";
+      const SOURCE_PAGE_URL = "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/1.xml";
       const ENABLE_SOURCE_URL_SPOOF = true;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
@@ -856,9 +856,9 @@
         },
       };
 
-      const dynamicFunctionNames = ["focus", "gameLoaded", "gameOverParent", "getComputedStyle", "getUserMedia", "mapsClose", "mapsOpen", "onGamePlayPressed", "sendMessageToUnity", "showAdsBanner"];
-      const dynamicWindowRootNames = ["HasAdBlock", "focus", "gameLoaded", "gameOverParent", "getComputedStyle", "getUserMedia", "mapsClose", "mapsOpen", "onGamePlayPressed", "sendMessageToUnity", "showAdsBanner", "top", "warnedAboutManualFilesystemSyncGettingDeprecated"];
-      const dynamicWindowCallableChains = ["focus", "gameLoaded", "gameOverParent", "getComputedStyle", "getUserMedia", "mapsClose", "mapsOpen", "onGamePlayPressed", "sendMessageToUnity", "showAdsBanner"];
+      const dynamicFunctionNames = ["getUserMedia"];
+      const dynamicWindowRootNames = ["getUserMedia", "yandexMetricaCounterId"];
+      const dynamicWindowCallableChains = ["getUserMedia"];
       const fixedGlobalFunctionNames = [
         "InitSDK",
         "RequestAdSDK",
@@ -1447,21 +1447,21 @@
 
   <script>
     (function () {
-      const PRODUCT_NAME = "Holeio";
+      const PRODUCT_NAME = "Hayna@main";
       const BUILD_KIND = "modern";
       const BUILD_DIR = "Build";
-      const LOADER_FILE = "e49533548ddc8d90e5938cf4b1963e0b.loader.js";
-      const DATA_FILE = "8911c04fc4a011193bda1adc9f604d41.data.unityweb";
-      const FRAMEWORK_FILE = "e02abc0772c3f98f6cf3c2b6f0299a43.framework.js.unityweb";
-      const WASM_FILE = "33f96c1b12865c28e9bb84c56538272c.wasm.unityweb";
+      const LOADER_FILE = "9853637125e801e9aae48e78dbbdcfca.loader.js";
+      const DATA_FILE = "6e5743185ed781c2e78f168a9ccd8437.data.unityweb";
+      const FRAMEWORK_FILE = "3b82de6cb2078dc77d4349866ac525d0.framework.js.unityweb";
+      const WASM_FILE = "fac526674b2536fd68c6c0ff71354234.wasm.unityweb";
       const LEGACY_CONFIG = {};
       const SOURCE_PAGE_URL =
-        window.__unityStandaloneSourcePageUrl || "https://www.holeio.com/";
+        window.__unityStandaloneSourcePageUrl || "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/1.xml";
       const ENABLE_SOURCE_URL_SPOOF = true;
       const ORIGINAL_FOLDER_URL = "";
-      const STREAMING_ASSETS_URL = "https://www.holeio.com/b/4/StreamingAssets";
-      const BUILD_CACHE_BUSTER = "0729e0590353";
-      const ENTRY_PAGE_CONFIG = {"companyName": "DRA.RU", "productName": "HOLE.io", "productVersion": "3.0", "autoSyncPersistentDataPath": true, "devicePixelRatio": 1};
+      const STREAMING_ASSETS_URL = "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/StreamingAssets";
+      const BUILD_CACHE_BUSTER = "6bb49434cba4";
+      const ENTRY_PAGE_CONFIG = {"streamingAssetsUrl": "StreamingAssets", "companyName": "Cursora Labs O.Ã", "productName": "Hole Battle Arena iO", "productVersion": "0.1z", "preserveDrawingBuffer": true, "powerPreference": "high-performance", "devicePixelRatio": 1};
       const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
