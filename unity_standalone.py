@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import gzip
 import html
 import http.client
 import json
@@ -24,6 +25,11 @@ import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Sequence
+
+try:
+    import brotli  # type: ignore
+except ImportError:
+    brotli = None
 
 
 REQUEST_HEADERS = {
@@ -66,6 +72,8 @@ class DetectedBuild:
     loader_url: str
     candidates: dict[str, list[str]]
     legacy_config: dict[str, Any] = field(default_factory=dict)
+    original_folder_url: str = ""
+    streaming_assets_url: str = ""
 
 
 @dataclass
@@ -91,10 +99,124 @@ def file_contains_any_bytes(path: Path, patterns: Sequence[bytes]) -> bool:
     if not path.exists() or not patterns:
         return False
     try:
-        raw = path.read_bytes()
+        raw = read_maybe_decompressed_bytes(path)
     except OSError:
         return False
     return any(pattern in raw for pattern in patterns)
+
+
+def maybe_decompress_bytes(raw: bytes, path: Path | None = None) -> bytes:
+    if not raw:
+        return raw
+    if raw[:2] == b"\x1f\x8b":
+        try:
+            return gzip.decompress(raw)
+        except OSError:
+            return raw
+    lower_name = path.name.lower() if path is not None else ""
+    if lower_name.endswith((".br", ".unityweb")) and brotli is not None:
+        try:
+            return brotli.decompress(raw)
+        except Exception:
+            return raw
+    return raw
+
+
+def read_maybe_decompressed_bytes(path: Path) -> bytes:
+    return maybe_decompress_bytes(path.read_bytes(), path)
+
+
+def encode_bytes_like_source(data: bytes, original_raw: bytes, path: Path) -> bytes:
+    lower_name = path.name.lower()
+    if original_raw[:2] == b"\x1f\x8b":
+        return gzip.compress(data, mtime=0)
+    if lower_name.endswith(".br"):
+        if brotli is None:
+            raise RuntimeError(
+                f"Cannot rewrite Brotli-compressed asset without brotli support: {path}"
+            )
+        return brotli.compress(data)
+    return data
+
+
+def patch_redirect_domain_function(framework_path: Path) -> Path | None:
+    if not framework_path.exists():
+        return None
+
+    try:
+        original_raw = framework_path.read_bytes()
+    except OSError:
+        return None
+
+    decoded = maybe_decompress_bytes(original_raw, framework_path)
+    legacy_original = (
+        b"function _RedirectDomain(check_domains_str,redirect_domain){"
+        b"var redirect=true;"
+        b"var domains_string=Pointer_stringify(check_domains_str);"
+        b"var redirect_domain_string=Pointer_stringify(redirect_domain);"
+        b'var check_domains=domains_string.split("|");'
+        b"for(var i=0;i<check_domains.length;i++){var domain=check_domains[i];if(document.location.host==domain){redirect=false}}"
+        b"if(redirect){document.location=redirect_domain_string;return true}return false}"
+    )
+    legacy_replacement = (
+        b"function _RedirectDomain(check_domains_str,redirect_domain){"
+        b"var domains_string=Pointer_stringify(check_domains_str);"
+        b'var source_host="";'
+        b'try{if(typeof window!=="undefined"&&window.__unityStandaloneSourcePageUrl){source_host=(new URL(window.__unityStandaloneSourcePageUrl)).host}}catch(e){}'
+        b"var current_host=source_host||document.location.host;"
+        b'var check_domains=domains_string.split("|");'
+        b"for(var i=0;i<check_domains.length;i++){var domain=check_domains[i];if(current_host==domain){return false}}"
+        b"if(source_host){return false}"
+        b"var redirect_domain_string=Pointer_stringify(redirect_domain);"
+        b"document.location=redirect_domain_string;return true}"
+    )
+    modern_original = (
+        b"function _RedirectDomain(check_domains_str,redirect_domain){"
+        b"var redirect=true;"
+        b"var domains_string=UTF8ToString(check_domains_str);"
+        b"var redirect_domain_string=UTF8ToString(redirect_domain);"
+        b'var check_domains=domains_string.split("|");'
+        b"for(var i=0;i<check_domains.length;i++){var domain=check_domains[i];if(document.location.host==domain){redirect=false}}"
+        b"if(redirect){document.location=redirect_domain_string;return true}return false}"
+    )
+    modern_replacement = (
+        b"function _RedirectDomain(check_domains_str,redirect_domain){"
+        b"var domains_string=UTF8ToString(check_domains_str);"
+        b'var source_host="";'
+        b'try{if(typeof window!=="undefined"&&window.__unityStandaloneSourcePageUrl){source_host=(new URL(window.__unityStandaloneSourcePageUrl)).host}}catch(e){}'
+        b"var current_host=source_host||document.location.host;"
+        b'var check_domains=domains_string.split("|");'
+        b"for(var i=0;i<check_domains.length;i++){var domain=check_domains[i];if(current_host==domain){return false}}"
+        b"if(source_host){return false}"
+        b"var redirect_domain_string=UTF8ToString(redirect_domain);"
+        b"document.location=redirect_domain_string;return true}"
+    )
+
+    patched_payload = decoded
+    for original, replacement in (
+        (legacy_original, legacy_replacement),
+        (modern_original, modern_replacement),
+    ):
+        if original in patched_payload:
+            patched_payload = patched_payload.replace(original, replacement, 1)
+
+    if patched_payload == decoded:
+        return None
+
+    target_path = framework_path
+    lower_name = framework_path.name.lower()
+    if original_raw[:2] == b"\x1f\x8b" or lower_name.endswith(".br"):
+        base_name = framework_path.name
+        for suffix in (".unityweb", ".gz", ".br"):
+            if base_name.lower().endswith(suffix):
+                base_name = base_name[: -len(suffix)]
+                break
+        if not base_name.lower().endswith(".js"):
+            base_name += ".js"
+        target_path = framework_path.with_name(base_name)
+
+    target_path.write_bytes(patched_payload)
+    return target_path
 
 
 def log(message: str) -> None:
@@ -148,6 +270,11 @@ def derive_game_root_url(input_url: str) -> str:
             root_path = path if path.endswith("/") else path + "/"
 
     return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, root_path, "", "", ""))
+
+
+def origin_root_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(normalize_url(url))
+    return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, "/", "", "", ""))
 
 
 def fetch_url(
@@ -386,6 +513,12 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
                     index_html=snippet,
                 )
 
+        theme_host_entry_url = discover_theme_host_entry_url(index_html, index_url)
+        if theme_host_entry_url:
+            result = inspect_url(theme_host_entry_url, depth + 1, referer_url=index_url)
+            if result:
+                return result
+
         detected_kind = detect_supported_entry_kind(index_html)
         if detected_kind:
             return DetectedEntry(
@@ -509,6 +642,160 @@ def extract_html_title(index_html: str) -> str:
         return ""
     title = re.sub(r"\s+", " ", html.unescape(match.group(1))).strip()
     return title
+
+
+def tokenize_match_text(value: str) -> list[str]:
+    ignored = {
+        "and",
+        "browser",
+        "chrome",
+        "chromebook",
+        "desktop",
+        "for",
+        "free",
+        "game",
+        "gamecomets",
+        "games",
+        "html5",
+        "modern",
+        "online",
+        "play",
+        "windows",
+    }
+    tokens: list[str] = []
+    seen: set[str] = set()
+    for token in re.findall(r"[A-Za-z0-9]+", value.lower()):
+        if len(token) < 3 or token in ignored or token in seen:
+            continue
+        seen.add(token)
+        tokens.append(token)
+    return tokens
+
+
+def extract_theme_host(index_html: str) -> str:
+    matches = re.findall(
+        r"""(?:href|src)=["'][^"']*themes/([A-Za-z0-9.-]+)/""",
+        index_html,
+        re.IGNORECASE,
+    )
+    for match in matches:
+        candidate = match.strip().lower()
+        if "." in candidate:
+            return candidate
+    return ""
+
+
+def is_probable_html_page_url(url: str) -> bool:
+    path = urllib.parse.urlparse(url).path.lower()
+    if not path or path.endswith("/"):
+        return True
+    basename = path.rsplit("/", 1)[-1]
+    if "." not in basename:
+        return True
+    return basename.endswith((".asp", ".aspx", ".htm", ".html", ".php"))
+
+
+def score_theme_host_page_url(url: str, title_tokens: Sequence[str], slug_tokens: Sequence[str]) -> int:
+    path_text = urllib.parse.unquote(urllib.parse.urlparse(url).path).lower().replace("-", " ")
+    score = 0
+    for token in title_tokens:
+        if token in path_text:
+            score += 14
+    for token in slug_tokens:
+        if token in path_text:
+            score += 8
+    if "/game" in path_text:
+        score += 3
+    if path_text in {"", "/"}:
+        score -= 12
+    for fragment in ("/category", "/contact", "/hot-games", "/new-games", "/privacy", "/search", "/terms"):
+        if fragment in path_text:
+            score -= 25
+    return score
+
+
+def discover_theme_host_entry_url(index_html: str, index_url: str) -> str:
+    theme_host = extract_theme_host(index_html)
+    if not theme_host:
+        return ""
+    current_host = urllib.parse.urlparse(index_url).netloc.lower()
+    if current_host == theme_host:
+        return ""
+
+    title_tokens = tokenize_match_text(extract_html_title(index_html))
+    slug_tokens = tokenize_match_text(urllib.parse.unquote(urllib.parse.urlparse(index_url).path))
+    sitemap_queue = [f"https://{theme_host}/sitemap.xml"]
+    seen_sitemaps: set[str] = set()
+    candidate_urls: list[str] = []
+    seen_candidates: set[str] = set()
+
+    while sitemap_queue and len(candidate_urls) < 250:
+        sitemap_url = sitemap_queue.pop(0)
+        if sitemap_url in seen_sitemaps:
+            continue
+        seen_sitemaps.add(sitemap_url)
+        try:
+            resolved, raw, _, _ = fetch_url(sitemap_url, referer_url=index_url)
+        except FetchError:
+            continue
+        text = decode_html_body(raw)
+        for raw_loc in re.findall(r"<loc>\s*([^<]+?)\s*</loc>", text, re.IGNORECASE):
+            candidate = normalize_url(html.unescape(raw_loc).strip())
+            parsed = urllib.parse.urlparse(candidate)
+            if parsed.netloc.lower() != theme_host:
+                continue
+            if candidate.lower().endswith(".xml"):
+                if candidate not in seen_sitemaps:
+                    sitemap_queue.append(candidate)
+                continue
+            if not is_probable_html_page_url(candidate) or candidate in seen_candidates:
+                continue
+            seen_candidates.add(candidate)
+            candidate_urls.append(candidate)
+
+    if not candidate_urls:
+        try:
+            resolved, raw, _, _ = fetch_url(f"https://{theme_host}/", referer_url=index_url)
+        except FetchError:
+            return ""
+        home_html = decode_html_body(raw)
+        for raw_href in re.findall(r"""<a[^>]+href=["']([^"']+)["']""", home_html, re.IGNORECASE):
+            candidate = normalize_url(urllib.parse.urljoin(resolved, html.unescape(raw_href).strip()))
+            parsed = urllib.parse.urlparse(candidate)
+            if parsed.netloc.lower() != theme_host:
+                continue
+            if not is_probable_html_page_url(candidate) or candidate in seen_candidates:
+                continue
+            seen_candidates.add(candidate)
+            candidate_urls.append(candidate)
+
+    ranked_urls = sorted(
+        candidate_urls,
+        key=lambda url: (-score_theme_host_page_url(url, title_tokens, slug_tokens), url),
+    )
+    best_url = ""
+    best_score = -1
+    for candidate in ranked_urls[:10]:
+        try:
+            resolved, raw, _, _ = fetch_url(candidate, referer_url=index_url)
+        except FetchError:
+            continue
+        page_html = decode_html_body(raw)
+        if detect_supported_entry_kind(page_html) != "unity":
+            continue
+        candidate_score = score_theme_host_page_url(resolved, title_tokens, slug_tokens)
+        page_title = extract_html_title(page_html).lower()
+        for token in title_tokens:
+            if token in page_title:
+                candidate_score += 12
+        if "createunityinstance" in page_html.lower():
+            candidate_score += 8
+        if "window.originalfolder" in page_html.lower():
+            candidate_score += 6
+        if candidate_score > best_score:
+            best_url = resolved
+            best_score = candidate_score
+    return best_url
 
 
 def extract_inline_script_blocks(index_html: str) -> list[str]:
@@ -732,6 +1019,100 @@ def extract_config_asset_urls(index_html: str, index_url: str) -> dict[str, list
         "framework": collect_for_key("frameworkUrl"),
         "wasm": collect_for_key("codeUrl") + collect_for_key("wasmUrl"),
     }
+
+
+def extract_original_folder_url(index_html: str, index_url: str) -> str:
+    patterns = (
+        r"""window\.originalFolder\s*=\s*["'`]([^"'`]+)["'`]""",
+        r"""(?:const|let|var)\s+originalFolder\s*=\s*["'`]([^"'`]+)["'`]""",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, index_html, re.IGNORECASE)
+        if not match:
+            continue
+        candidate = decode_js_string_literal(match.group(1)).replace("\\/", "/").strip()
+        if candidate:
+            return normalize_url(urllib.parse.urljoin(index_url, candidate))
+    return ""
+
+
+def extract_streaming_assets_url(
+    index_html: str,
+    index_url: str,
+    original_folder_url: str = "",
+) -> str:
+    build_prefix = extract_build_url_prefix(index_html).strip("/")
+
+    def absolutize(raw_value: str) -> str:
+        candidate = decode_js_string_literal(raw_value).replace("\\/", "/").strip()
+        if build_prefix and candidate.startswith("/") and not candidate.startswith("//"):
+            if candidate.lstrip("/").startswith(build_prefix + "/"):
+                candidate = candidate.lstrip("/")
+            else:
+                candidate = build_prefix + candidate
+        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+
+    if original_folder_url:
+        original_folder_match = re.search(
+            r"""streamingAssetsUrl\s*:\s*window\.originalFolder\s*\+\s*["'`]([^"'`]+)["'`]""",
+            index_html,
+            re.IGNORECASE,
+        )
+        if original_folder_match:
+            suffix = decode_js_string_literal(original_folder_match.group(1)).replace("\\/", "/")
+            return normalize_url(
+                urllib.parse.urljoin(original_folder_url.rstrip("/") + "/", suffix.lstrip("/"))
+            )
+
+    concat_match = re.search(
+        r"""streamingAssetsUrl\s*:\s*buildUrl\s*\+\s*["'`]([^"'`]+)["'`]""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if concat_match:
+        return absolutize(concat_match.group(1))
+
+    direct_match = re.search(
+        r"""streamingAssetsUrl\s*:\s*["'`]([^"'`]+)["'`]""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if direct_match:
+        return absolutize(direct_match.group(1))
+
+    return ""
+
+
+def canonicalize_source_page_url(source_page_url: str, original_folder_url: str = "") -> str:
+    if not source_page_url:
+        return ""
+    parsed = urllib.parse.urlparse(source_page_url)
+    host = parsed.netloc.lower()
+    path = parsed.path.rstrip("/")
+    original_path = urllib.parse.urlparse(original_folder_url).path.rstrip("/").lower()
+    if (
+        host == "geometrydashlite.io"
+        and path == "/geometry-dash-lite"
+        and original_path.endswith("/geometry-dash-lite")
+    ):
+        return normalize_url(urllib.parse.urljoin(f"{parsed.scheme}://{parsed.netloc}/", "/geometry-dash-game/"))
+    return source_page_url
+
+
+def should_route_setting_to_parent_root(
+    source_page_url: str,
+    source_url: str,
+    original_folder_url: str = "",
+) -> bool:
+    canonical_source_page_url = canonicalize_source_page_url(source_page_url, original_folder_url)
+    page_parts = urllib.parse.urlparse(canonical_source_page_url)
+    source_parts = urllib.parse.urlparse(source_url)
+    return (
+        page_parts.netloc.lower() == "geometrydashlite.io"
+        and page_parts.path.rstrip("/") == "/geometry-dash-game"
+        and source_parts.netloc.lower() == "geometrydashlite.io"
+        and source_parts.path == "/setting.txt"
+    )
 
 
 def extract_loader_url(index_html: str, index_url: str) -> str:
@@ -1059,12 +1440,20 @@ def detect_entry_build(index_url: str, index_html: str) -> DetectedBuild:
         )
 
     loader_url = extract_loader_url(index_html, index_url)
+    original_folder_url = extract_original_folder_url(index_html, index_url)
+    streaming_assets_url = extract_streaming_assets_url(
+        index_html,
+        index_url,
+        original_folder_url=original_folder_url,
+    )
     return DetectedBuild(
         build_kind="modern",
         index_url=index_url,
         index_html=index_html,
         loader_url=loader_url,
         candidates=build_asset_candidate_urls(loader_url, index_html, index_url),
+        original_folder_url=original_folder_url,
+        streaming_assets_url=streaming_assets_url,
     )
 
 
@@ -1184,7 +1573,9 @@ def resolve_direct_build(
 
 
 def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
-    raw_text = framework_path.read_text(encoding="utf-8", errors="ignore")
+    raw_text = read_maybe_decompressed_bytes(framework_path).decode(
+        "utf-8", errors="ignore"
+    )
 
     # Pattern 1: explicit wrapper names such as _VendorBridgeGetSomething(...)
     wrapper_matches = re.findall(r"_([A-Za-z0-9_]*Bridge[A-Za-z0-9_]*)\s*\(", raw_text)
@@ -1212,6 +1603,10 @@ def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
         "btoa",
     }
     excluded_window_roots = excluded_function_names | {
+        "__unityStandaloneLocalPageUrl",
+        "__unityStandaloneSourcePageUrl",
+        "__unityStandaloneAuxiliaryAssetUrls",
+        "__unityStandaloneAuxiliaryAssetRewriteInstalled",
         "document",
         "navigator",
         "location",
@@ -1321,6 +1716,15 @@ def slugify_name(value: str) -> str:
     value = value.strip().strip(".")
     value = re.sub(r"\s+", " ", value)
     return value or "unity-game"
+
+
+def infer_product_name_from_entry(index_html: str, fallback: str) -> str:
+    title = extract_html_title(index_html)
+    if not title:
+        return fallback
+    cleaned = re.sub(r"\s+", " ", title).strip()
+    cleaned = re.sub(r"\s+online\s*$", "", cleaned, flags=re.IGNORECASE).strip()
+    return cleaned or fallback
 
 
 def generate_crazygames_sdk_stub() -> str:
@@ -1449,6 +1853,9 @@ def generate_index_html(
     window_callable_chains: Sequence[str],
     source_page_url: str = "",
     enable_source_url_spoof: bool = False,
+    original_folder_url: str = "",
+    streaming_assets_url: str = "",
+    auxiliary_asset_rewrites: dict[str, str] | None = None,
 ) -> str:
     fn_list_js = json.dumps(list(required_functions), ensure_ascii=False)
     window_roots_js = json.dumps(list(window_roots), ensure_ascii=False)
@@ -1462,6 +1869,12 @@ def generate_index_html(
     legacy_config_js = json.dumps(assets.legacy_config, ensure_ascii=False)
     source_page_url_js = json.dumps(source_page_url, ensure_ascii=False)
     enable_source_url_spoof_js = "true" if enable_source_url_spoof else "false"
+    original_folder_url_js = json.dumps(original_folder_url, ensure_ascii=False)
+    streaming_assets_url_js = json.dumps(streaming_assets_url, ensure_ascii=False)
+    auxiliary_asset_rewrites_js = json.dumps(
+        auxiliary_asset_rewrites or {},
+        ensure_ascii=False,
+    )
     decompression_fallback_line = (
         "  config.decompressionFallback = true;\n" if assets.used_br_assets else ""
     )
@@ -2897,6 +3310,9 @@ def generate_index_html(
       const SOURCE_PAGE_URL =
         window.__unityStandaloneSourcePageUrl || {source_page_url_js};
       const ENABLE_SOURCE_URL_SPOOF = {enable_source_url_spoof_js};
+      const ORIGINAL_FOLDER_URL = {original_folder_url_js};
+      const STREAMING_ASSETS_URL = {streaming_assets_url_js};
+      const AUXILIARY_ASSET_REWRITES = {auxiliary_asset_rewrites_js};
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
       const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
@@ -2920,6 +3336,9 @@ def generate_index_html(
       let buildWarmupStarted = false;
       let sourceUrlSpoofApplied = false;
       const resourceHints = new Set();
+      if (ORIGINAL_FOLDER_URL) {{
+        window.originalFolder = ORIGINAL_FOLDER_URL;
+      }}
       const requestedLaunchMode = (function () {{
         try {{
           return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
@@ -3267,6 +3686,102 @@ def generate_index_html(
         }}
       }}
 
+      function installAuxiliaryAssetUrlRewrites(rewriteMap) {{
+        if (!rewriteMap || typeof rewriteMap !== "object") {{
+          return;
+        }}
+        const entries = Object.entries(rewriteMap)
+          .filter(function (entry) {{
+            return (
+              Array.isArray(entry) &&
+              typeof entry[0] === "string" &&
+              entry[0] &&
+              typeof entry[1] === "string" &&
+              entry[1]
+            );
+          }})
+          .map(function (entry) {{
+            return [entry[0], new URL(entry[1], LOCAL_PAGE_URL).toString()];
+          }});
+        if (!entries.length) {{
+          return;
+        }}
+        const rewriteTable = new Map();
+        entries.forEach(function (entry) {{
+          const sourceUrl = entry[0];
+          const localUrl = entry[1];
+          rewriteTable.set(sourceUrl, localUrl);
+          try {{
+            const sourcePath = new URL(sourceUrl).pathname;
+            if (sourcePath) {{
+              rewriteTable.set(sourcePath, localUrl);
+              rewriteTable.set(new URL(sourcePath, LOCAL_PAGE_URL).toString(), localUrl);
+            }}
+          }} catch (err) {{
+            // Ignore URL parsing failures.
+          }}
+        }});
+        window.__unityStandaloneAuxiliaryAssetUrls = rewriteTable;
+        if (window.__unityStandaloneAuxiliaryAssetRewriteInstalled) {{
+          return;
+        }}
+        window.__unityStandaloneAuxiliaryAssetRewriteInstalled = true;
+
+        function rewriteUrlValue(value) {{
+          if (typeof value !== "string" || !value) {{
+            return value;
+          }}
+          if (rewriteTable.has(value)) {{
+            return rewriteTable.get(value);
+          }}
+          try {{
+            const absolute = new URL(value, LOCAL_PAGE_URL).toString();
+            if (rewriteTable.has(absolute)) {{
+              return rewriteTable.get(absolute);
+            }}
+          }} catch (err) {{
+            // Ignore URL parsing failures.
+          }}
+          if (typeof SOURCE_PAGE_URL === "string" && SOURCE_PAGE_URL) {{
+            try {{
+              const absoluteSource = new URL(value, SOURCE_PAGE_URL).toString();
+              if (rewriteTable.has(absoluteSource)) {{
+                return rewriteTable.get(absoluteSource);
+              }}
+            }} catch (err) {{
+              // Ignore URL parsing failures.
+            }}
+          }}
+          try {{
+            const absoluteLocal = new URL(value, LOCAL_PAGE_URL).toString();
+            return rewriteTable.get(absoluteLocal) || value;
+          }} catch (err) {{
+            return value;
+          }}
+        }}
+
+        if (typeof window.fetch === "function") {{
+          const originalFetch = window.fetch.bind(window);
+          window.fetch = function (input, init) {{
+            if (typeof input === "string") {{
+              return originalFetch(rewriteUrlValue(input), init);
+            }}
+            if (typeof Request !== "undefined" && input instanceof Request) {{
+              return originalFetch(new Request(rewriteUrlValue(input.url), input), init);
+            }}
+            return originalFetch(input, init);
+          }};
+        }}
+
+        if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {{
+          const originalOpen = window.XMLHttpRequest.prototype.open;
+          window.XMLHttpRequest.prototype.open = function (method, url) {{
+            arguments[1] = rewriteUrlValue(typeof url === "string" ? url : String(url || ""));
+            return originalOpen.apply(this, arguments);
+          }};
+        }}
+      }}
+
       function maybeSpoofSourcePageUrl() {{
         if (
           sourceUrlSpoofApplied ||
@@ -3336,6 +3851,8 @@ def generate_index_html(
           return spoofLocation;
         }});
       }}
+
+      installAuxiliaryAssetUrlRewrites(AUXILIARY_ASSET_REWRITES);
 
       function resetLaunchState() {{
         started = false;
@@ -3471,7 +3988,7 @@ def generate_index_html(
           dataUrl: buildBuildAssetUrl(DATA_FILE),
           frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
           codeUrl: buildBuildAssetUrl(WASM_FILE),
-          streamingAssetsUrl: buildBuildAssetUrl("StreamingAssets"),
+          streamingAssetsUrl: STREAMING_ASSETS_URL || buildBuildAssetUrl("StreamingAssets"),
           companyName: PRODUCT_NAME,
           productName: PRODUCT_NAME,
           productVersion: "1.0.0",
@@ -3966,6 +4483,58 @@ def download_raw_asset(source_url: str, destination: Path, referer_url: str = ""
     return resolved
 
 
+def maybe_download_optional_asset(source_url: str, destination: Path, referer_url: str = "") -> str:
+    try:
+        resolved, raw, _, _ = fetch_url(source_url, referer_url=referer_url)
+    except FetchError:
+        return ""
+    if not raw or looks_like_html(raw):
+        return ""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(raw)
+    return resolved
+
+
+def collect_auxiliary_asset_rewrites(
+    output_dir: Path,
+    source_page_url: str,
+    original_folder_url: str,
+    analysis_paths: Sequence[Path],
+) -> dict[str, str]:
+    if not analysis_paths:
+        return {}
+
+    def references_any(*patterns: bytes) -> bool:
+        return any(
+            file_contains_any_bytes(path, patterns)
+            for path in analysis_paths
+            if path and path.name
+        )
+
+    rewrites: dict[str, str] = {}
+    if source_page_url and references_any(b"setting.txt"):
+        source_url = normalize_url(urllib.parse.urljoin(origin_root_url(source_page_url), "setting.txt"))
+        resolved = maybe_download_optional_asset(
+            source_url,
+            output_dir / "setting.txt",
+            referer_url=source_page_url,
+        )
+        if resolved:
+            local_rewrite_path = "setting.txt"
+            if should_route_setting_to_parent_root(source_page_url, source_url, original_folder_url):
+                mirrored = maybe_download_optional_asset(
+                    source_url,
+                    output_dir.parent / "setting.txt",
+                    referer_url=source_page_url,
+                )
+                if mirrored:
+                    local_rewrite_path = "../setting.txt"
+            rewrites[source_url] = local_rewrite_path
+            log("auxiliary: downloaded setting.txt")
+
+    return rewrites
+
+
 def copy_eagler_support_files(output_dir: Path) -> list[str]:
     script_dir = Path(__file__).resolve().parent
     copied: list[str] = []
@@ -4392,6 +4961,16 @@ def main(argv: Sequence[str]) -> int:
             referer_url=detected_build.index_url if detected_build is not None else "",
         )
 
+    patched_framework_path = (
+        patch_redirect_domain_function(build_dir / assets.framework_name)
+        if assets.framework_name
+        else None
+    )
+    site_lock_framework_patched = patched_framework_path is not None
+    if patched_framework_path is not None:
+        assets.framework_name = patched_framework_path.name
+        if assets.build_kind == "legacy_json":
+            assets.legacy_asset_names["wasmFrameworkUrl"] = patched_framework_path.name
     analysis_target = (
         build_dir / assets.framework_name
         if assets.framework_name
@@ -4403,18 +4982,57 @@ def main(argv: Sequence[str]) -> int:
         else empty_framework_analysis()
     )
     required_functions = framework_analysis.required_functions
-    source_page_url = detected_build.index_url if (not direct_mode and detected_build is not None) else root_url
-    enable_source_url_spoof = file_contains_any_bytes(
-        build_dir / assets.data_name,
-        [
-            b"SiteLock",
-            b"whitelistedDomains",
-            b"allowedRemoteHosts",
-            b"IsOnWhitelistedDomain",
-        ],
+    original_folder_url = (
+        detected_build.original_folder_url
+        if (not direct_mode and detected_build is not None)
+        else ""
+    )
+    streaming_assets_url = (
+        detected_build.streaming_assets_url
+        if (not direct_mode and detected_build is not None)
+        else ""
+    )
+    source_page_url = canonicalize_source_page_url(
+        detected_build.index_url if (not direct_mode and detected_build is not None) else root_url,
+        original_folder_url,
+    )
+    auxiliary_asset_rewrites = collect_auxiliary_asset_rewrites(
+        output_dir,
+        source_page_url,
+        original_folder_url,
+        tuple(
+            path
+            for path in (
+                build_dir / assets.framework_name,
+                build_dir / assets.data_name,
+            )
+            if path.name
+        ),
+    )
+    source_url_spoof_patterns = [
+        b"SiteLock",
+        b"whitelistedDomains",
+        b"allowedRemoteHosts",
+        b"IsOnWhitelistedDomain",
+        b"DomainLocker",
+        b"check_domains_str",
+        b"redirect_domain",
+        b"ALLOW_DOMAINS",
+    ]
+    enable_source_url_spoof = any(
+        file_contains_any_bytes(path, source_url_spoof_patterns)
+        for path in (
+            build_dir / assets.framework_name,
+            build_dir / assets.data_name,
+        )
+        if path.name
     )
 
-    product_name = slugify_name(output_dir.name).replace("-", " ")
+    product_name = (
+        infer_product_name_from_entry(detected_build.index_html, slugify_name(output_dir.name))
+        if (not direct_mode and detected_build is not None)
+        else slugify_name(output_dir.name)
+    )
     index_content = generate_index_html(
         product_name,
         assets,
@@ -4423,6 +5041,9 @@ def main(argv: Sequence[str]) -> int:
         framework_analysis.window_callable_chains,
         source_page_url=source_page_url,
         enable_source_url_spoof=enable_source_url_spoof,
+        original_folder_url=original_folder_url,
+        streaming_assets_url=streaming_assets_url,
+        auxiliary_asset_rewrites=auxiliary_asset_rewrites,
     )
     validate_required_function_coverage(index_content, required_functions)
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
@@ -4455,10 +5076,14 @@ def main(argv: Sequence[str]) -> int:
         "window_callable_chain_count": len(framework_analysis.window_callable_chains),
         "used_br_assets": assets.used_br_assets,
         "used_compressed_assets": assets.used_br_assets,
+        "site_lock_framework_patched": site_lock_framework_patched,
         "build_kind": build_kind,
         "mode": "direct_urls" if direct_mode else "entry_auto",
         "source_page_url": source_page_url,
         "source_url_spoof_enabled": enable_source_url_spoof,
+        "original_folder_url": original_folder_url,
+        "streaming_assets_url": streaming_assets_url,
+        "auxiliary_asset_rewrites": auxiliary_asset_rewrites,
         "progress_file": str(progress_file),
     }
     if assets.build_kind == "legacy_json":

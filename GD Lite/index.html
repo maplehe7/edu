@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>GD Lite</title>
+  <title>Geometry Dash Lite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet" />
@@ -416,8 +416,8 @@
       const EMPTY = "";
       const ZERO = "0";
       const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
-      const SOURCE_PAGE_URL = "https://gamecomets.com/games/geometry-dash-lite/";
-      const ENABLE_SOURCE_URL_SPOOF = false;
+      const SOURCE_PAGE_URL = "https://geometrydashlite.io/geometry-dash-game/";
+      const ENABLE_SOURCE_URL_SPOOF = true;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
       };
@@ -827,9 +827,9 @@
         },
       };
 
-      const dynamicFunctionNames = [];
-      const dynamicWindowRootNames = [];
-      const dynamicWindowCallableChains = [];
+      const dynamicFunctionNames = ["getUserMedia", "show_ads_inGame"];
+      const dynamicWindowRootNames = ["_pgAdCallbackHooked", "_pgLastRewardCallback", "_pgRewardFailCount", "getUserMedia", "none_ads_inGame", "originalFolder", "pgHB", "show_ads_inGame"];
+      const dynamicWindowCallableChains = ["getUserMedia", "pgHB.que.push", "pgHB.requestWebRewardedAd", "show_ads_inGame"];
       const fixedGlobalFunctionNames = [
         "InitSDK",
         "RequestAdSDK",
@@ -1418,17 +1418,20 @@
 
   <script>
     (function () {
-      const PRODUCT_NAME = "GD Lite";
-      const BUILD_KIND = "legacy_json";
+      const PRODUCT_NAME = "Geometry Dash Lite";
+      const BUILD_KIND = "modern";
       const BUILD_DIR = "Build";
-      const LOADER_FILE = "UnityLoader.js";
-      const DATA_FILE = "GeometryDashLite.data.unityweb";
-      const FRAMEWORK_FILE = "GeometryDashLite.wasm.framework.unityweb";
-      const WASM_FILE = "GeometryDashLite.wasm.code.unityweb";
-      const LEGACY_CONFIG = {"companyName": "DefaultCompany", "productName": "GeometryDashLife", "productVersion": "0.1", "dataUrl": "GeometryDashLite.data.unityweb", "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb", "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.unityweb", "graphicsAPI": ["WebGL 2.0", "WebGL 1.0"], "webglContextAttributes": {"preserveDrawingBuffer": false}, "splashScreenStyle": "Dark", "backgroundColor": "#231F20", "cacheControl": {"default": "must-revalidate"}, "developmentBuild": false, "multithreading": false, "unityVersion": "2019.4.24f1"};
+      const LOADER_FILE = "geometry-dash-lite.loader.js";
+      const DATA_FILE = "geometry-dash-lite.data";
+      const FRAMEWORK_FILE = "geometry-dash-lite.framework.js";
+      const WASM_FILE = "geometry-dash-lite.wasm";
+      const LEGACY_CONFIG = {};
       const SOURCE_PAGE_URL =
-        window.__unityStandaloneSourcePageUrl || "https://gamecomets.com/games/geometry-dash-lite/";
-      const ENABLE_SOURCE_URL_SPOOF = false;
+        window.__unityStandaloneSourcePageUrl || "https://geometrydashlite.io/geometry-dash-game/";
+      const ENABLE_SOURCE_URL_SPOOF = true;
+      const ORIGINAL_FOLDER_URL = "https://slope3.com/gamep/geometry-dash-lite";
+      const STREAMING_ASSETS_URL = "https://slope3.com/gamep/geometry-dash-lite/StreamingAssets";
+      const AUXILIARY_ASSET_REWRITES = {"https://geometrydashlite.io/setting.txt": "../setting.txt"};
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
       const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
@@ -1452,6 +1455,9 @@
       let buildWarmupStarted = false;
       let sourceUrlSpoofApplied = false;
       const resourceHints = new Set();
+      if (ORIGINAL_FOLDER_URL) {
+        window.originalFolder = ORIGINAL_FOLDER_URL;
+      }
       const requestedLaunchMode = (function () {
         try {
           return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
@@ -1799,6 +1805,102 @@
         }
       }
 
+      function installAuxiliaryAssetUrlRewrites(rewriteMap) {
+        if (!rewriteMap || typeof rewriteMap !== "object") {
+          return;
+        }
+        const entries = Object.entries(rewriteMap)
+          .filter(function (entry) {
+            return (
+              Array.isArray(entry) &&
+              typeof entry[0] === "string" &&
+              entry[0] &&
+              typeof entry[1] === "string" &&
+              entry[1]
+            );
+          })
+          .map(function (entry) {
+            return [entry[0], new URL(entry[1], LOCAL_PAGE_URL).toString()];
+          });
+        if (!entries.length) {
+          return;
+        }
+        const rewriteTable = new Map();
+        entries.forEach(function (entry) {
+          const sourceUrl = entry[0];
+          const localUrl = entry[1];
+          rewriteTable.set(sourceUrl, localUrl);
+          try {
+            const sourcePath = new URL(sourceUrl).pathname;
+            if (sourcePath) {
+              rewriteTable.set(sourcePath, localUrl);
+              rewriteTable.set(new URL(sourcePath, LOCAL_PAGE_URL).toString(), localUrl);
+            }
+          } catch (err) {
+            // Ignore URL parsing failures.
+          }
+        });
+        window.__unityStandaloneAuxiliaryAssetUrls = rewriteTable;
+        if (window.__unityStandaloneAuxiliaryAssetRewriteInstalled) {
+          return;
+        }
+        window.__unityStandaloneAuxiliaryAssetRewriteInstalled = true;
+
+        function rewriteUrlValue(value) {
+          if (typeof value !== "string" || !value) {
+            return value;
+          }
+          if (rewriteTable.has(value)) {
+            return rewriteTable.get(value);
+          }
+          try {
+            const absolute = new URL(value, LOCAL_PAGE_URL).toString();
+            if (rewriteTable.has(absolute)) {
+              return rewriteTable.get(absolute);
+            }
+          } catch (err) {
+            // Ignore URL parsing failures.
+          }
+          if (typeof SOURCE_PAGE_URL === "string" && SOURCE_PAGE_URL) {
+            try {
+              const absoluteSource = new URL(value, SOURCE_PAGE_URL).toString();
+              if (rewriteTable.has(absoluteSource)) {
+                return rewriteTable.get(absoluteSource);
+              }
+            } catch (err) {
+              // Ignore URL parsing failures.
+            }
+          }
+          try {
+            const absoluteLocal = new URL(value, LOCAL_PAGE_URL).toString();
+            return rewriteTable.get(absoluteLocal) || value;
+          } catch (err) {
+            return value;
+          }
+        }
+
+        if (typeof window.fetch === "function") {
+          const originalFetch = window.fetch.bind(window);
+          window.fetch = function (input, init) {
+            if (typeof input === "string") {
+              return originalFetch(rewriteUrlValue(input), init);
+            }
+            if (typeof Request !== "undefined" && input instanceof Request) {
+              return originalFetch(new Request(rewriteUrlValue(input.url), input), init);
+            }
+            return originalFetch(input, init);
+          };
+        }
+
+        if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+          const originalOpen = window.XMLHttpRequest.prototype.open;
+          window.XMLHttpRequest.prototype.open = function (method, url) {
+            arguments[1] = rewriteUrlValue(typeof url === "string" ? url : String(url || ""));
+            return originalOpen.apply(this, arguments);
+          };
+        }
+      }
+
       function maybeSpoofSourcePageUrl() {
         if (
           sourceUrlSpoofApplied ||
@@ -1868,6 +1970,8 @@
           return spoofLocation;
         });
       }
+
+      installAuxiliaryAssetUrlRewrites(AUXILIARY_ASSET_REWRITES);
 
       function resetLaunchState() {
         started = false;
@@ -2003,7 +2107,7 @@
           dataUrl: buildBuildAssetUrl(DATA_FILE),
           frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
           codeUrl: buildBuildAssetUrl(WASM_FILE),
-          streamingAssetsUrl: buildBuildAssetUrl("StreamingAssets"),
+          streamingAssetsUrl: STREAMING_ASSETS_URL || buildBuildAssetUrl("StreamingAssets"),
           companyName: PRODUCT_NAME,
           productName: PRODUCT_NAME,
           productVersion: "1.0.0",
@@ -2015,7 +2119,6 @@
             powerPreference: "high-performance",
           },
         };
-  config.decompressionFallback = true;
         ensureLoaderScriptLoaded(loaderUrl)
           .then(function () {
           if (typeof createUnityInstance !== "function") {

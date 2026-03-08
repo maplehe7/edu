@@ -2,23 +2,24 @@
   "output_dir": "C:\\Users\\hello\\Downloads\\edu\\GD Lite",
   "index_html": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\index.html",
   "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\required-functions.json",
-  "loader": "UnityLoader.js",
-  "framework": "GeometryDashLite.wasm.framework.unityweb",
-  "data": "GeometryDashLite.data.unityweb",
-  "wasm": "GeometryDashLite.wasm.code.unityweb",
-  "required_function_count": 0,
-  "window_root_count": 0,
-  "window_callable_chain_count": 0,
-  "used_br_assets": true,
-  "used_compressed_assets": true,
-  "build_kind": "legacy_json",
+  "loader": "geometry-dash-lite.loader.js",
+  "framework": "geometry-dash-lite.framework.js",
+  "data": "geometry-dash-lite.data",
+  "wasm": "geometry-dash-lite.wasm",
+  "required_function_count": 2,
+  "window_root_count": 8,
+  "window_callable_chain_count": 4,
+  "used_br_assets": false,
+  "used_compressed_assets": false,
+  "site_lock_framework_patched": true,
+  "build_kind": "modern",
   "mode": "entry_auto",
-  "source_page_url": "https://gamecomets.com/games/geometry-dash-lite/",
-  "source_url_spoof_enabled": false,
-  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json",
-  "legacy_asset_names": {
-    "dataUrl": "GeometryDashLite.data.unityweb",
-    "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb",
-    "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.unityweb"
-  }
+  "source_page_url": "https://geometrydashlite.io/geometry-dash-game/",
+  "source_url_spoof_enabled": true,
+  "original_folder_url": "https://slope3.com/gamep/geometry-dash-lite",
+  "streaming_assets_url": "https://slope3.com/gamep/geometry-dash-lite/StreamingAssets",
+  "auxiliary_asset_rewrites": {
+    "https://geometrydashlite.io/setting.txt": "../setting.txt"
+  },
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json"
 }
