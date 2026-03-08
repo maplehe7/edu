@@ -431,6 +431,7 @@
     </div>
   </div>
 
+  <script src="./support/rhmApi.js"></script>
   <script>
     (function () {
       const TRUE = "true";
@@ -628,6 +629,52 @@
         };
       }
 
+      function getEnvironmentPayload() {
+        const language =
+          (navigator.language || navigator.userLanguage || "en").split("-")[0] || "en";
+        const deviceType = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "")
+          ? "mobile"
+          : "desktop";
+        return {
+          language: language,
+          lang: language,
+          deviceType: deviceType,
+          isMobile: deviceType === "mobile",
+          platform: "web",
+          host: window.location.hostname || "localhost",
+          sourceHost: window.__unityStandaloneSourceHost || "",
+        };
+      }
+
+      function getUnitySendTargets() {
+        const targets = [
+          window.myGameInstance,
+          window.gameInstance,
+          window.unityInstance,
+        ];
+        return targets.filter(function (target, index) {
+          return (
+            target &&
+            typeof target.SendMessage === "function" &&
+            targets.indexOf(target) === index
+          );
+        });
+      }
+
+      function safeUnitySend(objectName, methodName, value) {
+        getUnitySendTargets().forEach(function (target) {
+          try {
+            if (typeof value === "undefined") {
+              target.SendMessage(objectName, methodName);
+            } else {
+              target.SendMessage(objectName, methodName, value);
+            }
+          } catch (err) {
+            // Ignore unsupported game-specific message bridges.
+          }
+        });
+      }
+
       const known = {
         // Ads
         getInterstitialState: () => interstitialState,
@@ -637,6 +684,7 @@
         getMinimumDelayBetweenInterstitial: () => minimumDelayBetweenInterstitial,
         showInterstitial: () => completeInterstitial(),
         showRewarded: () => completeRewarded(),
+        showReward: () => completeRewarded(),
         showBanner: () => {
           bannerState = "shown";
           return "shown";
@@ -708,6 +756,12 @@
           const ua = navigator.userAgent || "";
           return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "mobile" : "desktop";
         },
+        GetDeviceType: () => {
+          const ua = navigator.userAgent || "";
+          return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "mobile" : "desktop";
+        },
+        GetLanguage: () => (navigator.language || "en").split("-")[0] || "en",
+        IsMobile: () => (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "") ? 1 : 0),
         getVisibilityState: () => document.visibilityState || "visible",
         getIsPlatformAudioEnabled: () => TRUE,
         getIsExternalLinksAllowed: () => TRUE,
@@ -764,6 +818,78 @@
           }
           return EMPTY;
         },
+        InitSDKJs: function () {
+          patchUnitySdk();
+          safeCall(window.UnitySDK && window.UnitySDK.onSdkScriptLoaded, []);
+          window.setTimeout(function () {
+            safeUnitySend("RHMAdsManager", "InitSucceed", "standalone");
+          }, 0);
+          return TRUE;
+        },
+        InitGame: function () {
+          return JSON.stringify(getEnvironmentPayload());
+        },
+        InitLeaderboard: () => TRUE,
+        showNextAd: function () {
+          completeInterstitial();
+          window.setTimeout(function () {
+            safeUnitySend("RHMAdsManager", "resumeGame");
+          }, 0);
+          return AD_STATE_CLOSED;
+        },
+        CallInterstitialAdsJs: function () {
+          completeInterstitial();
+          window.setTimeout(function () {
+            safeUnitySend("RHMAdsManager", "resumeGame");
+          }, 0);
+          return AD_STATE_CLOSED;
+        },
+        CallInterstitialAdsPauseJs: function () {
+          completeInterstitial();
+          window.setTimeout(function () {
+            safeUnitySend("RHMAdsManager", "resumeAudio");
+          }, 0);
+          return AD_STATE_CLOSED;
+        },
+        LoadRewardedAdsJs: function () {
+          window.setTimeout(function () {
+            safeUnitySend("RHMAdsManager", "isRewardedAdsLoaded", "true");
+          }, 0);
+          return TRUE;
+        },
+        CallRewardedAdsJs: function () {
+          completeRewarded();
+          window.setTimeout(function () {
+            safeUnitySend("RHMAdsManager", "RewardedAdsSuccessfull");
+          }, 0);
+          return AD_STATE_REWARDED;
+        },
+        FullAdShow: () => completeInterstitial(),
+        RewardedShow: () => completeRewarded(),
+        GameReadyAPI: () => TRUE,
+        RequestingEnvironmentData: () => JSON.stringify(getEnvironmentPayload()),
+        LanguageRequest: () => (navigator.language || "en").split("-")[0] || "en",
+        OpenAuthDialog: () => FALSE,
+        PromptShow: noop,
+        Review: noop,
+        GetPayments: () => "[]",
+        BuyPayments: () => FALSE,
+        ConsumePurchase: () => FALSE,
+        ConsumePurchases: () => FALSE,
+        GetLeaderboardScores: () => "[]",
+        SetLeaderboardScores: noop,
+        LoadCloud: () => "{}",
+        SaveCloud: () => TRUE,
+        ActivityRTB1: noop,
+        ActivityRTB2: noop,
+        ExecuteCodeRTB1: noop,
+        ExecuteCodeRTB2: noop,
+        PaintRBT: noop,
+        RecalculateRTB1: noop,
+        RecalculateRTB2: noop,
+        StaticRBTDeactivate: noop,
+        StickyAdActivity: noop,
+        ym: noop,
         // Mad Hook / CrazySDK bridge
         InitSDK: function (...args) {
           patchUnitySdk();
@@ -856,7 +982,7 @@
         },
       };
 
-      const dynamicFunctionNames = ["getUserMedia"];
+      const dynamicFunctionNames = ["ActivityRTB1", "ActivityRTB2", "BuyPayments", "CallInterstitialAdsJs", "CallInterstitialAdsPauseJs", "CallRewardedAdsJs", "ConsumePurchase", "ConsumePurchases", "ExecuteCodeRTB1", "ExecuteCodeRTB2", "FullAdShow", "GameReadyAPI", "GetLeaderboardScores", "GetPayments", "InitGame", "InitLeaderboard", "InitSDKJs", "LanguageRequest", "LoadCloud", "LoadRewardedAdsJs", "OpenAuthDialog", "PaintRBT", "PromptShow", "RecalculateRTB1", "RecalculateRTB2", "RequestingEnvironmentData", "Review", "RewardedShow", "SaveCloud", "SetLeaderboardScores", "StaticRBTDeactivate", "StickyAdActivity", "getUserMedia", "showNextAd", "showReward", "ym"];
       const dynamicWindowRootNames = ["getUserMedia", "yandexMetricaCounterId"];
       const dynamicWindowCallableChains = ["getUserMedia"];
       const fixedGlobalFunctionNames = [
@@ -1056,6 +1182,13 @@
 
       for (const chain of allDynamicWindowCallableChains) {
         ensurePath(chain, true);
+      }
+
+      if (
+        typeof window.yandexMetricaCounterId !== "number" &&
+        typeof window.yandexMetricaCounterId !== "string"
+      ) {
+        window.yandexMetricaCounterId = 0;
       }
 
       function patchUnitySdk() {
@@ -1460,7 +1593,7 @@
       const ENABLE_SOURCE_URL_SPOOF = true;
       const ORIGINAL_FOLDER_URL = "";
       const STREAMING_ASSETS_URL = "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/StreamingAssets";
-      const BUILD_CACHE_BUSTER = "6bb49434cba4";
+      const BUILD_CACHE_BUSTER = "a8870fc9215a";
       const ENTRY_PAGE_CONFIG = {"streamingAssetsUrl": "StreamingAssets", "companyName": "Cursora Labs O.Ã", "productName": "Hole Battle Arena iO", "productVersion": "0.1z", "preserveDrawingBuffer": true, "powerPreference": "high-performance", "devicePixelRatio": 1};
       const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =
@@ -2765,6 +2898,7 @@
           .then(function (unityInstance) {
             window.unityInstance = unityInstance;
             window.gameInstance = unityInstance;
+            window.myGameInstance = unityInstance;
             maybeBootstrapUnitySupport(unityInstance);
             setProgress(1);
             logLoaderStep("Unity instance ready");

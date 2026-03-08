@@ -168,6 +168,22 @@ BUILD_KIND_SCORES = {
     "legacy_json": 58,
     "legacy_unity_loader": 52,
 }
+ONLINE_REQUIRED_SIGNAL_GROUPS = (
+    ("webrtc", 48, ("rtcpeerconnection", "createdatachannel", "iceservers", "stun:", "turn:")),
+    ("websocket", 40, ("new websocket(", "websocket(", "wss://", "socket.io", "engine.io")),
+    ("photon", 36, ("photonengine", "photon room", "loadbalancingclient", "pun2")),
+    ("playfab", 34, ("playfabapi", "playfab", "client/loginwithcustomid", "client/login")),
+    ("firebase", 30, ("firebaseio", "firebaseapp", "firestore", "realtime database")),
+    ("colyseus", 32, ("colyseus",)),
+    ("nakama", 32, ("nakama",)),
+    ("braincloud", 28, ("braincloud",)),
+    ("multiplayer", 20, ("multiplayer", "matchmaking", "lobby", "leaderboard", "guild", "clan")),
+    ("auth", 14, ("/auth", "/login", "oauth", "signin", "accounts.")),
+)
+ONLINE_TITLE_URL_SIGNAL_GROUPS = (
+    ("multiplayer", 18, ("multiplayer", "online multiplayer", "battle royale", "io game")),
+    ("login", 10, ("login", "account", "sign in")),
+)
 
 
 @dataclass
@@ -184,6 +200,9 @@ class FinderCandidate:
     confidence: int
     confidence_label: str
     compatibility_summary: str
+    school_network_risk: int
+    school_network_risk_label: str
+    school_network_summary: str
     reason: str
 
 
@@ -535,6 +554,59 @@ def confidence_label_for_score(score: int) -> str:
     return "Low"
 
 
+def school_network_risk_label_for_score(score: int) -> str:
+    if score >= 65:
+        return "High"
+    if score >= 30:
+        return "Medium"
+    return "Low"
+
+
+def analyze_school_network_risk(
+    result_title: str,
+    source_url: str,
+    resolved_entry_url: str,
+    source_page_url: str,
+    index_html: str,
+) -> tuple[int, str, str]:
+    html_sample = index_html.lower()
+    title_url_sample = " ".join(
+        part for part in (result_title, source_url, resolved_entry_url, source_page_url) if part
+    ).lower()
+    risk_score = 0
+    reasons: list[str] = []
+
+    for label, score, needles in ONLINE_REQUIRED_SIGNAL_GROUPS:
+        if any(needle in html_sample for needle in needles):
+            risk_score += score
+            reasons.append(label)
+    for label, score, needles in ONLINE_TITLE_URL_SIGNAL_GROUPS:
+        if any(needle in title_url_sample for needle in needles):
+            risk_score += score
+            reasons.append(label)
+
+    unique_reasons: list[str] = []
+    seen_reasons: set[str] = set()
+    for reason in reasons:
+        if reason in seen_reasons:
+            continue
+        seen_reasons.add(reason)
+        unique_reasons.append(reason)
+
+    risk_score = min(risk_score, 99)
+    risk_label = school_network_risk_label_for_score(risk_score)
+    if risk_label == "Low":
+        return risk_score, risk_label, "school network risk low"
+    if not unique_reasons:
+        return risk_score, risk_label, "online-service dependency detected"
+    joined_reasons = ", ".join(unique_reasons[:3])
+    if risk_label == "High":
+        summary = f"likely blocked on school networks ({joined_reasons})"
+    else:
+        summary = f"online-service dependency detected ({joined_reasons})"
+    return risk_score, risk_label, summary
+
+
 def evaluate_candidate(
     game_name: str,
     query: str,
@@ -749,6 +821,20 @@ def evaluate_candidate(
 
     confidence = max(0, min(confidence, 99))
     confidence_label = confidence_label_for_score(confidence)
+    school_network_risk, school_network_risk_label, school_network_summary = analyze_school_network_risk(
+        result_title,
+        source_url,
+        detected_entry.index_url,
+        source_page_url,
+        detected_entry.index_html,
+    )
+    if school_network_risk >= 65:
+        score -= 40
+        confidence = max(0, confidence - 22)
+    elif school_network_risk >= 30:
+        score -= 18
+        confidence = max(0, confidence - 10)
+    confidence_label = confidence_label_for_score(confidence)
 
     reason_parts = [detected_entry.entry_kind]
     if build_kind:
@@ -760,6 +846,8 @@ def evaluate_candidate(
         reason_parts.append(f"host+{resolved_host_bonus}")
     if compatibility_summary:
         reason_parts.append(compatibility_summary)
+    if school_network_risk >= 30:
+        reason_parts.append(school_network_summary)
 
     return FinderCandidate(
         query=query,
@@ -774,6 +862,9 @@ def evaluate_candidate(
         confidence=confidence,
         confidence_label=confidence_label,
         compatibility_summary=compatibility_summary,
+        school_network_risk=school_network_risk,
+        school_network_risk_label=school_network_risk_label,
+        school_network_summary=school_network_summary,
         reason=", ".join(reason_parts),
     )
 
@@ -950,6 +1041,7 @@ def main(argv: Sequence[str]) -> int:
         print(
             f"[finder] {index}. score={candidate.score} "
             f"confidence={candidate.confidence_label}({candidate.confidence}) "
+            f"school={candidate.school_network_risk_label}({candidate.school_network_risk}) "
             f"{candidate.entry_kind}/{candidate.build_kind or 'n/a'} "
             f"{candidate.source_url}"
         )
@@ -965,10 +1057,14 @@ def main(argv: Sequence[str]) -> int:
         "confidence": best.confidence,
         "confidence_label": best.confidence_label,
         "compatibility_summary": best.compatibility_summary,
+        "school_network_risk": best.school_network_risk,
+        "school_network_risk_label": best.school_network_risk_label,
+        "school_network_summary": best.school_network_summary,
         "suggested_output_name": best.suggested_output_name,
         "top_candidates": [asdict(candidate) for candidate in ranked[:5]],
     }
     print(f"[finder] Recommended source URL: {best.source_url}")
+    print(f"[finder] School network risk: {best.school_network_summary}")
     print(f"[finder-result] {json.dumps(payload, ensure_ascii=False)}")
     return 0
 

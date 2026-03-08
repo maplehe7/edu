@@ -1377,6 +1377,87 @@ def score_external_script_url(script_url: str, page_url: str) -> tuple[int, str]
     return (-score, script_url)
 
 
+def is_unity_loader_script_url(script_url: str) -> bool:
+    lower = remove_query_and_fragment(script_url).lower()
+    return lower.endswith(".loader.js") or lower.endswith("unityloader.js")
+
+
+def should_ignore_unity_support_script_url(script_url: str, page_url: str) -> bool:
+    parsed_script = urllib.parse.urlparse(script_url)
+    parsed_page = urllib.parse.urlparse(page_url)
+    same_origin = (
+        parsed_script.scheme == parsed_page.scheme
+        and parsed_script.netloc == parsed_page.netloc
+    )
+    if same_origin:
+        return False
+    return is_ignored_external_script_url(script_url)
+
+
+def score_unity_support_script_url(script_url: str, page_url: str) -> tuple[int, str]:
+    parsed_script = urllib.parse.urlparse(script_url)
+    parsed_page = urllib.parse.urlparse(page_url)
+    path = urllib.parse.unquote(parsed_script.path).lower()
+    basename = path.rsplit("/", 1)[-1]
+    score = 0
+    if (
+        parsed_script.scheme == parsed_page.scheme
+        and parsed_script.netloc == parsed_page.netloc
+    ):
+        score += 80
+    if share_url_parent_directory(script_url, page_url):
+        score += 25
+    if any(
+        token in path
+        for token in (
+            "api",
+            "sdk",
+            "ads",
+            "reward",
+            "leader",
+            "cloud",
+            "auth",
+            "lang",
+            "rhm",
+            "yandex",
+            "game",
+        )
+    ):
+        score += 20
+    if basename in {"main.js", "game.js", "index.js"}:
+        score += 8
+    if is_unity_loader_script_url(script_url):
+        score -= 1000
+    if should_ignore_unity_support_script_url(script_url, page_url):
+        score -= 500
+    return (-score, script_url)
+
+
+def collect_unity_support_script_urls(
+    index_html: str,
+    index_url: str,
+    loader_url: str,
+) -> list[str]:
+    loader_without_query = remove_query_and_fragment(loader_url)
+    support_urls: list[str] = []
+    seen: set[str] = set()
+    for script_url in sorted(
+        extract_external_script_urls(index_html, index_url),
+        key=lambda url: score_unity_support_script_url(url, index_url),
+    ):
+        if remove_query_and_fragment(script_url) == loader_without_query:
+            continue
+        if should_ignore_unity_support_script_url(script_url, index_url):
+            continue
+        if script_url in seen:
+            continue
+        seen.add(script_url)
+        support_urls.append(script_url)
+        if len(support_urls) >= 8:
+            break
+    return support_urls
+
+
 def extract_eagler_external_script_urls(index_html: str, index_url: str) -> list[str]:
     return extract_external_script_urls(index_html, index_url)
 
@@ -2481,6 +2562,15 @@ def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
     # Pattern 2: function calls that explicitly target window.<name>(...)
     window_call_matches = re.findall(r"\bwindow\.([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", raw_text)
 
+    # Pattern 3: direct global calls used by Unity glue libraries, e.g. InitSDKJs()
+    direct_call_matches = re.findall(
+        r"(?<![.\w$])([A-Za-z_$][A-Za-z0-9_$]*)\s*\(",
+        raw_text,
+    )
+    declared_function_names = set(
+        re.findall(r"\bfunction\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", raw_text)
+    )
+
     excluded_function_names = {
         "addEventListener",
         "removeEventListener",
@@ -2499,6 +2589,80 @@ def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
         "postMessage",
         "atob",
         "btoa",
+        "decodeURIComponent",
+        "encodeURIComponent",
+        "escape",
+        "unescape",
+        "parseInt",
+        "parseFloat",
+        "isNaN",
+        "isFinite",
+        "setTempRet0",
+        "getTempRet0",
+    }
+    excluded_direct_function_names = excluded_function_names | declared_function_names | {
+        "Array",
+        "Boolean",
+        "Date",
+        "Error",
+        "EvalError",
+        "Function",
+        "JSON",
+        "Map",
+        "Math",
+        "Number",
+        "Object",
+        "Promise",
+        "RangeError",
+        "ReferenceError",
+        "RegExp",
+        "Set",
+        "String",
+        "Symbol",
+        "SyntaxError",
+        "TypeError",
+        "URIError",
+        "Uint8Array",
+        "Uint16Array",
+        "Uint32Array",
+        "Int8Array",
+        "Int16Array",
+        "Int32Array",
+        "Float32Array",
+        "Float64Array",
+        "ArrayBuffer",
+        "DataView",
+        "BigInt64Array",
+        "BigUint64Array",
+        "Atomics",
+        "Reflect",
+        "Proxy",
+        "console",
+        "if",
+        "for",
+        "while",
+        "switch",
+        "catch",
+        "return",
+        "typeof",
+        "new",
+        "delete",
+        "in",
+        "instanceof",
+        "do",
+        "void",
+        "await",
+        "yield",
+        "class",
+        "super",
+        "import",
+        "export",
+        "case",
+        "break",
+        "continue",
+        "throw",
+        "try",
+        "with",
     }
     excluded_window_roots = excluded_function_names | {
         "__unityStandaloneLocalPageUrl",
@@ -2545,6 +2709,90 @@ def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
     for name in window_call_matches:
         if name:
             required_function_names.add(name)
+
+    for name in direct_call_matches:
+        if not name or name in excluded_direct_function_names:
+            continue
+        if name.startswith(
+            (
+                "_",
+                "$",
+                "dynCall_",
+                "invoke_",
+                "UTF8",
+                "Pointer_",
+                "Browser",
+                "GLctx",
+                "HEAP",
+                "stack",
+                "temp",
+                "___",
+            )
+        ):
+            continue
+        lower_name = name.lower()
+        if not (
+            name.startswith(
+                (
+                    "Init",
+                    "Get",
+                    "Set",
+                    "Load",
+                    "Save",
+                    "Call",
+                    "Open",
+                    "Prompt",
+                    "Review",
+                    "Buy",
+                    "Consume",
+                    "Execute",
+                    "Request",
+                    "Reward",
+                    "Full",
+                    "Activity",
+                    "Recalculate",
+                    "Static",
+                    "Sticky",
+                    "Language",
+                    "Game",
+                    "Paint",
+                    "Show",
+                    "Has",
+                    "Is",
+                    "Wrap",
+                    "Debug",
+                    "Sync",
+                    "Add",
+                    "Copy",
+                )
+            )
+            or name in {"showNextAd", "showReward", "ym", "getUserMedia"}
+            or any(
+                token in lower_name
+                for token in (
+                    "sdk",
+                    "ads",
+                    "reward",
+                    "interstitial",
+                    "banner",
+                    "leader",
+                    "cloud",
+                    "auth",
+                    "payment",
+                    "purchase",
+                    "game",
+                    "prompt",
+                    "review",
+                    "lang",
+                    "environ",
+                    "metric",
+                    "sticky",
+                    "rbt",
+                )
+            )
+        ):
+            continue
+        required_function_names.add(name)
 
     filtered_functions = {
         name for name in required_function_names if name not in excluded_function_names
@@ -3525,6 +3773,7 @@ def generate_index_html(
     required_functions: Sequence[str],
     window_roots: Sequence[str],
     window_callable_chains: Sequence[str],
+    support_script_filenames: Sequence[str] = (),
     source_page_url: str = "",
     enable_source_url_spoof: bool = False,
     original_folder_url: str = "",
@@ -3552,6 +3801,10 @@ def generate_index_html(
     auxiliary_asset_rewrites_js = json.dumps(
         auxiliary_asset_rewrites or {},
         ensure_ascii=False,
+    )
+    support_script_tags = "\n".join(
+        f'  <script src="./{html.escape(filename)}"></script>'
+        for filename in support_script_filenames
     )
     decompression_fallback_line = (
         "  config.decompressionFallback = true;\n" if assets.used_br_assets else ""
@@ -3990,6 +4243,7 @@ def generate_index_html(
     </div>
   </div>
 
+{support_script_tags}
   <script>
     (function () {{
       const TRUE = "true";
@@ -4187,6 +4441,52 @@ def generate_index_html(
         }};
       }}
 
+      function getEnvironmentPayload() {{
+        const language =
+          (navigator.language || navigator.userLanguage || "en").split("-")[0] || "en";
+        const deviceType = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "")
+          ? "mobile"
+          : "desktop";
+        return {{
+          language: language,
+          lang: language,
+          deviceType: deviceType,
+          isMobile: deviceType === "mobile",
+          platform: "web",
+          host: window.location.hostname || "localhost",
+          sourceHost: window.__unityStandaloneSourceHost || "",
+        }};
+      }}
+
+      function getUnitySendTargets() {{
+        const targets = [
+          window.myGameInstance,
+          window.gameInstance,
+          window.unityInstance,
+        ];
+        return targets.filter(function (target, index) {{
+          return (
+            target &&
+            typeof target.SendMessage === "function" &&
+            targets.indexOf(target) === index
+          );
+        }});
+      }}
+
+      function safeUnitySend(objectName, methodName, value) {{
+        getUnitySendTargets().forEach(function (target) {{
+          try {{
+            if (typeof value === "undefined") {{
+              target.SendMessage(objectName, methodName);
+            }} else {{
+              target.SendMessage(objectName, methodName, value);
+            }}
+          }} catch (err) {{
+            // Ignore unsupported game-specific message bridges.
+          }}
+        }});
+      }}
+
       const known = {{
         // Ads
         getInterstitialState: () => interstitialState,
@@ -4196,6 +4496,7 @@ def generate_index_html(
         getMinimumDelayBetweenInterstitial: () => minimumDelayBetweenInterstitial,
         showInterstitial: () => completeInterstitial(),
         showRewarded: () => completeRewarded(),
+        showReward: () => completeRewarded(),
         showBanner: () => {{
           bannerState = "shown";
           return "shown";
@@ -4267,6 +4568,12 @@ def generate_index_html(
           const ua = navigator.userAgent || "";
           return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "mobile" : "desktop";
         }},
+        GetDeviceType: () => {{
+          const ua = navigator.userAgent || "";
+          return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "mobile" : "desktop";
+        }},
+        GetLanguage: () => (navigator.language || "en").split("-")[0] || "en",
+        IsMobile: () => (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "") ? 1 : 0),
         getVisibilityState: () => document.visibilityState || "visible",
         getIsPlatformAudioEnabled: () => TRUE,
         getIsExternalLinksAllowed: () => TRUE,
@@ -4323,6 +4630,78 @@ def generate_index_html(
           }}
           return EMPTY;
         }},
+        InitSDKJs: function () {{
+          patchUnitySdk();
+          safeCall(window.UnitySDK && window.UnitySDK.onSdkScriptLoaded, []);
+          window.setTimeout(function () {{
+            safeUnitySend("RHMAdsManager", "InitSucceed", "standalone");
+          }}, 0);
+          return TRUE;
+        }},
+        InitGame: function () {{
+          return JSON.stringify(getEnvironmentPayload());
+        }},
+        InitLeaderboard: () => TRUE,
+        showNextAd: function () {{
+          completeInterstitial();
+          window.setTimeout(function () {{
+            safeUnitySend("RHMAdsManager", "resumeGame");
+          }}, 0);
+          return AD_STATE_CLOSED;
+        }},
+        CallInterstitialAdsJs: function () {{
+          completeInterstitial();
+          window.setTimeout(function () {{
+            safeUnitySend("RHMAdsManager", "resumeGame");
+          }}, 0);
+          return AD_STATE_CLOSED;
+        }},
+        CallInterstitialAdsPauseJs: function () {{
+          completeInterstitial();
+          window.setTimeout(function () {{
+            safeUnitySend("RHMAdsManager", "resumeAudio");
+          }}, 0);
+          return AD_STATE_CLOSED;
+        }},
+        LoadRewardedAdsJs: function () {{
+          window.setTimeout(function () {{
+            safeUnitySend("RHMAdsManager", "isRewardedAdsLoaded", "true");
+          }}, 0);
+          return TRUE;
+        }},
+        CallRewardedAdsJs: function () {{
+          completeRewarded();
+          window.setTimeout(function () {{
+            safeUnitySend("RHMAdsManager", "RewardedAdsSuccessfull");
+          }}, 0);
+          return AD_STATE_REWARDED;
+        }},
+        FullAdShow: () => completeInterstitial(),
+        RewardedShow: () => completeRewarded(),
+        GameReadyAPI: () => TRUE,
+        RequestingEnvironmentData: () => JSON.stringify(getEnvironmentPayload()),
+        LanguageRequest: () => (navigator.language || "en").split("-")[0] || "en",
+        OpenAuthDialog: () => FALSE,
+        PromptShow: noop,
+        Review: noop,
+        GetPayments: () => "[]",
+        BuyPayments: () => FALSE,
+        ConsumePurchase: () => FALSE,
+        ConsumePurchases: () => FALSE,
+        GetLeaderboardScores: () => "[]",
+        SetLeaderboardScores: noop,
+        LoadCloud: () => "{{}}",
+        SaveCloud: () => TRUE,
+        ActivityRTB1: noop,
+        ActivityRTB2: noop,
+        ExecuteCodeRTB1: noop,
+        ExecuteCodeRTB2: noop,
+        PaintRBT: noop,
+        RecalculateRTB1: noop,
+        RecalculateRTB2: noop,
+        StaticRBTDeactivate: noop,
+        StickyAdActivity: noop,
+        ym: noop,
         // Mad Hook / CrazySDK bridge
         InitSDK: function (...args) {{
           patchUnitySdk();
@@ -4615,6 +4994,13 @@ def generate_index_html(
 
       for (const chain of allDynamicWindowCallableChains) {{
         ensurePath(chain, true);
+      }}
+
+      if (
+        typeof window.yandexMetricaCounterId !== "number" &&
+        typeof window.yandexMetricaCounterId !== "string"
+      ) {{
+        window.yandexMetricaCounterId = 0;
       }}
 
       function patchUnitySdk() {{
@@ -6323,6 +6709,7 @@ def generate_index_html(
           .then(function (unityInstance) {{
             window.unityInstance = unityInstance;
             window.gameInstance = unityInstance;
+            window.myGameInstance = unityInstance;
             maybeBootstrapUnitySupport(unityInstance);
             setProgress(1);
             logLoaderStep("Unity instance ready");
@@ -6817,6 +7204,58 @@ def maybe_download_optional_asset(source_url: str, destination: Path, referer_ur
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_bytes(raw)
     return resolved
+
+
+def download_unity_support_scripts(
+    output_dir: Path,
+    script_urls: Sequence[str],
+    *,
+    referer_url: str = "",
+) -> list[dict[str, str]]:
+    if not script_urls:
+        return []
+
+    support_dir = output_dir / "support"
+    support_dir.mkdir(parents=True, exist_ok=True)
+    used_names: set[str] = set()
+    downloaded: list[dict[str, str]] = []
+
+    for index, script_url in enumerate(script_urls, start=1):
+        fallback_name = f"support-{index}.js"
+        script_name = sanitize_filename(basename_from_url(script_url), fallback_name)
+        if script_name.lower() in used_names:
+            stem, dot, suffix = script_name.rpartition(".")
+            stem = stem or script_name
+            dot = "." if dot else ""
+            suffix = suffix if dot else ""
+            counter = 2
+            while True:
+                candidate = f"{stem}-{counter}{dot}{suffix}"
+                if candidate.lower() not in used_names:
+                    script_name = candidate
+                    break
+                counter += 1
+        used_names.add(script_name.lower())
+        destination = support_dir / script_name
+        try:
+            resolved_url = download_raw_asset(
+                script_url,
+                destination,
+                referer_url=referer_url,
+            )
+        except FetchError:
+            log(f"Skipping optional Unity support script: {script_url}")
+            continue
+        downloaded.append(
+            {
+                "url": script_url,
+                "resolved_url": resolved_url,
+                "name": f"support/{script_name}",
+            }
+        )
+        log(f"support-script: downloaded {script_name}")
+
+    return downloaded
 
 
 def collect_auxiliary_asset_rewrites(
@@ -7657,6 +8096,14 @@ def main(argv: Sequence[str]) -> int:
 
     build_dir.mkdir(parents=True, exist_ok=True)
 
+    unity_support_script_urls: list[str] = []
+    if not direct_mode and detected_build is not None:
+        unity_support_script_urls = collect_unity_support_script_urls(
+            detected_build.index_html,
+            detected_build.index_url,
+            loader_url,
+        )
+
     progress_payload = load_json_file(progress_file)
     progress_payload.update(
         {
@@ -7687,6 +8134,12 @@ def main(argv: Sequence[str]) -> int:
             progress_file,
             referer_url=detected_build.index_url if detected_build is not None else "",
         )
+
+    downloaded_support_scripts = download_unity_support_scripts(
+        output_dir,
+        unity_support_script_urls,
+        referer_url=detected_build.index_url if detected_build is not None else "",
+    )
 
     patched_framework_path = (
         patch_redirect_domain_function(build_dir / assets.framework_name)
@@ -7789,6 +8242,7 @@ def main(argv: Sequence[str]) -> int:
         required_functions,
         framework_analysis.window_roots,
         framework_analysis.window_callable_chains,
+        support_script_filenames=[item["name"] for item in downloaded_support_scripts],
         source_page_url=source_page_url,
         enable_source_url_spoof=enable_source_url_spoof,
         original_folder_url=original_folder_url,
@@ -7842,6 +8296,8 @@ def main(argv: Sequence[str]) -> int:
         "gmsoft_like_build": gmsoft_like_build,
         "page_config_keys": sorted(page_config.keys()),
         "auxiliary_asset_rewrites": auxiliary_asset_rewrites,
+        "support_script_files": [item["name"] for item in downloaded_support_scripts],
+        "support_script_urls": [item["resolved_url"] for item in downloaded_support_scripts],
         "progress_file": str(progress_file),
     }
     if assets.build_kind == "legacy_json":

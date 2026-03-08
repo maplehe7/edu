@@ -56,7 +56,7 @@
     "framework": "3b82de6cb2078dc77d4349866ac525d0.framework.js.unityweb",
     "data": "6e5743185ed781c2e78f168a9ccd8437.data.unityweb",
     "wasm": "fac526674b2536fd68c6c0ff71354234.wasm.unityweb",
-    "required_function_count": 1,
+    "required_function_count": 36,
     "window_root_count": 2,
     "window_callable_chain_count": 1,
     "used_br_assets": true,
@@ -71,7 +71,7 @@
     "source_url_spoof_enabled": true,
     "original_folder_url": "",
     "streaming_assets_url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/StreamingAssets",
-    "asset_cache_buster": "6bb49434cba4",
+    "asset_cache_buster": "a8870fc9215a",
     "gmsoft_like_build": false,
     "page_config_keys": [
       "companyName",
@@ -83,6 +83,12 @@
       "streamingAssetsUrl"
     ],
     "auxiliary_asset_rewrites": {},
+    "support_script_files": [
+      "support/rhmApi.js"
+    ],
+    "support_script_urls": [
+      "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/js/rhmApi.js"
+    ],
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Holeio\\.standalone-progress.json"
   }
 }

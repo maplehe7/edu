@@ -404,6 +404,15 @@ class UnityStandaloneGui(tk.Tk):
         compatibility_summary = str(candidate.get("compatibility_summary") or "").strip()
         if compatibility_summary:
             summary += f"  {compatibility_summary}"
+        school_network_summary = str(candidate.get("school_network_summary") or "").strip()
+        school_network_risk_label = str(candidate.get("school_network_risk_label") or "").strip()
+        school_network_risk = str(candidate.get("school_network_risk") or "").strip()
+        if school_network_risk_label:
+            summary += f"  School: {school_network_risk_label}"
+            if school_network_risk:
+                summary += f" ({school_network_risk})"
+            if school_network_risk_label != "Low" and school_network_summary:
+                summary += f" {school_network_summary}"
         resolved_entry_url = str(candidate.get("resolved_entry_url") or "").strip()
         if resolved_entry_url:
             summary += f"  ->  {resolved_entry_url}"
