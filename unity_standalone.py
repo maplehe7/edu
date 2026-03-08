@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import base64
 import gzip
+import hashlib
 import html
 import http.client
 import json
@@ -244,12 +245,12 @@ def patch_gmsoft_host_bridge(framework_path: Path) -> bool:
     )
     plain_hostname_expr = "document['location']['hostname']"
     raw_replacement = (
-        r"""(window.__unityStandaloneSourceHost||"""
+        r"""(window.__unityStandaloneLocalHostName||"""
         r"""document['\x6c\x6f\x63\x61\x74\x69\x6f\x6e']"""
         r"""['\x68\x6f\x73\x74\x6e\x61\x6d\x65'])"""
     )
     plain_replacement = (
-        "(window.__unityStandaloneSourceHost||document['location']['hostname'])"
+        "(window.__unityStandaloneLocalHostName||document['location']['hostname'])"
     )
 
     if raw_replacement in decoded_text or plain_replacement in decoded_text:
@@ -327,7 +328,7 @@ def patch_gmsoft_sendmessage_defaults(framework_path: Path) -> bool:
         + method_name
         + "==='SetUnityHostName'){"
         + arg_name
-        + "=(window.__unityStandaloneSourceHost||document['\\x6c\\x6f\\x63\\x61\\x74\\x69\\x6f\\x6e']['\\x68\\x6f\\x73\\x74\\x6e\\x61\\x6d\\x65']||'');"
+        + "=(window.__unityStandaloneLocalHostName||document['\\x6c\\x6f\\x63\\x61\\x74\\x69\\x6f\\x6e']['\\x68\\x6f\\x73\\x74\\x6e\\x61\\x6d\\x65']||'');"
         + "}"
         + "}"
     )
@@ -906,6 +907,19 @@ def discover_crazygames_entry_url(index_html: str, index_url: str) -> str:
     return ""
 
 
+def discover_gamecomets_entry_url(index_url: str) -> str:
+    parsed = urllib.parse.urlparse(index_url)
+    host = parsed.netloc.lower()
+    if not host.endswith("gamecomets.com"):
+        return ""
+
+    path = parsed.path.rstrip("/").lower()
+    if path in {"/game/geometry-dash-lite", "/games/geometry-dash-lite"}:
+        return "https://geometrydashlite.io/geometry-dash-game/"
+
+    return ""
+
+
 def extract_next_data_payload(index_html: str) -> dict[str, Any]:
     match = re.search(
         r"""<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)</script>""",
@@ -1111,6 +1125,12 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
                     index_html=snippet,
                     source_page_url=index_url,
                 )
+
+        gamecomets_entry_url = discover_gamecomets_entry_url(index_url)
+        if gamecomets_entry_url:
+            result = inspect_url(gamecomets_entry_url, depth + 1, referer_url=index_url)
+            if result:
+                return result
 
         crazygames_entry_url = discover_crazygames_entry_url(index_html, index_url)
         if crazygames_entry_url:
@@ -3476,6 +3496,29 @@ def write_vendor_support_files(output_dir: Path, framework_analysis: FrameworkAn
         )
 
 
+def compute_asset_cache_buster(build_dir: Path, assets: DownloadedAssets) -> str:
+    digest = hashlib.sha256()
+    for asset_name in (
+        assets.loader_name,
+        assets.framework_name,
+        assets.data_name,
+        assets.wasm_name,
+    ):
+        if not asset_name:
+            continue
+        asset_path = build_dir / asset_name
+        if not asset_path.exists():
+            continue
+        stats = asset_path.stat()
+        digest.update(asset_name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(str(stats.st_size).encode("ascii"))
+        digest.update(b"\0")
+        digest.update(str(stats.st_mtime_ns).encode("ascii"))
+        digest.update(b"\0")
+    return digest.hexdigest()[:12]
+
+
 def generate_index_html(
     product_name: str,
     assets: DownloadedAssets,
@@ -3486,6 +3529,7 @@ def generate_index_html(
     enable_source_url_spoof: bool = False,
     original_folder_url: str = "",
     streaming_assets_url: str = "",
+    asset_cache_buster: str = "",
     page_config: Mapping[str, Any] | None = None,
     auxiliary_asset_rewrites: dict[str, str] | None = None,
 ) -> str:
@@ -3503,6 +3547,7 @@ def generate_index_html(
     enable_source_url_spoof_js = "true" if enable_source_url_spoof else "false"
     original_folder_url_js = json.dumps(original_folder_url, ensure_ascii=False)
     streaming_assets_url_js = json.dumps(streaming_assets_url, ensure_ascii=False)
+    asset_cache_buster_js = json.dumps(asset_cache_buster, ensure_ascii=False)
     page_config_js = json.dumps(page_config or {}, ensure_ascii=False)
     auxiliary_asset_rewrites_js = json.dumps(
         auxiliary_asset_rewrites or {},
@@ -4952,10 +4997,20 @@ def generate_index_html(
       const ENABLE_SOURCE_URL_SPOOF = {enable_source_url_spoof_js};
       const ORIGINAL_FOLDER_URL = {original_folder_url_js};
       const STREAMING_ASSETS_URL = {streaming_assets_url_js};
+      const BUILD_CACHE_BUSTER = {asset_cache_buster_js};
       const ENTRY_PAGE_CONFIG = {page_config_js};
       const AUXILIARY_ASSET_REWRITES = {auxiliary_asset_rewrites_js};
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
+      const LOCAL_HOST_NAME = (function () {{
+        try {{
+          return new URL(LOCAL_PAGE_URL).hostname || "";
+        }} catch (err) {{
+          return window.location && window.location.hostname
+            ? String(window.location.hostname)
+            : "";
+        }}
+      }})();
       const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
       const ROOT = document.documentElement;
 
@@ -4980,6 +5035,8 @@ def generate_index_html(
       if (ORIGINAL_FOLDER_URL) {{
         window.originalFolder = ORIGINAL_FOLDER_URL;
       }}
+      window.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
+      globalThis.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
       const requestedLaunchMode = (function () {{
         try {{
           return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
@@ -5177,9 +5234,17 @@ def generate_index_html(
         return new URL(cleanPath, LOCAL_PAGE_URL).toString();
       }}
 
-      function buildBuildAssetUrl(name) {{
+      function buildBuildAssetUrl(name, includeCacheBuster) {{
         const cleanName = String(name || "").replace(/^\\.?\\//, "");
-        return new URL(cleanName, LOCAL_BUILD_ROOT_URL).toString();
+        const assetUrl = new URL(cleanName, LOCAL_BUILD_ROOT_URL);
+        if (
+          includeCacheBuster !== false &&
+          BUILD_CACHE_BUSTER &&
+          /(^|\\/)[^/?#]+\\.[^/?#]+$/.test(cleanName)
+        ) {{
+          assetUrl.searchParams.set("v", BUILD_CACHE_BUSTER);
+        }}
+        return assetUrl.toString();
       }}
 
       function appendResourceHint(url, rel, asValue, fetchPriority) {{
@@ -5517,6 +5582,30 @@ def generate_index_html(
           : EMPTY;
       }}
 
+      function getLocalHostName() {{
+        if (typeof LOCAL_HOST_NAME === "string" && LOCAL_HOST_NAME) {{
+          return LOCAL_HOST_NAME;
+        }}
+        return window.location && window.location.hostname
+          ? String(window.location.hostname)
+          : EMPTY;
+      }}
+
+      function getEffectiveSourceSiteUrl() {{
+        const candidateUrls = [getEffectiveSourceUrl(), SOURCE_PAGE_URL];
+        for (const candidate of candidateUrls) {{
+          if (typeof candidate !== "string" || !candidate) {{
+            continue;
+          }}
+          try {{
+            return new URL("./", candidate).toString();
+          }} catch (err) {{
+            // Ignore invalid URL candidates.
+          }}
+        }}
+        return EMPTY;
+      }}
+
       function getEffectiveGmsoftParamPayload() {{
         const sharedConfig =
           window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object"
@@ -5524,9 +5613,13 @@ def generate_index_html(
             : window.config && typeof window.config === "object"
               ? window.config
               : {{}};
-        const effectiveHost = getEffectiveSourceHost();
-        if (!sharedConfig.domainHost && effectiveHost) {{
-          sharedConfig.domainHost = effectiveHost;
+        const localHost = getLocalHostName();
+        const sourceSiteUrl = getEffectiveSourceSiteUrl();
+        if (localHost) {{
+          sharedConfig.domainHost = localHost;
+        }}
+        if (!sharedConfig.sourceHtml && sourceSiteUrl) {{
+          sharedConfig.sourceHtml = sourceSiteUrl;
         }}
         if (!sharedConfig.sourceHtml && window.config && typeof window.config.sourceHtml === "string") {{
           sharedConfig.sourceHtml = window.config.sourceHtml;
@@ -5674,7 +5767,10 @@ def generate_index_html(
             return;
           }}
           const relativeValue = value.replace(/^\\.?\\//, "");
-          config[key] = buildBuildAssetUrl(relativeValue);
+          config[key] = buildBuildAssetUrl(
+            relativeValue,
+            key !== "wasmCodeUrl"
+          );
         }});
         return config;
       }}
@@ -6011,7 +6107,8 @@ def generate_index_html(
           debug_mode: "yes",
           enableAds: false,
           enablePreroll: false,
-          domainHost: getEffectiveSourceHost(),
+          domainHost: getLocalHostName(),
+          sourceHtml: getEffectiveSourceSiteUrl(),
           gameId: typeof mergedConfig.gameId === "string" ? mergedConfig.gameId : "",
           hostindex: Number(extractedConfig.hostindex) || 0,
           sdkType: typeof mergedConfig.sdkType === "string" && mergedConfig.sdkType
@@ -6029,7 +6126,11 @@ def generate_index_html(
         if (window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object") {{
           Object.assign(mergedConfig, window.GMSOFT_OPTIONS);
         }}
-        mergedConfig.domainHost = getEffectiveSourceHost() || mergedConfig.domainHost || "";
+        mergedConfig.domainHost = getLocalHostName() || mergedConfig.domainHost || "";
+        mergedConfig.sourceHtml =
+          getEffectiveSourceSiteUrl() ||
+          mergedConfig.sourceHtml ||
+          "";
         mergedConfig.enableAds = false;
         mergedConfig.enablePreroll = false;
         mergedConfig.allow_embed = "yes";
@@ -6079,9 +6180,12 @@ def generate_index_html(
           if (!window.GMSOFT_OPTIONS || typeof window.GMSOFT_OPTIONS !== "object") {{
             return;
           }}
-          const effectiveHost = getEffectiveSourceHost();
-          if (effectiveHost) {{
-            window.GMSOFT_OPTIONS.domainHost = effectiveHost;
+          const localHost = getLocalHostName();
+          if (localHost) {{
+            window.GMSOFT_OPTIONS.domainHost = localHost;
+          }}
+          if (!window.GMSOFT_OPTIONS.sourceHtml) {{
+            window.GMSOFT_OPTIONS.sourceHtml = getEffectiveSourceSiteUrl();
           }}
           if (
             !window.GMSOFT_OPTIONS.sourceHtml &&
@@ -6091,7 +6195,7 @@ def generate_index_html(
             window.GMSOFT_OPTIONS.sourceHtml = window.config.sourceHtml;
           }}
           const payload = getEffectiveGmsoftParamPayload();
-          safeSend("GmSoft", "SetUnityHostName", effectiveHost || "");
+          safeSend("GmSoft", "SetUnityHostName", localHost || "");
           safeSend("GmSoft", "SetParam", payload);
         }}
 
@@ -7582,9 +7686,8 @@ def main(argv: Sequence[str]) -> int:
         )
         if path.name
     )
-    if gmsoft_like_build and source_page_url:
-        enable_source_url_spoof = True
 
+    asset_cache_buster = compute_asset_cache_buster(build_dir, assets)
     product_name = (
         infer_product_name_from_entry(
             detected_build.index_html,
@@ -7604,6 +7707,7 @@ def main(argv: Sequence[str]) -> int:
         enable_source_url_spoof=enable_source_url_spoof,
         original_folder_url=original_folder_url,
         streaming_assets_url=streaming_assets_url,
+        asset_cache_buster=asset_cache_buster,
         page_config=page_config,
         auxiliary_asset_rewrites=auxiliary_asset_rewrites,
     )
@@ -7648,6 +7752,7 @@ def main(argv: Sequence[str]) -> int:
         "source_url_spoof_enabled": enable_source_url_spoof,
         "original_folder_url": original_folder_url,
         "streaming_assets_url": streaming_assets_url,
+        "asset_cache_buster": asset_cache_buster,
         "gmsoft_like_build": gmsoft_like_build,
         "page_config_keys": sorted(page_config.keys()),
         "auxiliary_asset_rewrites": auxiliary_asset_rewrites,
