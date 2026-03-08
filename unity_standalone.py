@@ -81,6 +81,7 @@ class DetectedEntry:
     entry_kind: str
     index_url: str
     index_html: str
+    source_page_url: str = ""
 
 
 @dataclass
@@ -549,6 +550,35 @@ def detect_supported_entry_kind(index_html: str) -> str:
     return ""
 
 
+def detect_unity_entry_from_external_scripts(
+    index_html: str,
+    index_url: str,
+) -> DetectedEntry | None:
+    script_urls = sorted(
+        extract_external_script_urls(index_html, index_url),
+        key=lambda script_url: score_external_script_url(script_url, index_url),
+    )
+    for script_url in script_urls[:12]:
+        if is_ignored_external_script_url(script_url):
+            continue
+        try:
+            resolved_script_url, raw_script, _, _ = fetch_url(script_url, referer_url=index_url)
+        except FetchError:
+            continue
+        if not raw_script or looks_like_html(raw_script):
+            continue
+        script_text = decode_html_body(raw_script)
+        if not looks_like_unity_entry_html(script_text):
+            continue
+        return DetectedEntry(
+            entry_kind="unity",
+            index_url=resolved_script_url,
+            index_html=script_text,
+            source_page_url=index_url,
+        )
+    return None
+
+
 def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
     errors: list[str] = []
     visited_urls: set[str] = set()
@@ -564,6 +594,7 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
                     entry_kind=detected_kind,
                     index_url=index_url,
                     index_html=snippet,
+                    source_page_url=index_url,
                 )
 
         theme_host_entry_url = discover_theme_host_entry_url(index_html, index_url)
@@ -573,11 +604,24 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
                 return result
 
         detected_kind = detect_supported_entry_kind(index_html)
-        if detected_kind:
+        if detected_kind in {"unity", "eaglercraft"}:
             return DetectedEntry(
                 entry_kind=detected_kind,
                 index_url=index_url,
                 index_html=index_html,
+                source_page_url=index_url,
+            )
+
+        external_unity_entry = detect_unity_entry_from_external_scripts(index_html, index_url)
+        if external_unity_entry is not None:
+            return external_unity_entry
+
+        if detected_kind == "html":
+            return DetectedEntry(
+                entry_kind=detected_kind,
+                index_url=index_url,
+                index_html=index_html,
+                source_page_url=index_url,
             )
 
         if depth >= 6:
@@ -866,7 +910,7 @@ def extract_inline_script_blocks(index_html: str) -> list[str]:
     return blocks
 
 
-def extract_eagler_external_script_urls(index_html: str, index_url: str) -> list[str]:
+def extract_external_script_urls(index_html: str, index_url: str) -> list[str]:
     urls: list[str] = []
     seen: set[str] = set()
     for raw_url in re.findall(
@@ -886,6 +930,55 @@ def extract_eagler_external_script_urls(index_html: str, index_url: str) -> list
         seen.add(resolved)
         urls.append(resolved)
     return urls
+
+
+def is_ignored_external_script_url(script_url: str) -> bool:
+    lower = script_url.lower()
+    ignored_fragments = (
+        "googletagmanager.com",
+        "google-analytics.com",
+        "doubleclick.net",
+        "googleads.g.doubleclick.net",
+        "connect.facebook.net",
+        "platform.twitter.com",
+        "pagead2.googlesyndication.com",
+        "imasdk.googleapis.com",
+        "adservice.google.com",
+        "googlesyndication.com",
+    )
+    ignored_suffixes = (
+        "analytics.js",
+        "gtag.js",
+        "adsbygoogle.js",
+        "sdk.js",
+        "api.js",
+    )
+    return any(fragment in lower for fragment in ignored_fragments) or any(
+        lower.endswith(suffix) or f"/{suffix}?" in lower for suffix in ignored_suffixes
+    )
+
+
+def score_external_script_url(script_url: str, page_url: str) -> tuple[int, str]:
+    parsed_script = urllib.parse.urlparse(script_url)
+    parsed_page = urllib.parse.urlparse(page_url)
+    path = urllib.parse.unquote(parsed_script.path).lower()
+    basename = path.rsplit("/", 1)[-1]
+    score = 0
+    if parsed_script.scheme == parsed_page.scheme and parsed_script.netloc == parsed_page.netloc:
+        score += 40
+    if any(token in path for token in ("unity", "loader", "build", "game", "main", "webgl")):
+        score += 28
+    if basename in {"main.js", "game.js", "index.js", "loader.js"}:
+        score += 12
+    if path.endswith(".loader.js"):
+        score += 80
+    if is_ignored_external_script_url(script_url):
+        score -= 500
+    return (-score, script_url)
+
+
+def extract_eagler_external_script_urls(index_html: str, index_url: str) -> list[str]:
+    return extract_external_script_urls(index_html, index_url)
 
 
 def is_eagler_runtime_script_url(script_url: str) -> bool:
@@ -1876,6 +1969,70 @@ def extract_html_external_links(document_html: str) -> dict[str, list[str]]:
         "frames": iframe_urls,
         "other_links": dedupe(other_link_urls),
     }
+
+
+def strip_known_embedded_ad_markup(document_html: str) -> tuple[str, dict[str, int]]:
+    cleaned = document_html
+    removal_counts = {
+        "style_blocks": 0,
+        "script_blocks": 0,
+        "iframe_blocks": 0,
+        "mask_blocks": 0,
+        "container_blocks": 0,
+        "comment_blocks": 0,
+    }
+
+    replacements = (
+        (
+            "style_blocks",
+            re.compile(
+                r"""<style\b[^>]*>(?:(?!</style>).)*(?:#ad-container|#ad-iframe|#close-ad|#ad-right-mask|reklam)(?:(?!</style>).)*</style>""",
+                re.IGNORECASE | re.DOTALL,
+            ),
+        ),
+        (
+            "script_blocks",
+            re.compile(
+                r"""<script\b[^>]*>(?:(?!</script>).)*(?:document\.getElementById\(['"]ad-container['"]\)|document\.getElementById\(['"]close-ad['"]\)|script\.google\.com/macros|countdownStart)(?:(?!</script>).)*</script>""",
+                re.IGNORECASE | re.DOTALL,
+            ),
+        ),
+        (
+            "iframe_blocks",
+            re.compile(
+                r"""<iframe\b[^>]*(?:\bid\s*=\s*['"]ad-iframe['"]|src\s*=\s*['"][^"']*script\.google\.com/macros/)[\s\S]*?</iframe>""",
+                re.IGNORECASE,
+            ),
+        ),
+        (
+            "mask_blocks",
+            re.compile(
+                r"""<div\b[^>]*\bid\s*=\s*['"]ad-right-mask['"][^>]*>\s*</div>""",
+                re.IGNORECASE,
+            ),
+        ),
+        (
+            "container_blocks",
+            re.compile(
+                r"""<div\b[^>]*\bid\s*=\s*['"]ad-container['"][^>]*>[\s\S]*?</div>""",
+                re.IGNORECASE,
+            ),
+        ),
+        (
+            "comment_blocks",
+            re.compile(
+                r"""<!--[\s\S]*?(?:reklam|advert|ad-container|ad-iframe)[\s\S]*?-->""",
+                re.IGNORECASE,
+            ),
+        ),
+    )
+
+    for key, pattern in replacements:
+        cleaned, count = pattern.subn("", cleaned)
+        removal_counts[key] += count
+
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned, removal_counts
 
 
 def generate_crazygames_sdk_stub() -> str:
@@ -4777,6 +4934,55 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
     return document
 
 
+def generate_html_launcher_index_html(title: str, embed_filename: str) -> str:
+    embed_url_js = json.dumps(f"./{embed_filename}", ensure_ascii=False)
+    embed_title_js = json.dumps(title or "Game", ensure_ascii=False)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+<title>{html.escape(title)}</title>
+<link rel="stylesheet" href="./ocean-launcher.css" />
+</head>
+<body>
+<div id="game_frame"></div>
+<div id="loadingScreen">
+<div id="loadingBackdrop" aria-hidden="true">
+<canvas id="star-canvas"></canvas>
+<canvas id="wave-canvas"></canvas>
+<div class="nebula"></div>
+<div class="overlay"></div>
+<div class="grain"></div>
+</div>
+<div id="loadingCenter">
+<div id="loadingTitleGroup">
+<h1 id="loadingTitle">Ocean</h1>
+<div id="loadingSubtitle">LAUNCHER</div>
+</div>
+<div id="launchPanel">
+<div id="launchMenu">
+<button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
+<button id="launchFullscreenBtn" class="launchOption" type="button">LAUNCH FULLSCREEN</button>
+</div>
+<div id="playNote">Saves to local storage</div>
+</div>
+<div id="progressTrack" aria-hidden="true">
+<div id="progressFill"></div>
+</div>
+<div id="status">Choose how you want to launch</div>
+</div>
+</div>
+<script>
+window.OCEAN_EMBED_URL = {embed_url_js};
+window.OCEAN_EMBED_TITLE = {embed_title_js};
+</script>
+<script src="./ocean-launcher.js"></script>
+</body>
+</html>
+"""
+
+
 def export_html_entry(
     output_dir: Path,
     progress_file: Path,
@@ -4787,6 +4993,7 @@ def export_html_entry(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     title = infer_display_title(extract_html_title(detected_entry.index_html), root_url)
+    support_files = copy_eagler_support_files(output_dir)
     progress_payload = load_json_file(progress_file)
     progress_payload.update(
         {
@@ -4805,10 +5012,18 @@ def export_html_entry(
         detected_entry.index_html,
         detected_entry.index_url,
     )
-    external_links = extract_html_external_links(normalized_source_html)
-    index_content = generate_html_entry_index_html(
+    sanitized_source_html, ad_removal_counts = strip_known_embedded_ad_markup(normalized_source_html)
+    external_links = extract_html_external_links(sanitized_source_html)
+    embedded_entry_name = "game-root.html"
+    embedded_entry_content = generate_html_entry_index_html(
         title=title,
-        source_html=normalized_source_html,
+        source_html=sanitized_source_html,
+    )
+    (output_dir / embedded_entry_name).write_text(embedded_entry_content, encoding="utf-8")
+
+    index_content = generate_html_launcher_index_html(
+        title=title,
+        embed_filename=embedded_entry_name,
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -4828,6 +5043,7 @@ def export_html_entry(
     summary = {
         "output_dir": str(output_dir),
         "index_html": str(output_dir / "index.html"),
+        "embedded_entry_html": str(output_dir / embedded_entry_name),
         "required_functions_file": str(output_dir / "required-functions.json"),
         "mode": "entry_auto",
         "entry_kind": "html",
@@ -4836,6 +5052,9 @@ def export_html_entry(
         "root_url": root_url,
         "resolved_entry_url": detected_entry.index_url,
         "html_source_mode": "absolutized_embed_root",
+        "launcher": "ocean-launcher",
+        "support_files": support_files,
+        "embedded_ad_blocks_removed": ad_removal_counts,
         "external_script_urls": external_links["scripts"],
         "external_stylesheet_urls": external_links["stylesheets"],
         "external_frame_urls": external_links["frames"],
@@ -5323,7 +5542,11 @@ def main(argv: Sequence[str]) -> int:
         else ""
     )
     source_page_url = canonicalize_source_page_url(
-        detected_build.index_url if (not direct_mode and detected_build is not None) else root_url,
+        (
+            detected_entry.source_page_url
+            if (not direct_mode and detected_entry is not None and detected_entry.source_page_url)
+            else detected_build.index_url if (not direct_mode and detected_build is not None) else root_url
+        ),
         original_folder_url,
     )
     auxiliary_asset_rewrites = collect_auxiliary_asset_rewrites(
