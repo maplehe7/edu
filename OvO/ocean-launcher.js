@@ -714,7 +714,7 @@
       frame.setAttribute("allowfullscreen", "");
       frame.setAttribute(
         "allow",
-        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write"
+        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write; storage-access-by-user-activation"
       );
 
       function settleWith(fn, value) {

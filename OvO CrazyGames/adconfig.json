@@ -1,0 +1,10 @@
+{
+  "networks": [],
+  "name": "",
+  "gameId": "",
+  "removeSocials": true,
+  "stopAudioInBackground": false,
+  "removeMidrollRewarded": true,
+  "noReligion": false,
+  "removeServiceWorker": true
+}

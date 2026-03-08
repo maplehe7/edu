@@ -1,5 +1,5 @@
 ﻿{
-	"version": 1719571948,
+	"version": 1655117062,
 	"fileList": [
 		"data.js",
 		"c2runtime.js",
@@ -106,7 +106,7 @@
 		"images/decor-sheet1.png",
 		"images/sprite2-sheet0.png",
 		"images/vector-sheet0.png",
-		"images/splashscreen-sheet0.png",
+		"images/coolmathgames800x-sheet0.png",
 		"images/camera-sheet0.png",
 		"images/background-sheet0.png",
 		"images/sprite4-sheet0.png",
@@ -227,8 +227,6 @@
 		"media/track4.ogg",
 		"media/track1.m4a",
 		"media/track1.ogg",
-		"media/maynemenyou.m4a",
-		"media/maynemenyou.ogg",
 		"icon-114.png",
 		"icon-128.png",
 		"icon-16.png",
@@ -290,7 +288,7 @@
 		"lzma.js",
 		"websdkwrapper.js",
 		"languages.json",
-		"sdkconfig.json",
+		"adconfig.json",
 		"ovo-level-editor.js",
 		"ovo-multiplayer.js",
 		"check.png",

@@ -1,24 +1,11 @@
 // ================= CRAZY ADS ===================
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-function inIframe() {
-  try {
-    return window.self !== window.top;
-  } catch (e) {
-    return true;
-  }
-}
-
 function initWebSdkWrapper(debug = false) {
   let config = globalThis.adconfig;
-  let runtime = globalThis.cr_getC2Runtime();
+
   let WebSdkWrapper = globalThis.WebSdkWrapper;
   let postInit = () => {
-    WebSdkWrapper.loadingStart();
-    WebSdkWrapper.loadingProgress(runtime.loadingProgress * 100);
-    if (runtime.loadingprogress === 1) {
-      WebSdkWrapper.loadingEnd();
-    }
     WebSdkWrapper.onUnlockAllLevels(() => {
       c2_callFunction("unlockAllLevels");
     });
@@ -37,25 +24,6 @@ function initWebSdkWrapper(debug = false) {
     WebSdkWrapper.onAdStarted(() => {
       c2_callFunction("adStarted");
     });
-
-    try {
-      let json = JSON.parse(config);
-      if (json.name === "Xiaomi" && json.fixXiaomiBug) {
-        document.getElementById("c2canvasdiv").classList.remove("hidden");
-        let tries = 50;
-        let interval = setInterval(() => {
-          tries--;
-          let c2canvasDiv = document.getElementById("c2canvasdiv");
-          if (c2canvasDiv.classList.contains("hidden")) {
-            c2canvasDiv.classList.remove("hidden");
-            tries = 0;
-          }
-          if (tries <= 0) {
-            clearInterval(interval);
-          }
-        }, 5);
-      }
-    } catch (e) {}
   };
 
   try {
@@ -90,78 +58,10 @@ function initWebSdkWrapper(debug = false) {
     } else {
       globalThis.adconfigNoReligion = 0;
     }
-    if (json.hasOwnProperty("interTypes")) {
-      globalThis.interTypes = json.interTypes;
-    } else {
-      globalThis.interTypes = {};
-    }
-    if (json.hasOwnProperty("splashScreen")) {
-      globalThis.splashScreen = json.splashScreen;
-      globalThis.splashScreenName = json.name;
-      if (json.hasOwnProperty("sitelock") && json.sitelock) {
-        const allowedUrls = json.sites || [];
-        globalThis.needsSitelock = !siteLock(allowedUrls);
-        if (json.hasOwnProperty("correctWebsite")) {
-          globalThis.correctWebsite = json.correctWebsite;
-        }
-      } else {
-        globalThis.needsSitelock = false;
-      }
-    } else {
-      globalThis.splashScreen = false;
-    }
-
-    c2_callFunction("loaderLayoutInitialised", [
-      globalThis.splashScreen ? 1 : 0,
-      globalThis.splashScreenName || "",
-      globalThis.needsSitelock ? 1 : 0,
-      globalThis.correctWebsite || "",
-    ]);
-
-    // let asas = () => {
-    //   let i, s, a, l, f, b;
-    //   return !inIframe()
-    //     ? !!0
-    //     : ((i = eval(
-    //         atob(
-    //           "d2luZG93LnRvcC5kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiaHRtbDVnYW1lIikuc2FuZGJveA=="
-    //         )
-    //       )),
-    //       (s = i[atob("Y29udGFpbnM=")][atob("YmluZA==")](i)),
-    //       (a = i[atob("YWRk")][atob("YmluZA==")](i)),
-    //       (l = atob("YWxsb3ctcG9wdXBzLGFsbG93LXRvcC1uYXZpZ2F0aW9u")[
-    //         atob("c3BsaXQ=")
-    //       ](",")),
-    //       (f = (x) => (s(x) ? !!0 : (a(x), !0))),
-    //       (b = l[atob("c29tZQ==")](f)),
-    //       b && !eval(atob("bG9jYXRpb24ucmVsb2FkKCk=")));
-    // };
-
-    // if (json.name !== "CoolMathGames" || !asas()) {
-    //   WebSdkWrapper.init(json.name, !!debug, json).then(postInit);
-    // }
     WebSdkWrapper.init(json.name, !!debug, json).then(postInit);
   } catch (e) {
     WebSdkWrapper.init("", !!debug).then(postInit);
   }
-}
-
-function siteLock(urls) {
-  const currentHostname = window.location.hostname;
-
-  const currentHostnameParts = [
-    currentHostname,
-    ...currentHostname
-      .split(".")
-      .slice(1)
-      .map((part, i, arr) => arr.slice(i).join(".")),
-  ];
-
-  return urls.some((url) => {
-    return currentHostnameParts.some(
-      (allowedHostname) => allowedHostname === url
-    );
-  });
 }
 
 var crazysdk;
@@ -231,75 +131,49 @@ function crazyHappyTime() {
   globalThis.WebSdkWrapper.happyTime();
 }
 
-function interTypeAllowed(adType) {
-  return (
-    globalThis.interTypes.hasOwnProperty(adType) &&
-    globalThis.interTypes[adType]
-  );
+function isLayoutLevel(layoutname) {
+  let regex = /Level \d+/;
+  return regex.test(layoutname);
 }
 
-let lastLayout = null;
-let lastLayoutIsMenu = false;
-
-function markMenuLayout() {
-  const runtime = cr_getC2Runtime();
-  const layout = runtime.running_layout;
-  lastLayout = layout;
-  lastLayoutIsMenu = true;
+function isLayoutMenu(layoutname) {
+  return !isLayoutLevel(layoutname);
 }
 
-let successOnLastLevel = false;
-
-function markSuccessOnLastLevel() {
-  successOnLastLevel = true;
-}
-
-function crazyMidRoll(adType) {
-  if (!interTypeAllowed(adType)) return;
-  if (adType === "levelStart") {
-    const runtime = cr_getC2Runtime();
-
-    let doAd = false;
-
-    const layout = runtime.running_layout;
-
-    // case where level is restarted after success
-    doAd =
-      doAd ||
-      (((lastLayout !== layout && !lastLayoutIsMenu) ||
-        lastLayout === layout) &&
-        successOnLastLevel &&
-        interTypeAllowed("levelStartOnSuccess"));
-    successOnLastLevel = false;
-
-    // case where level is restarted after failure
-    doAd = doAd || (lastLayout === layout && interTypeAllowed("restart"));
-
-    // case where last layout is different from current layout and last layout is not a menu
-    doAd =
-      doAd ||
-      (lastLayout !== layout &&
-        lastLayoutIsMenu &&
-        interTypeAllowed("levelStartFromMenu"));
-    lastLayoutIsMenu = false;
-
-    lastLayout = layout;
-
-    if (!doAd) return;
-  }
-  var fakeBody = $("#fakeBody");
-  var c2canvasdiv = fakeBody.find("#c2canvasdiv");
-  fakeBody.remove();
-  c2canvasdiv.appendTo(document.body).removeClass("prepared nimated rollIn");
-  globalThis.WebSdkWrapper.interstitial(true).then((success) => {
+let lastAdLayoutWasMenu = false;
+let lastAdLayout = "";
+function crazyMidRoll() {
+  let runtime = cr_getC2Runtime();
+  if (!runtime) return;
+  let curLayout = runtime.running_layout.name;
+  if (isLayoutMenu(curLayout) && lastAdLayoutWasMenu) return;
+  if (isLayoutMenu(curLayout) && curLayout !== "Main Menu") return;
+  if (curLayout === lastAdLayout) return;
+  lastAdLayout = curLayout;
+  lastAdLayoutWasMenu = isLayoutMenu(curLayout);
+  console.log("Trying to play ad");
+  let globalsInstance = runtime.types_by_index.find(
+    (x) => x.plugin instanceof cr.plugins_.Globals && x.instvar_sids.length > 20
+  ).instances[0];
+  let startTIme = globalsInstance.instance_vars[4];
+  let now = Date.now();
+  globalThis.WebSdkWrapper.interstitial().then((success) => {
+    let newNow = Date.now();
+    let timeDiff = newNow - now;
+    let timeDiffSeconds = timeDiff / 1000;
+    startTIme = startTIme + timeDiffSeconds;
+    globalsInstance.instance_vars[4] = startTIme;
     if (success) c2_callFunction("adOver");
     else c2_callFunction("adOverFail");
   });
   // if (crazysdk) crazysdk.requestAd("midgame");
 }
 
-function crazyRewarded(adType) {
-  if (!interTypeAllowed(adType)) return;
+function crazyRewarded() {
+  let runtime = cr_getC2Runtime();
+  let curLayout = runtime.running_layout.name;
+  lastAdLayout = curLayout;
+  lastAdLayoutWasMenu = isLayoutMenu(curLayout);
   globalThis.WebSdkWrapper.rewarded().then((success) => {
     if (success) c2_callFunction("adOver");
     else c2_callFunction("adOverFail");

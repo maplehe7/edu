@@ -28250,15 +28250,7 @@ cr.plugins_.TR_AdBlockDetector = function (runtime)
     var instanceProto = pluginProto.Instance.prototype;
     instanceProto.onCreate = function ()
     {
-        this.adblock = false
-        var self =  this
-        var xhttp = new XMLHttpRequest ();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 0)
-                self.adblock = true
-        }
-        xhttp.open ("GET", "https://api.adinplay.com/libs/aiptag/assets/adsbygoogle.js", true);
-        xhttp.send ();
+        this.adblock = false;
     };
     function Cnds()
     {
@@ -38177,7 +38169,7 @@ cr.plugins_.skymen_skinsCore = function(runtime)
 }());
 ;
 ;
-var HowlerAudioPlayer = globalThis.HowlerWrapper;
+var HowlerAudioPlayer = globalThis.HowlerAudioPlayer;
 cr.plugins_.skymenhowlerjs = function (runtime) {
   this.runtime = runtime;
 };
@@ -38186,7 +38178,7 @@ cr.plugins_.skymenhowlerjs = function (runtime) {
   pluginProto.Type = function (plugin) {
     this.plugin = plugin;
     this.runtime = plugin.runtime;
-    HowlerAudioPlayer.init(() => this.runtime.files_subfolder);
+    HowlerAudioPlayer.init(this.runtime);
   };
   var typeProto = pluginProto.Type.prototype;
   typeProto.onCreate = function () {};
@@ -38211,18 +38203,18 @@ cr.plugins_.skymenhowlerjs = function (runtime) {
   };
   pluginProto.cnds = new Cnds();
   function Acts() {}
-  Acts.prototype.Play = function (file, group, loop, isHtml) {
+  Acts.prototype.Play = function (file, group) {
     if (group.trim() === "") {
-      HowlerAudioPlayer.play(file[0], null, loop === 1, isHtml === 1);
+      HowlerAudioPlayer.play(file[0]);
     } else {
-      HowlerAudioPlayer.play(file[0], group, loop === 1, isHtml === 1);
+      HowlerAudioPlayer.play(file[0], group);
     }
   };
-  Acts.prototype.PlayByName = function (file, group, loop, isHtml) {
+  Acts.prototype.PlayByName = function (file, group) {
     if (group.trim() === "") {
-      HowlerAudioPlayer.play(file, null, loop === 1, isHtml === 1);
+      HowlerAudioPlayer.play(file);
     } else {
-      HowlerAudioPlayer.play(file, group, loop === 1, isHtml === 1);
+      HowlerAudioPlayer.play(file, group);
     }
   };
   Acts.prototype.Stop = function (group) {
@@ -38260,11 +38252,11 @@ cr.plugins_.skymenhowlerjs = function (runtime) {
       HowlerAudioPlayer.setLinearVolume(volume, group);
     }
   };
-  Acts.prototype.Load = function (file, group, isHtml) {
+  Acts.prototype.Load = function (file, group) {
     if (group.trim() === "") {
-      HowlerAudioPlayer.load(file[0], null, isHtml === 1);
+      HowlerAudioPlayer.load(file[0]);
     } else {
-      HowlerAudioPlayer.load(file[0], group, isHtml === 1);
+      HowlerAudioPlayer.load(file[0], group);
     }
   };
   Acts.prototype.Unload = function (file, group) {
@@ -38274,11 +38266,11 @@ cr.plugins_.skymenhowlerjs = function (runtime) {
       HowlerAudioPlayer.unload(file[0], group);
     }
   };
-  Acts.prototype.LoadByName = function (file, group, isHtml) {
+  Acts.prototype.LoadByName = function (file, group) {
     if (group.trim() === "") {
-      HowlerAudioPlayer.load(file, null, isHtml === 1);
+      HowlerAudioPlayer.load(file);
     } else {
-      HowlerAudioPlayer.load(file, group, isHtml === 1);
+      HowlerAudioPlayer.load(file, group);
     }
   };
   Acts.prototype.UnloadByName = function (file, group) {
@@ -49233,43 +49225,43 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.AJAX,
 	cr.plugins_.Arr,
 	cr.plugins_.Audio,
-	cr.plugins_.Button,
 	cr.plugins_.Browser,
-	cr.plugins_.Function,
+	cr.plugins_.Button,
 	cr.plugins_.filechooser,
+	cr.plugins_.Function,
 	cr.plugins_.Particles,
-	cr.plugins_.Keyboard,
-	cr.plugins_.gamepad,
 	cr.plugins_.LocalStorage,
 	cr.plugins_.Mouse,
+	cr.plugins_.gamepad,
+	cr.plugins_.Keyboard,
 	cr.plugins_.NodeWebkit,
+	cr.plugins_.aekiro_model,
+	cr.plugins_.Touch,
 	cr.plugins_.Text,
 	cr.plugins_.TextBox,
-	cr.plugins_.Touch,
-	cr.plugins_.TiledBg,
 	cr.plugins_.aekiro_proui2,
 	cr.plugins_.Sprite,
-	cr.plugins_.aekiro_model,
+	cr.plugins_.TiledBg,
 	cr.plugins_.c2canvas,
-	cr.plugins_.JSON,
 	cr.plugins_.Globals,
 	cr.plugins_.hmmg_layoutTransition_v2,
-	cr.plugins_.GameAnalytics,
-	cr.plugins_.jcw_trace,
+	cr.plugins_.JSON,
 	cr.plugins_.CSS_import,
-	cr.plugins_.rojoPaster,
+	cr.plugins_.jcw_trace,
+	cr.plugins_.GameAnalytics,
 	cr.plugins_.HTML_Div_Pode,
+	cr.plugins_.rojoPaster,
 	cr.plugins_.MagiCam,
 	cr.plugins_.sirg_notifications,
-	cr.plugins_.TextModded,
 	cr.plugins_.skymen_skinsCore,
-	cr.plugins_.SkymenSFPlusPLus,
+	cr.plugins_.ValerypopoffJSPlugin,
+	cr.plugins_.TR_AdBlockDetector,
 	cr.plugins_.skymen_minifunctioncallback,
 	cr.plugins_.skymen_siteLock,
+	cr.plugins_.SkymenSFPlusPLus,
+	cr.plugins_.TextModded,
 	cr.plugins_.SyncStorage,
-	cr.plugins_.TR_AdBlockDetector,
 	cr.plugins_.TR_ClockParser,
-	cr.plugins_.ValerypopoffJSPlugin,
 	cr.plugins_.skymenhowlerjs,
 	cr.behaviors.Platform,
 	cr.behaviors.Timer,
@@ -49334,7 +49326,6 @@ cr.getObjectRefTable = function () { return [
 	cr.system_object.prototype.cnds.TriggerOnce,
 	cr.plugins_.GameAnalytics.prototype.acts.addProgressionEvent,
 	cr.system_object.prototype.exps.layoutname,
-	cr.plugins_.Browser.prototype.acts.ExecJs,
 	cr.system_object.prototype.exps["int"],
 	cr.system_object.prototype.exps.tokenat,
 	cr.plugins_.Globals.prototype.cnds.IsBoolInstanceVarSet,
@@ -49521,7 +49512,9 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.TiledBg.prototype.acts.SetOpacity,
 	cr.system_object.prototype.exps.layoutheight,
 	cr.plugins_.TiledBg.prototype.acts.SetAngle,
+	cr.plugins_.Browser.prototype.exps.Domain,
 	cr.plugins_.ValerypopoffJSPlugin.prototype.exps.JSCodeValue,
+	cr.plugins_.Browser.prototype.acts.ExecJs,
 	cr.plugins_.Keyboard.prototype.cnds.OnKey,
 	cr.plugins_.Browser.prototype.acts.ConsoleLog,
 	cr.plugins_.SkymenSFPlusPLus.prototype.cnds.OnCreated,
@@ -49552,12 +49545,12 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.ValerypopoffJSPlugin.prototype.acts.Call,
 	cr.plugins_.ValerypopoffJSPlugin.prototype.exps.StoredReturnValue,
 	cr.plugins_.SyncStorage.prototype.acts.LoadData,
+	cr.plugins_.skymenhowlerjs.prototype.acts.Load,
 	cr.system_object.prototype.acts.WaitForSignal,
 	cr.plugins_.Globals.prototype.acts.SetInstanceVar,
 	cr.plugins_.Globals.prototype.exps.GetVariablesAsJSON,
 	cr.plugins_.ValerypopoffJSPlugin.prototype.acts.SetValue,
 	cr.plugins_.AJAX.prototype.cnds.OnError,
-	cr.plugins_.Browser.prototype.acts.Alert,
 	cr.plugins_.SyncStorage.prototype.cnds.OnDataMissing,
 	cr.plugins_.SyncStorage.prototype.cnds.OnLoaded,
 	cr.plugins_.Globals.prototype.acts.LoadVariables,
@@ -49653,7 +49646,6 @@ cr.getObjectRefTable = function () { return [
 	cr.system_object.prototype.exps.zeropad,
 	cr.behaviors.aekiro_button.prototype.acts.setEnabled,
 	cr.plugins_.aekiro_model.prototype.cnds.IsEmpty,
-	cr.plugins_.Browser.prototype.exps.Domain,
 	cr.plugins_.Sprite.prototype.acts.SetX,
 	cr.plugins_.Sprite.prototype.acts.SetWidth,
 	cr.behaviors.aekiro_gameobject2.prototype.exps.parent,
@@ -49760,9 +49752,6 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.HTML_Div_Pode.prototype.acts.Destroy,
 	cr.plugins_.sirg_notifications.prototype.acts.SetPosition,
 	cr.plugins_.GameAnalytics.prototype.acts.initialize,
-	cr.plugins_.Mouse.prototype.cnds.OnAnyClick,
-	cr.plugins_.Touch.prototype.cnds.OnTouchStart,
-	cr.plugins_.Browser.prototype.acts.GoToURL,
-	cr.plugins_.Button.prototype.acts.SetText,
-	cr.plugins_.Button.prototype.acts.SetVisible
+	cr.plugins_.skymen_siteLock.prototype.cnds.SiteLock,
+	cr.plugins_.Browser.prototype.acts.GoToURL
 ];};

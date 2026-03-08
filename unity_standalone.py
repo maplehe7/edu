@@ -338,6 +338,45 @@ def looks_like_html(raw: bytes) -> bool:
     return sample.startswith(b"<!doctype html") or b"<html" in sample
 
 
+CRAZYGAMES_LOCALE_MAP = {
+    "ar": "ar_SA",
+    "br": "pt_BR",
+    "cs": "cs_CZ",
+    "cz": "cs_CZ",
+    "da": "da_DK",
+    "de": "de_DE",
+    "dk": "da_DK",
+    "el": "el_GR",
+    "en": "en_US",
+    "es": "es_ES",
+    "fi": "fi_FI",
+    "fr": "fr_FR",
+    "gr": "el_GR",
+    "hu": "hu_HU",
+    "id": "id_ID",
+    "it": "it_IT",
+    "ja": "ja_JP",
+    "jp": "ja_JP",
+    "ko": "ko_KR",
+    "kr": "ko_KR",
+    "nb": "nb_NO",
+    "nl": "nl_NL",
+    "no": "nb_NO",
+    "pl": "pl_PL",
+    "pt": "pt_BR",
+    "ro": "ro_RO",
+    "ru": "ru_RU",
+    "se": "sv_SE",
+    "sv": "sv_SE",
+    "th": "th_TH",
+    "tr": "tr_TR",
+    "ua": "uk_UA",
+    "uk": "uk_UA",
+    "vi": "vi_VN",
+    "vn": "vi_VN",
+}
+
+
 def candidate_index_urls(input_url: str, root_url: str) -> list[str]:
     candidates = []
 
@@ -551,6 +590,89 @@ def detect_supported_entry_kind(index_html: str) -> str:
     return ""
 
 
+def extract_crazygames_loader_entry_url(index_html: str, index_url: str) -> str:
+    patterns = (
+        r'''"loaderOptions"\s*:\s*\{\s*"url"\s*:\s*"([^"]+)"''',
+        r"""loaderOptions\s*:\s*\{\s*url\s*:\s*["']([^"']+)["']""",
+        r'''window\.gameOptions\s*=\s*\{[\s\S]*?"url"\s*:\s*"([^"]+)"''',
+    )
+    for pattern in patterns:
+        match = re.search(pattern, index_html, re.IGNORECASE)
+        if not match:
+            continue
+        candidate = decode_js_string_literal(html.unescape(match.group(1))).strip()
+        if candidate:
+            return normalize_url(urllib.parse.urljoin(index_url, candidate))
+    return ""
+
+
+def extract_crazygames_slug_from_url(index_url: str) -> str:
+    parsed = urllib.parse.urlparse(index_url)
+    segments = [segment for segment in parsed.path.split("/") if segment]
+    if not segments:
+        return ""
+    try:
+        game_index = segments.index("game")
+    except ValueError:
+        return ""
+    if game_index + 1 >= len(segments):
+        return ""
+    return segments[game_index + 1].strip()
+
+
+def crazygames_locale_candidates(index_url: str) -> list[str]:
+    parsed = urllib.parse.urlparse(index_url)
+    segments = [segment for segment in parsed.path.split("/") if segment]
+    candidates: list[str] = []
+    seen: set[str] = set()
+
+    def add(locale: str) -> None:
+        normalized = locale.strip()
+        if not normalized or normalized in seen:
+            return
+        seen.add(normalized)
+        candidates.append(normalized)
+
+    if segments:
+        add(CRAZYGAMES_LOCALE_MAP.get(segments[0].lower(), ""))
+    add("en_US")
+    return candidates
+
+
+def discover_crazygames_entry_url(index_html: str, index_url: str) -> str:
+    parsed = urllib.parse.urlparse(index_url)
+    host = parsed.netloc.lower()
+    if host.startswith("games.crazygames.com"):
+        return extract_crazygames_loader_entry_url(index_html, index_url)
+
+    if not host.endswith("crazygames.com"):
+        return ""
+
+    slug = extract_crazygames_slug_from_url(index_url)
+    if not slug:
+        return ""
+
+    last_error = None
+    for locale in crazygames_locale_candidates(index_url):
+        candidate_url = f"https://games.crazygames.com/{locale}/{urllib.parse.quote(slug)}/index.html"
+        try:
+            resolved, raw, _, _ = fetch_url(candidate_url, referer_url=index_url)
+        except FetchError as exc:
+            last_error = exc
+            continue
+        if not raw:
+            continue
+        candidate_html = decode_html_body(raw)
+        entry_url = extract_crazygames_loader_entry_url(candidate_html, resolved)
+        if entry_url:
+            return entry_url
+        detected_kind = detect_supported_entry_kind(candidate_html)
+        if detected_kind:
+            return resolved
+
+    return ""
+
+
 def detect_unity_entry_from_external_scripts(
     index_html: str,
     index_url: str,
@@ -601,6 +723,12 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
         theme_host_entry_url = discover_theme_host_entry_url(index_html, index_url)
         if theme_host_entry_url:
             result = inspect_url(theme_host_entry_url, depth + 1, referer_url=index_url)
+            if result:
+                return result
+
+        crazygames_entry_url = discover_crazygames_entry_url(index_html, index_url)
+        if crazygames_entry_url:
+            result = inspect_url(crazygames_entry_url, depth + 1, referer_url=index_url)
             if result:
                 return result
 
@@ -2102,6 +2230,357 @@ def rewrite_markup_urls_to_local(document_html: str, rewrite_map: Mapping[str, s
     return attr_pattern.sub(replace_attr, document_html)
 
 
+def strip_nonessential_html_markup(document_html: str) -> tuple[str, dict[str, int]]:
+    cleaned = document_html
+    removal_counts = {
+        "canonical_links": 0,
+    }
+
+    replacements = (
+        (
+            "canonical_links",
+            re.compile(
+                r"""<link\b[^>]*\brel\s*=\s*['"][^'"]*\bcanonical\b[^'"]*['"][^>]*>\s*""",
+                re.IGNORECASE,
+            ),
+        ),
+    )
+
+    for key, pattern in replacements:
+        cleaned, count = pattern.subn("", cleaned)
+        removal_counts[key] += count
+
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned, removal_counts
+
+
+def generate_local_websdkwrapper_stub() -> str:
+    return """globalThis.WebSdkWrapper = (function () {
+  var listeners = {
+    pause: [],
+    resume: [],
+    mute: [],
+    unmute: [],
+    adStarted: []
+  };
+  var unlockAllLevelsHandler = null;
+  var gameplayStarted = false;
+  var crazyListeners = {};
+
+  function addListener(eventName, fn) {
+    if (typeof fn !== "function") {
+      return;
+    }
+    if (!Object.prototype.hasOwnProperty.call(listeners, eventName)) {
+      listeners[eventName] = [];
+    }
+    listeners[eventName].push(fn);
+  }
+
+  function emit(eventName) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    var queue = listeners[eventName] || [];
+    for (var index = 0; index < queue.length; index += 1) {
+      try {
+        queue[index].apply(null, args);
+      } catch (error) {
+        console.warn("Local WebSdkWrapper listener failed:", error);
+      }
+    }
+  }
+
+  function addCrazyListener(eventName, fn) {
+    if (typeof fn !== "function") {
+      return;
+    }
+    if (!Object.prototype.hasOwnProperty.call(crazyListeners, eventName)) {
+      crazyListeners[eventName] = [];
+    }
+    crazyListeners[eventName].push(fn);
+  }
+
+  function emitCrazy(eventName, payload) {
+    var queue = crazyListeners[eventName] || [];
+    for (var index = 0; index < queue.length; index += 1) {
+      try {
+        queue[index](payload || {});
+      } catch (error) {
+        console.warn("Local CrazyGames listener failed:", error);
+      }
+    }
+  }
+
+  function hideBannerContainer(containerId) {
+    if (!containerId) {
+      return;
+    }
+    var element = document.getElementById(containerId);
+    if (!element) {
+      return;
+    }
+    element.textContent = "";
+    element.innerHTML = "";
+    element.style.display = "none";
+    element.style.visibility = "hidden";
+    element.style.pointerEvents = "none";
+  }
+
+  function setAdConfig(config) {
+    if (!config || typeof config !== "object") {
+      return;
+    }
+    globalThis.adconfigRemoveSocials = config.removeSocials ? 1 : 0;
+    globalThis.adconfigStopAudioInBackground = config.stopAudioInBackground ? 1 : 0;
+    globalThis.adconfigRemoveMidrollRewarded = config.removeMidrollRewarded ? 1 : 0;
+    globalThis.adconfigNoReligion = config.noReligion ? 1 : 0;
+  }
+
+  var localCrazySdk = {
+    hasAdblock: false,
+    init: function () {
+      emitCrazy("adblockDetectionExecuted", { hasAdblock: false });
+    },
+    addEventListener: function (eventName, handler) {
+      addCrazyListener(eventName, handler);
+    },
+    requestAd: function (adType) {
+      var normalizedType = adType === "rewarded" ? "rewarded" : "interstitial";
+      emit("adStarted", normalizedType);
+      emit("mute");
+      emitCrazy("adStarted", { type: normalizedType });
+      return Promise.resolve().then(function () {
+        emit("unmute");
+        emitCrazy("adFinished", { type: normalizedType });
+        return true;
+      });
+    },
+    requestBanner: function (banners) {
+      if (!Array.isArray(banners)) {
+        return;
+      }
+      for (var index = 0; index < banners.length; index += 1) {
+        var banner = banners[index] || {};
+        var containerId = banner.containerId || "";
+        hideBannerContainer(containerId);
+        emitCrazy("bannerError", {
+          containerId: containerId,
+          error: "disabled"
+        });
+      }
+    },
+    gameplayStart: function () {},
+    gameplayStop: function () {},
+    happytime: function () {}
+  };
+
+  var crazyRoot = globalThis.CrazyGames = globalThis.CrazyGames || {};
+  crazyRoot.CrazySDK = crazyRoot.CrazySDK || {
+    getInstance: function () {
+      return localCrazySdk;
+    }
+  };
+  globalThis.Crazygames = globalThis.Crazygames || {};
+  if (typeof globalThis.Crazygames.requestInviteUrl !== "function") {
+    globalThis.Crazygames.requestInviteUrl = function () {};
+  }
+  globalThis.crazysdk = localCrazySdk;
+  globalThis.adblockIsEnabled = false;
+
+  var Wrapper = {
+    get enabled() {
+      return true;
+    },
+    get currentSdk() {
+      return { name: "LocalNoAds" };
+    },
+    init: function (_name, _debug, data) {
+      if (data && typeof data === "object") {
+        setAdConfig(data);
+      }
+      return Promise.resolve();
+    },
+    onPause: function (fn) {
+      addListener("pause", fn);
+    },
+    pause: function () {
+      emit("pause");
+    },
+    onResume: function (fn) {
+      addListener("resume", fn);
+    },
+    resume: function () {
+      emit("resume");
+    },
+    onMute: function (fn) {
+      addListener("mute", fn);
+    },
+    mute: function () {
+      emit("mute");
+    },
+    onUnmute: function (fn) {
+      addListener("unmute", fn);
+    },
+    unmute: function () {
+      emit("unmute");
+    },
+    onUnlockAllLevels: function (fn) {
+      unlockAllLevelsHandler = typeof fn === "function" ? fn : null;
+    },
+    unlockAllLevels: function () {
+      if (typeof unlockAllLevelsHandler === "function") {
+        unlockAllLevelsHandler();
+      }
+    },
+    hasAdblock: function () {
+      return false;
+    },
+    loadingStart: function () {},
+    loadingProgress: function (_progress) {},
+    loadingEnd: function () {},
+    gameplayStart: function () {
+      gameplayStarted = true;
+    },
+    gameplayStop: function () {
+      gameplayStarted = false;
+    },
+    happyTime: function () {},
+    levelStart: function (_level) {},
+    replayLevel: function (_level) {},
+    score: function (_score) {},
+    banner: function (data) {
+      if (Array.isArray(data)) {
+        localCrazySdk.requestBanner(data);
+      }
+      return false;
+    },
+    interstitial: function (handleGameplayStart) {
+      var shouldResume = Boolean(handleGameplayStart && gameplayStarted);
+      if (shouldResume) {
+        Wrapper.gameplayStop();
+      }
+      emit("adStarted", "interstitial");
+      emit("mute");
+      return Promise.resolve(true).then(function (success) {
+        emit("unmute");
+        if (shouldResume) {
+          Wrapper.gameplayStart();
+        }
+        return success;
+      });
+    },
+    rewarded: function (handleGameplayStart) {
+      var shouldResume = Boolean(handleGameplayStart && gameplayStarted);
+      if (shouldResume) {
+        Wrapper.gameplayStop();
+      }
+      emit("adStarted", "rewarded");
+      emit("mute");
+      return Promise.resolve(true).then(function (success) {
+        emit("unmute");
+        if (shouldResume) {
+          Wrapper.gameplayStart();
+        }
+        return success;
+      });
+    },
+    onAdStarted: function (fn) {
+      addListener("adStarted", fn);
+    },
+    hasAds: function () {
+      return 0;
+    }
+  };
+
+  return Wrapper;
+})();\n"""
+
+
+def generate_local_sdk_html_stub() -> str:
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Local SDK Disabled</title>
+</head>
+<body>
+<script>
+window.parent && window.parent.postMessage({ type: "local-sdk-disabled" }, "*");
+</script>
+</body>
+</html>
+"""
+
+
+def neutralize_construct2_ad_network_probes(script_text: str) -> tuple[str, list[str]]:
+    patched = script_text
+    applied: list[str] = []
+
+    adinplay_probe = """this.adblock = false
+        var self =  this
+        var xhttp = new XMLHttpRequest ();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 0)
+                self.adblock = true
+        }
+        xhttp.open ("GET", "https://api.adinplay.com/libs/aiptag/assets/adsbygoogle.js", true);
+        xhttp.send ();
+"""
+    if adinplay_probe in patched:
+        patched = patched.replace(adinplay_probe, "this.adblock = false;\n", 1)
+        applied.append("adinplay_adblock_probe")
+
+    return patched, applied
+
+
+def sanitize_construct2_local_runtime(output_dir: Path) -> dict[str, Any]:
+    patched_files: list[str] = []
+    result: dict[str, Any] = {
+        "mode": "local_no_ads_runtime",
+        "patched_files": patched_files,
+    }
+
+    websdk_path = output_dir / "websdkwrapper.js"
+    if websdk_path.exists():
+        websdk_path.write_text(generate_local_websdkwrapper_stub(), encoding="utf-8")
+        patched_files.append("websdkwrapper.js")
+
+    adconfig_path = output_dir / "adconfig.json"
+    if adconfig_path.exists():
+        adconfig_payload = {
+            "networks": [],
+            "name": "",
+            "gameId": "",
+            "removeSocials": True,
+            "stopAudioInBackground": False,
+            "removeMidrollRewarded": True,
+            "noReligion": False,
+            "removeServiceWorker": True,
+        }
+        adconfig_path.write_text(json.dumps(adconfig_payload, indent=2) + "\n", encoding="utf-8")
+        patched_files.append("adconfig.json")
+        result["adconfig"] = adconfig_payload
+
+    sdk_path = output_dir / "sdk.html"
+    if sdk_path.exists():
+        sdk_path.write_text(generate_local_sdk_html_stub(), encoding="utf-8")
+        patched_files.append("sdk.html")
+
+    c2runtime_path = output_dir / "c2runtime.js"
+    if c2runtime_path.exists():
+        original_runtime = c2runtime_path.read_text(encoding="utf-8", errors="ignore")
+        patched_runtime, runtime_patches = neutralize_construct2_ad_network_probes(original_runtime)
+        if runtime_patches:
+            c2runtime_path.write_text(patched_runtime, encoding="utf-8")
+            patched_files.append("c2runtime.js")
+            result["runtime_patches"] = runtime_patches
+
+    if patched_files:
+        log("Sanitized mirrored HTML runtime for local no-ads launch")
+
+    return result
+
+
 def mirror_construct2_entry_assets(
     document_html: str,
     source_url: str,
@@ -2191,8 +2670,9 @@ def mirror_construct2_entry_assets(
         rewrite_map[remove_query_and_fragment(normalize_url(resolved_url))] = local_href
         mirrored_files.append(relative_path.replace("\\", "/"))
 
+    runtime_patch_summary = sanitize_construct2_local_runtime(output_dir)
     rewritten_html = rewrite_markup_urls_to_local(document_html, rewrite_map)
-    return rewritten_html, {
+    summary = {
         "mode": "construct2_local_mirror",
         "source_root_url": source_root_url,
         "offline_manifest_url": offline_manifest_url,
@@ -2202,6 +2682,9 @@ def mirror_construct2_entry_assets(
         "mirrored_file_count": len(mirrored_files),
         "mirrored_files_sample": mirrored_files[:25],
     }
+    if runtime_patch_summary["patched_files"]:
+        summary["runtime_sanitizer"] = runtime_patch_summary
+    return rewritten_html, summary
 
 
 def generate_crazygames_sdk_stub() -> str:
@@ -5191,6 +5674,9 @@ def export_html_entry(
             detected_entry.index_url,
             output_dir,
         )
+    localized_source_html, nonessential_markup_removed = strip_nonessential_html_markup(
+        localized_source_html
+    )
     external_links = extract_html_external_links(localized_source_html)
     embedded_entry_name = "game-root.html"
     embedded_entry_content = generate_html_entry_index_html(
@@ -5233,6 +5719,7 @@ def export_html_entry(
         "launcher": "ocean-launcher",
         "support_files": support_files,
         "embedded_ad_blocks_removed": ad_removal_counts,
+        "nonessential_markup_removed": nonessential_markup_removed,
         "html_runtime_mirror": mirrored_html_summary,
         "source_external_script_urls": original_external_links["scripts"],
         "source_external_stylesheet_urls": original_external_links["stylesheets"],
