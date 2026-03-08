@@ -1,25 +1,17 @@
 {
-  "count": 2,
+  "count": 1,
   "functions": [
-    "getUserMedia",
-    "show_ads_inGame"
+    "getUserMedia"
   ],
-  "window_root_count": 8,
+  "window_root_count": 4,
   "window_roots": [
-    "_pgAdCallbackHooked",
-    "_pgLastRewardCallback",
-    "_pgRewardFailCount",
+    "event",
     "getUserMedia",
-    "none_ads_inGame",
-    "originalFolder",
-    "pgHB",
-    "show_ads_inGame"
+    "outerHeight",
+    "outerWidth"
   ],
-  "window_callable_chain_count": 4,
+  "window_callable_chain_count": 1,
   "window_callable_chains": [
-    "getUserMedia",
-    "pgHB.que.push",
-    "pgHB.requestWebRewardedAd",
-    "show_ads_inGame"
+    "getUserMedia"
   ]
 }
