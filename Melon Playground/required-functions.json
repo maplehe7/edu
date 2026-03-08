@@ -1,8 +1,10 @@
 {
   "count": 0,
   "functions": [],
-  "window_root_count": 0,
-  "window_roots": [],
+  "window_root_count": 1,
+  "window_roots": [
+    "__unityStandaloneSourceHost"
+  ],
   "window_callable_chain_count": 0,
   "window_callable_chains": []
 }

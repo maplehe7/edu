@@ -75,6 +75,7 @@ class DetectedBuild:
     legacy_config: dict[str, Any] = field(default_factory=dict)
     original_folder_url: str = ""
     streaming_assets_url: str = ""
+    page_config: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -220,6 +221,155 @@ def patch_redirect_domain_function(framework_path: Path) -> Path | None:
 
     target_path.write_bytes(patched_payload)
     return target_path
+
+
+def patch_gmsoft_host_bridge(framework_path: Path) -> bool:
+    if not framework_path.exists():
+        return False
+
+    try:
+        original_raw = framework_path.read_bytes()
+    except OSError:
+        return False
+
+    decoded_bytes = maybe_decompress_bytes(original_raw, framework_path)
+    try:
+        decoded_text = decoded_bytes.decode("utf-8", errors="ignore")
+    except UnicodeDecodeError:
+        return False
+
+    raw_hostname_expr = (
+        r"""document['\x6c\x6f\x63\x61\x74\x69\x6f\x6e']"""
+        r"""['\x68\x6f\x73\x74\x6e\x61\x6d\x65']"""
+    )
+    plain_hostname_expr = "document['location']['hostname']"
+    raw_replacement = (
+        r"""(window.__unityStandaloneSourceHost||"""
+        r"""document['\x6c\x6f\x63\x61\x74\x69\x6f\x6e']"""
+        r"""['\x68\x6f\x73\x74\x6e\x61\x6d\x65'])"""
+    )
+    plain_replacement = (
+        "(window.__unityStandaloneSourceHost||document['location']['hostname'])"
+    )
+
+    if raw_replacement in decoded_text or plain_replacement in decoded_text:
+        return False
+
+    if raw_hostname_expr in decoded_text:
+        patched_text = decoded_text.replace(raw_hostname_expr, raw_replacement, 1)
+    elif plain_hostname_expr in decoded_text:
+        patched_text = decoded_text.replace(plain_hostname_expr, plain_replacement, 1)
+    else:
+        return False
+
+    patched = patched_text.encode("utf-8")
+    try:
+        framework_path.write_bytes(encode_bytes_like_source(patched, original_raw, framework_path))
+    except (OSError, RuntimeError):
+        return False
+    return True
+
+
+def patch_sendmessage_value_compat(framework_path: Path) -> bool:
+    if not framework_path.exists():
+        return False
+
+    try:
+        original_raw = framework_path.read_bytes()
+    except OSError:
+        return False
+
+    decoded_bytes = maybe_decompress_bytes(original_raw, framework_path)
+    try:
+        decoded_text = decoded_bytes.decode("utf-8", errors="ignore")
+    except UnicodeDecodeError:
+        return False
+
+    pattern = re.compile(
+        r"""else\{if\(typeof (?P<arg>[_$A-Za-z0-9]+)===(?:'\\x73\\x74\\x72\\x69\\x6e\\x67'|'string'|"string")\)"""
+        r"""(?P<ptr>[_$A-Za-z0-9]+)=(?P<alloc>[_$A-Za-z0-9]+)\((?P=arg)\),(?P<sendstr>[_$A-Za-z0-9]+)\((?P<objptr>[_$A-Za-z0-9]+),(?P<methodptr>[_$A-Za-z0-9]+),(?P=ptr)\);"""
+        r"""else\{if\(typeof (?P=arg)===(?:'\\x6e\\x75\\x6d\\x62\\x65\\x72'|'number'|"number")\)(?P<sendnum>[_$A-Za-z0-9]+)\((?P=objptr),(?P=methodptr),(?P=arg)\);"""
+        r"""else throw''\+(?P=arg)\+(?P<msg>'(?:\\x[0-9a-fA-F]{2}|[^'])*'|"(?:\\x[0-9a-fA-F]{2}|[^"])*");\}\}"""
+    )
+    match = pattern.search(decoded_text)
+    if not match:
+        return False
+
+    arg = match.group("arg")
+    ptr = match.group("ptr")
+    alloc = match.group("alloc")
+    sendstr = match.group("sendstr")
+    objptr = match.group("objptr")
+    methodptr = match.group("methodptr")
+    sendnum = match.group("sendnum")
+    replacement = (
+        "else{if(typeof "
+        + arg
+        + "==='string')"
+        + ptr
+        + "="
+        + alloc
+        + "("
+        + arg
+        + "),"
+        + sendstr
+        + "("
+        + objptr
+        + ","
+        + methodptr
+        + ","
+        + ptr
+        + ");else{if(typeof "
+        + arg
+        + "==='number')"
+        + sendnum
+        + "("
+        + objptr
+        + ","
+        + methodptr
+        + ","
+        + arg
+        + ");else{try{if("
+        + arg
+        + "!==null&&typeof "
+        + arg
+        + "==='object'){"
+        + arg
+        + "=JSON.stringify("
+        + arg
+        + ");}else{"
+        + arg
+        + "=''+"
+        + arg
+        + ";}}catch(__unityStandaloneSendMessageErr){"
+        + arg
+        + "=''+"
+        + arg
+        + ";}"
+        + ptr
+        + "="
+        + alloc
+        + "("
+        + arg
+        + "),"
+        + sendstr
+        + "("
+        + objptr
+        + ","
+        + methodptr
+        + ","
+        + ptr
+        + ");}}}"
+    )
+    patched_text = decoded_text[: match.start()] + replacement + decoded_text[match.end() :]
+
+    try:
+        framework_path.write_bytes(
+            encode_bytes_like_source(patched_text.encode("utf-8"), original_raw, framework_path)
+        )
+    except (OSError, RuntimeError):
+        return False
+    return True
 
 
 def log(message: str) -> None:
@@ -1611,7 +1761,122 @@ def extract_streaming_assets_url(
         )
         return candidates[0] if candidates else ""
 
+    env = extract_js_string_variable_candidates(
+        index_html,
+        variable_names=("baseUrl", "versionFolder", "buildUrl", "streamingAssetsUrl"),
+    )
+    expression_match = re.search(
+        r"""streamingAssetsUrl\s*:\s*([^,\r\n}]+)""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if expression_match:
+        expression = expression_match.group(1).strip()
+        for candidate in expand_js_string_expression(expression, env):
+            normalized_candidate = candidate.replace("\\/", "/").strip()
+            if not normalized_candidate:
+                continue
+            if re.match(r"^[a-z][a-z0-9+.-]*:", normalized_candidate, re.IGNORECASE):
+                return normalize_url(normalized_candidate)
+            return normalized_candidate
+
     return ""
+
+
+_MISSING_JS_PRIMITIVE = object()
+
+
+def parse_js_primitive_expression(expression: str) -> Any:
+    trimmed = strip_wrapping_parentheses(expression.strip())
+    if not trimmed:
+        return _MISSING_JS_PRIMITIVE
+
+    literal_value = decode_js_string_token(trimmed)
+    if literal_value or (len(trimmed) >= 2 and trimmed[0] == trimmed[-1] and trimmed[0] in {"'", '"', "`"}):
+        return literal_value
+
+    lowered = trimmed.lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    if lowered == "null":
+        return None
+
+    if re.fullmatch(r"-?\d+", trimmed):
+        try:
+            return int(trimmed)
+        except ValueError:
+            return _MISSING_JS_PRIMITIVE
+
+    if re.fullmatch(r"-?(?:\d+\.\d*|\d*\.\d+)", trimmed):
+        try:
+            return float(trimmed)
+        except ValueError:
+            return _MISSING_JS_PRIMITIVE
+
+    return _MISSING_JS_PRIMITIVE
+
+
+def extract_page_config(index_html: str) -> dict[str, Any]:
+    page_config: dict[str, Any] = {}
+
+    config_object_match = re.search(
+        r"""(?:const|let|var)\s+config\s*=\s*\{([\s\S]*?)\}\s*;""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if config_object_match:
+        object_body = config_object_match.group(1)
+        property_pattern = re.compile(
+            r"""([A-Za-z_$][A-Za-z0-9_$]*)\s*:\s*([^,\r\n]+)""",
+            re.MULTILINE,
+        )
+        for match in property_pattern.finditer(object_body):
+            key = match.group(1)
+            value = parse_js_primitive_expression(match.group(2))
+            if value is _MISSING_JS_PRIMITIVE:
+                continue
+            page_config[key] = value
+
+    assignment_pattern = re.compile(
+        r"""config\.([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*([^;]+);""",
+        re.IGNORECASE,
+    )
+    for match in assignment_pattern.finditer(index_html):
+        key = match.group(1)
+        expression = match.group(2).strip()
+        value = parse_js_primitive_expression(expression)
+        if value is _MISSING_JS_PRIMITIVE:
+            if re.fullmatch(r"""isHostOnGD\s*\(\s*\)""", expression, re.IGNORECASE):
+                page_config[key] = "__standalone_isHostOnGD__"
+            continue
+        page_config[key] = value
+
+    if "eventLog" in page_config:
+        page_config["eventLog"] = False
+    if "enablePromotion" in page_config:
+        page_config["enablePromotion"] = False
+    if "enableMoreGame" in page_config:
+        page_config["enableMoreGame"] = "no"
+
+    return page_config
+
+
+def looks_like_gmsoft_page_config(page_config: Mapping[str, Any]) -> bool:
+    if not page_config:
+        return False
+    gmsoft_keys = {
+        "buildAPI",
+        "gameId",
+        "gdHost",
+        "hostindex",
+        "pubId",
+    }
+    if any(key in page_config for key in gmsoft_keys):
+        return True
+    build_api = str(page_config.get("buildAPI") or "").lower()
+    return "azgame" in build_api or "1games" in build_api
 
 
 def canonicalize_source_page_url(source_page_url: str, original_folder_url: str = "") -> str:
@@ -1985,6 +2250,7 @@ def detect_entry_build(index_url: str, index_html: str) -> DetectedBuild:
         index_url,
         original_folder_url=original_folder_url,
     )
+    page_config = extract_page_config(index_html)
     return DetectedBuild(
         build_kind="modern",
         index_url=index_url,
@@ -1993,6 +2259,7 @@ def detect_entry_build(index_url: str, index_html: str) -> DetectedBuild:
         candidates=build_asset_candidate_urls(loader_url, index_html, index_url),
         original_folder_url=original_folder_url,
         streaming_assets_url=streaming_assets_url,
+        page_config=page_config,
     )
 
 
@@ -3079,6 +3346,7 @@ def generate_index_html(
     enable_source_url_spoof: bool = False,
     original_folder_url: str = "",
     streaming_assets_url: str = "",
+    page_config: Mapping[str, Any] | None = None,
     auxiliary_asset_rewrites: dict[str, str] | None = None,
 ) -> str:
     fn_list_js = json.dumps(list(required_functions), ensure_ascii=False)
@@ -3095,6 +3363,7 @@ def generate_index_html(
     enable_source_url_spoof_js = "true" if enable_source_url_spoof else "false"
     original_folder_url_js = json.dumps(original_folder_url, ensure_ascii=False)
     streaming_assets_url_js = json.dumps(streaming_assets_url, ensure_ascii=False)
+    page_config_js = json.dumps(page_config or {}, ensure_ascii=False)
     auxiliary_asset_rewrites_js = json.dumps(
         auxiliary_asset_rewrites or {},
         ensure_ascii=False,
@@ -3535,6 +3804,13 @@ def generate_index_html(
       window.__unityStandaloneLocalPageUrl = LOCAL_PAGE_URL;
       if (SOURCE_PAGE_URL) {{
         window.__unityStandaloneSourcePageUrl = SOURCE_PAGE_URL;
+        try {{
+          window.__unityStandaloneSourceHost = new URL(SOURCE_PAGE_URL).hostname || "";
+        }} catch (err) {{
+          window.__unityStandaloneSourceHost = "";
+        }}
+      }} else if (typeof window.__unityStandaloneSourceHost !== "string") {{
+        window.__unityStandaloneSourceHost = "";
       }}
 
       function rewriteVendorScriptUrl(value) {{
@@ -4536,6 +4812,7 @@ def generate_index_html(
       const ENABLE_SOURCE_URL_SPOOF = {enable_source_url_spoof_js};
       const ORIGINAL_FOLDER_URL = {original_folder_url_js};
       const STREAMING_ASSETS_URL = {streaming_assets_url_js};
+      const ENTRY_PAGE_CONFIG = {page_config_js};
       const AUXILIARY_ASSET_REWRITES = {auxiliary_asset_rewrites_js};
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
@@ -5076,6 +5353,61 @@ def generate_index_html(
         }});
       }}
 
+      function getEffectiveSourceUrl() {{
+        if (typeof SOURCE_PAGE_URL === "string" && SOURCE_PAGE_URL) {{
+          return SOURCE_PAGE_URL;
+        }}
+        return LOCAL_PAGE_URL;
+      }}
+
+      function getEffectiveSourceHost() {{
+        const candidateUrls = [getEffectiveSourceUrl(), LOCAL_PAGE_URL];
+        for (const candidate of candidateUrls) {{
+          try {{
+            const parsed = new URL(candidate);
+            if (parsed.hostname) {{
+              return parsed.hostname;
+            }}
+          }} catch (err) {{
+            // Ignore invalid URL candidates.
+          }}
+        }}
+        return window.location && window.location.hostname
+          ? String(window.location.hostname)
+          : EMPTY;
+      }}
+
+      function getEffectiveGmsoftParamPayload() {{
+        const sharedConfig =
+          window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object"
+            ? window.GMSOFT_OPTIONS
+            : window.config && typeof window.config === "object"
+              ? window.config
+              : {{}};
+        const effectiveHost = getEffectiveSourceHost();
+        if (!sharedConfig.domainHost && effectiveHost) {{
+          sharedConfig.domainHost = effectiveHost;
+        }}
+        if (!sharedConfig.sourceHtml && window.config && typeof window.config.sourceHtml === "string") {{
+          sharedConfig.sourceHtml = window.config.sourceHtml;
+        }}
+        if (
+          !sharedConfig.pub_id &&
+          typeof sharedConfig.pubId === "string" &&
+          sharedConfig.pubId
+        ) {{
+          sharedConfig.pub_id = sharedConfig.pubId;
+        }}
+        if (
+          !sharedConfig.pubId &&
+          typeof sharedConfig.pub_id === "string" &&
+          sharedConfig.pub_id
+        ) {{
+          sharedConfig.pubId = sharedConfig.pub_id;
+        }}
+        return JSON.stringify(sharedConfig);
+      }}
+
       installAuxiliaryAssetUrlRewrites(AUXILIARY_ASSET_REWRITES);
 
       function resetLaunchState() {{
@@ -5207,8 +5539,435 @@ def generate_index_html(
         return config;
       }}
 
+      function createFirebaseRefStub() {{
+        return {{
+          transaction: function (updater) {{
+            if (typeof updater === "function") {{
+              try {{
+                updater(null);
+              }} catch (err) {{
+                // Ignore local stub transaction updater errors.
+              }}
+            }}
+            return Promise.resolve({{
+              val: function () {{
+                return null;
+              }},
+            }});
+          }},
+          once: function () {{
+            return Promise.resolve({{
+              val: function () {{
+                return null;
+              }},
+            }});
+          }},
+          set: function () {{
+            return Promise.resolve();
+          }},
+          update: function () {{
+            return Promise.resolve();
+          }},
+          remove: function () {{
+            return Promise.resolve();
+          }},
+          push: function () {{
+            return createFirebaseRefStub();
+          }},
+          child: function () {{
+            return createFirebaseRefStub();
+          }},
+          orderByChild: function () {{
+            return this;
+          }},
+          equalTo: function () {{
+            return this;
+          }},
+          limitToFirst: function () {{
+            return this;
+          }},
+          on: function (_eventName, callback) {{
+            if (typeof callback === "function") {{
+              callback({{
+                val: function () {{
+                  return null;
+                }},
+              }});
+            }}
+            return callback;
+          }},
+          off: function () {{
+            return;
+          }},
+        }};
+      }}
+
+      function createFirebaseStub() {{
+        const analytics = {{
+          setUserProperties: function () {{
+            return;
+          }},
+          logEvent: function () {{
+            return;
+          }},
+        }};
+        const auth = {{
+          currentUser: null,
+          signInAnonymously: function () {{
+            return Promise.resolve({{}});
+          }},
+          signInWithEmailAndPassword: function () {{
+            return Promise.resolve({{}});
+          }},
+          createUserWithEmailAndPassword: function () {{
+            return Promise.resolve({{}});
+          }},
+          signOut: function () {{
+            return Promise.resolve();
+          }},
+          onAuthStateChanged: function (callback) {{
+            if (typeof callback === "function") {{
+              callback(null);
+            }}
+            return function () {{
+              return;
+            }};
+          }},
+        }};
+        const firestoreDoc = {{
+          get: function () {{
+            return Promise.resolve({{
+              exists: false,
+              data: function () {{
+                return {{}};
+              }},
+            }});
+          }},
+          set: function () {{
+            return Promise.resolve();
+          }},
+          update: function () {{
+            return Promise.resolve();
+          }},
+        }};
+        const firestore = {{
+          collection: function () {{
+            return {{
+              doc: function () {{
+                return firestoreDoc;
+              }},
+              add: function () {{
+                return Promise.resolve({{}});
+              }},
+              get: function () {{
+                return Promise.resolve({{
+                  docs: [],
+                }});
+              }},
+            }};
+          }},
+        }};
+        return {{
+          initializeApp: function () {{
+            return {{}};
+          }},
+          analytics: function () {{
+            return analytics;
+          }},
+          database: function () {{
+            return {{
+              ref: function () {{
+                return createFirebaseRefStub();
+              }},
+            }};
+          }},
+          auth: function () {{
+            return auth;
+          }},
+          firestore: function () {{
+            return firestore;
+          }},
+        }};
+      }}
+
+      function installGlobalSupportStubs() {{
+        if (!window.firebase || typeof window.firebase !== "object") {{
+          window.firebase = createFirebaseStub();
+        }}
+        globalThis.firebase = window.firebase;
+
+        if (typeof window.firebaseSetUserProperties !== "function") {{
+          window.firebaseSetUserProperties = function (props) {{
+            try {{
+              return window.firebase.analytics().setUserProperties(props || {{}});
+            }} catch (err) {{
+              return;
+            }}
+          }};
+        }}
+        if (typeof window.firebaseLogEvent !== "function") {{
+          window.firebaseLogEvent = function (eventName) {{
+            try {{
+              return window.firebase.analytics().logEvent(eventName || "");
+            }} catch (err) {{
+              return;
+            }}
+          }};
+        }}
+        if (typeof window.firebaseLogEventParameter !== "function") {{
+          window.firebaseLogEventParameter = function (eventName, eventParams) {{
+            try {{
+              return window.firebase.analytics().logEvent(eventName || "", eventParams || {{}});
+            }} catch (err) {{
+              return;
+            }}
+          }};
+        }}
+
+        if (!window.GMDEBUG || typeof window.GMDEBUG !== "object") {{
+          window.GMDEBUG = {{}};
+        }}
+        globalThis.GMDEBUG = window.GMDEBUG;
+
+        if (typeof window.adConfig !== "function") {{
+          window.adConfig = function (options) {{
+            if (options && typeof options.onReady === "function") {{
+              options.onReady();
+            }}
+          }};
+        }}
+
+        if (!Array.isArray(window.adsbygoogle)) {{
+          window.adsbygoogle = [];
+        }}
+
+        if (!window.LocalAds || typeof window.LocalAds !== "object") {{
+          window.LocalAds = {{
+            fetchAd: function (callback) {{
+              if (typeof callback === "function") {{
+                callback({{}});
+              }}
+            }},
+            refetchAd: function (callback) {{
+              if (typeof callback === "function") {{
+                callback({{}});
+              }}
+            }},
+            registerRewardCallbacks: function (callbacks) {{
+              if (callbacks && typeof callbacks.onReady === "function") {{
+                callbacks.onReady();
+              }}
+            }},
+            showRewardAd: function () {{
+              return;
+            }},
+            showAd: function () {{
+              return;
+            }},
+            available: function () {{
+              return false;
+            }},
+          }};
+        }}
+
+        if (!window.preroll || typeof window.preroll !== "object") {{
+          window.preroll = {{
+            config: {{
+              loaderObjectName: "LocalAds",
+            }},
+          }};
+        }}
+        if (!window.preroll.config || typeof window.preroll.config !== "object") {{
+          window.preroll.config = {{
+            loaderObjectName: "LocalAds",
+          }};
+        }}
+        if (!window.preroll.config.loaderObjectName) {{
+          window.preroll.config.loaderObjectName = "LocalAds";
+        }}
+
+        if (typeof window.isDiffHost !== "function") {{
+          window.isDiffHost = function () {{
+            try {{
+              if (window.top && window === window.top) {{
+                return false;
+              }}
+              if (window.top.location.hostname === window.location.hostname) {{
+                return false;
+              }}
+            }} catch (err) {{
+              return true;
+            }}
+            return true;
+          }};
+        }}
+
+        if (typeof window.isHostOnGD !== "function") {{
+          window.isHostOnGD = function () {{
+            const domainParts = String(window.location.hostname || "").split(".");
+            const mainDomain = domainParts.slice(-2).join(".");
+            return mainDomain === "gamedistribution.com";
+          }};
+        }}
+        if (typeof window.isHostOnGDSDK !== "function") {{
+          window.isHostOnGDSDK = window.isHostOnGD;
+        }}
+      }}
+
+      function applyEntryPageSupport(unityConfig) {{
+        installGlobalSupportStubs();
+        const extractedConfig = Object.assign({{}}, ENTRY_PAGE_CONFIG || {{}});
+        if (extractedConfig.gdHost === "__standalone_isHostOnGD__") {{
+          extractedConfig.gdHost = window.isHostOnGD();
+        }}
+        if (!extractedConfig.streamingAssetsUrl && STREAMING_ASSETS_URL) {{
+          extractedConfig.streamingAssetsUrl = STREAMING_ASSETS_URL;
+        }}
+        extractedConfig.enableAds = false;
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "eventLog")) {{
+          extractedConfig.eventLog = false;
+        }}
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "enablePromotion")) {{
+          extractedConfig.enablePromotion = false;
+        }}
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "enableMoreGame")) {{
+          extractedConfig.enableMoreGame = "no";
+        }}
+
+        const mergedConfig = Object.assign({{}}, unityConfig, extractedConfig);
+        mergedConfig.dataUrl = unityConfig.dataUrl;
+        mergedConfig.frameworkUrl = unityConfig.frameworkUrl;
+        mergedConfig.codeUrl = unityConfig.codeUrl;
+        mergedConfig.cacheControl = unityConfig.cacheControl;
+        mergedConfig.devicePixelRatio = unityConfig.devicePixelRatio;
+        mergedConfig.matchWebGLToCanvasSize = unityConfig.matchWebGLToCanvasSize;
+        mergedConfig.webglContextAttributes = unityConfig.webglContextAttributes;
+        mergedConfig.referrer = document.referrer || "";
+        mergedConfig.enableAds = false;
+        mergedConfig.allow_embed = "yes";
+        mergedConfig.allow_host = "yes";
+        mergedConfig.allow_play = "yes";
+        mergedConfig.sdkversion = Number(mergedConfig.sdkversion) || 5;
+        mergedConfig.unlockTimer = Number(mergedConfig.unlockTimer) || 60;
+        mergedConfig.timeShowInter = Number(mergedConfig.timeShowInter) || 60;
+        mergedConfig.timeShowReward = Number(mergedConfig.timeShowReward) || 60;
+        mergedConfig.adsDebug = true;
+        mergedConfig.game = mergedConfig.game || null;
+        mergedConfig.promotion = mergedConfig.promotion || null;
+        mergedConfig.companyName = mergedConfig.companyName || PRODUCT_NAME;
+        mergedConfig.productName = mergedConfig.productName || PRODUCT_NAME;
+        mergedConfig.productVersion = mergedConfig.productVersion || "1.0.0";
+        if (!mergedConfig.pub_id && typeof mergedConfig.pubId === "string") {{
+          mergedConfig.pub_id = mergedConfig.pubId;
+        }}
+        if (!mergedConfig.pubId && typeof mergedConfig.pub_id === "string") {{
+          mergedConfig.pubId = mergedConfig.pub_id;
+        }}
+
+        const gmsoftDefaults = {{
+          allow_embed: "yes",
+          allow_host: "yes",
+          allow_play: "yes",
+          debug_mode: "yes",
+          enableAds: false,
+          enablePreroll: false,
+          domainHost: getEffectiveSourceHost(),
+          gameId: typeof mergedConfig.gameId === "string" ? mergedConfig.gameId : "",
+          hostindex: Number(extractedConfig.hostindex) || 0,
+          sdkType: typeof mergedConfig.sdkType === "string" && mergedConfig.sdkType
+            ? mergedConfig.sdkType
+            : "disabled",
+          sdkversion: Number(mergedConfig.sdkversion) || 5,
+          unlockTimer: Number(mergedConfig.unlockTimer) || 60,
+          timeShowInter: Number(mergedConfig.timeShowInter) || 60,
+          timeShowReward: Number(mergedConfig.timeShowReward) || 60,
+          adsDebug: true,
+          game: mergedConfig.game || null,
+          promotion: mergedConfig.promotion || null,
+        }};
+        Object.assign(mergedConfig, gmsoftDefaults);
+        if (window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object") {{
+          Object.assign(mergedConfig, window.GMSOFT_OPTIONS);
+        }}
+        mergedConfig.domainHost = getEffectiveSourceHost() || mergedConfig.domainHost || "";
+        mergedConfig.enableAds = false;
+        mergedConfig.enablePreroll = false;
+        mergedConfig.allow_embed = "yes";
+        mergedConfig.allow_host = "yes";
+        mergedConfig.allow_play = "yes";
+        if (typeof mergedConfig.gameId === "string" && mergedConfig.gameId) {{
+          mergedConfig.gameId = mergedConfig.gameId;
+        }}
+
+        window.config = mergedConfig;
+        globalThis.config = mergedConfig;
+        window.GMSOFT_OPTIONS = mergedConfig;
+        globalThis.GMSOFT_OPTIONS = mergedConfig;
+        return mergedConfig;
+      }}
+
+      function maybeBootstrapUnitySupport(unityInstance) {{
+        if (
+          !unityInstance ||
+          typeof unityInstance.SendMessage !== "function" ||
+          !ENTRY_PAGE_CONFIG ||
+          typeof ENTRY_PAGE_CONFIG !== "object"
+        ) {{
+          return;
+        }}
+        const looksLikeGmsoftBuild =
+          Boolean(ENTRY_PAGE_CONFIG.gameId) ||
+          Boolean(ENTRY_PAGE_CONFIG.buildAPI) ||
+          Object.prototype.hasOwnProperty.call(ENTRY_PAGE_CONFIG, "hostindex");
+        if (!looksLikeGmsoftBuild) {{
+          return;
+        }}
+
+        function safeSend(objectName, methodName, value) {{
+          try {{
+            if (typeof value === "undefined") {{
+              unityInstance.SendMessage(objectName, methodName);
+            }} else {{
+              unityInstance.SendMessage(objectName, methodName, value);
+            }}
+          }} catch (err) {{
+            // Ignore unsupported bridge calls for non-GmSoft builds.
+          }}
+        }}
+
+        function syncGmsoftPayload() {{
+          if (!window.GMSOFT_OPTIONS || typeof window.GMSOFT_OPTIONS !== "object") {{
+            return;
+          }}
+          const effectiveHost = getEffectiveSourceHost();
+          if (effectiveHost) {{
+            window.GMSOFT_OPTIONS.domainHost = effectiveHost;
+          }}
+          if (
+            !window.GMSOFT_OPTIONS.sourceHtml &&
+            window.config &&
+            typeof window.config.sourceHtml === "string"
+          ) {{
+            window.GMSOFT_OPTIONS.sourceHtml = window.config.sourceHtml;
+          }}
+          const payload = getEffectiveGmsoftParamPayload();
+          safeSend("GmSoft", "SetUnityHostName", effectiveHost || "");
+          safeSend("GmSoft", "SetParam", payload);
+        }}
+
+        syncGmsoftPayload();
+        [300, 900, 1800, 3200, 5200].forEach(function (delay) {{
+          window.setTimeout(syncGmsoftPayload, delay);
+        }});
+        try {{
+          document.dispatchEvent(new CustomEvent("gmsoftSdkReady"));
+        }} catch (err) {{
+          // Ignore event dispatch failures.
+        }}
+      }}
+
       function startModernGame(loaderUrl) {{
-        const config = {{
+        const unityConfig = {{
           dataUrl: buildBuildAssetUrl(DATA_FILE),
           frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
           codeUrl: buildBuildAssetUrl(WASM_FILE),
@@ -5224,6 +5983,7 @@ def generate_index_html(
             powerPreference: "high-performance",
           }},
         }};
+        const config = applyEntryPageSupport(unityConfig);
 {decompression_fallback_line}        ensureLoaderScriptLoaded(loaderUrl)
           .then(function () {{
           if (typeof createUnityInstance !== "function") {{
@@ -5237,7 +5997,10 @@ def generate_index_html(
             const percent = setProgress(progress);
             setStatus("Loading " + percent + "%");
           }})
-          .then(function () {{
+          .then(function (unityInstance) {{
+            window.unityInstance = unityInstance;
+            window.gameInstance = unityInstance;
+            maybeBootstrapUnitySupport(unityInstance);
             setProgress(1);
             setStatus("Ready");
             window.setTimeout(dismissLoadingScreen, 380);
@@ -6589,6 +7352,12 @@ def main(argv: Sequence[str]) -> int:
         assets.framework_name = patched_framework_path.name
         if assets.build_kind == "legacy_json":
             assets.legacy_asset_names["wasmFrameworkUrl"] = patched_framework_path.name
+    gmsoft_host_bridge_patched = False
+    sendmessage_value_compat_patched = False
+    if assets.framework_name:
+        framework_path = build_dir / assets.framework_name
+        gmsoft_host_bridge_patched = patch_gmsoft_host_bridge(framework_path)
+        sendmessage_value_compat_patched = patch_sendmessage_value_compat(framework_path)
     analysis_target = (
         build_dir / assets.framework_name
         if assets.framework_name
@@ -6609,6 +7378,11 @@ def main(argv: Sequence[str]) -> int:
         detected_build.streaming_assets_url
         if (not direct_mode and detected_build is not None)
         else ""
+    )
+    page_config = (
+        detected_build.page_config
+        if (not direct_mode and detected_build is not None)
+        else {}
     )
     source_page_url = canonicalize_source_page_url(
         (
@@ -6631,6 +7405,7 @@ def main(argv: Sequence[str]) -> int:
             if path.name
         ),
     )
+    gmsoft_like_build = looks_like_gmsoft_page_config(page_config)
     source_url_spoof_patterns = [
         b"SiteLock",
         b"whitelistedDomains",
@@ -6649,6 +7424,8 @@ def main(argv: Sequence[str]) -> int:
         )
         if path.name
     )
+    if gmsoft_like_build and source_page_url:
+        enable_source_url_spoof = True
 
     product_name = (
         infer_product_name_from_entry(detected_build.index_html, slugify_name(output_dir.name))
@@ -6665,6 +7442,7 @@ def main(argv: Sequence[str]) -> int:
         enable_source_url_spoof=enable_source_url_spoof,
         original_folder_url=original_folder_url,
         streaming_assets_url=streaming_assets_url,
+        page_config=page_config,
         auxiliary_asset_rewrites=auxiliary_asset_rewrites,
     )
     validate_required_function_coverage(index_content, required_functions)
@@ -6699,12 +7477,16 @@ def main(argv: Sequence[str]) -> int:
         "used_br_assets": assets.used_br_assets,
         "used_compressed_assets": assets.used_br_assets,
         "site_lock_framework_patched": site_lock_framework_patched,
+        "gmsoft_host_bridge_patched": gmsoft_host_bridge_patched,
+        "sendmessage_value_compat_patched": sendmessage_value_compat_patched,
         "build_kind": build_kind,
         "mode": "direct_urls" if direct_mode else "entry_auto",
         "source_page_url": source_page_url,
         "source_url_spoof_enabled": enable_source_url_spoof,
         "original_folder_url": original_folder_url,
         "streaming_assets_url": streaming_assets_url,
+        "gmsoft_like_build": gmsoft_like_build,
+        "page_config_keys": sorted(page_config.keys()),
         "auxiliary_asset_rewrites": auxiliary_asset_rewrites,
         "progress_file": str(progress_file),
     }
