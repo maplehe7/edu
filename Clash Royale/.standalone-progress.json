@@ -4,16 +4,16 @@
   "root_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale/",
   "input_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale",
   "resolved_entry_url": "https://cdn.jsdelivr.net/gh/ertemr33/vahvah@main/1.xml",
-  "title": "google.com",
+  "title": "Clash Royale",
   "completed": true,
   "summary": {
-    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\google.com",
-    "index_html": "C:\\Users\\hello\\Downloads\\edu\\google.com\\index.html",
-    "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\google.com\\game-root.html",
-    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\google.com\\required-functions.json",
+    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale",
+    "index_html": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\index.html",
+    "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\game-root.html",
+    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\required-functions.json",
     "mode": "entry_auto",
     "entry_kind": "html",
-    "title": "google.com",
+    "title": "Clash Royale",
     "input_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale",
     "root_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale/",
     "resolved_entry_url": "https://cdn.jsdelivr.net/gh/ertemr33/vahvah@main/1.xml",
@@ -55,6 +55,6 @@
     "external_other_urls": [
       "https://cdn.jsdelivr.net/gh/ertemr33/vahvah@main/favicon.ico"
     ],
-    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\google.com\\.standalone-progress.json"
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\.standalone-progress.json"
   }
 }

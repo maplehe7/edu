@@ -2596,32 +2596,100 @@ def slugify_name(value: str) -> str:
     return value or "unity-game"
 
 
-def infer_product_name_from_entry(index_html: str, fallback: str) -> str:
-    title = extract_html_title(index_html)
-    if not title:
-        return fallback
-    cleaned = re.sub(r"\s+", " ", title).strip()
+def clean_inferred_title(title: str) -> str:
+    cleaned = re.sub(r"\s+", " ", html.unescape(title or "")).strip().strip("-|: ")
+    if not cleaned:
+        return ""
+
     cleaned = re.sub(r"\s+online\s*$", "", cleaned, flags=re.IGNORECASE).strip()
-    return cleaned or fallback
+    branding_patterns = (
+        r"^(?:ocean|google(?:\.com)?|google sites?)\s*[-|:]\s*(.+)$",
+        r"^(.+?)\s*[-|:]\s*(?:google(?:\.com)?|google sites?)$",
+    )
+    for pattern in branding_patterns:
+        match = re.match(pattern, cleaned, re.IGNORECASE)
+        if match:
+            cleaned = match.group(1).strip().strip("-|: ")
+            break
+
+    if re.fullmatch(
+        r"(?:google(?:\.com)?|google sites?|ocean|home|index|game|games)",
+        cleaned,
+        re.IGNORECASE,
+    ):
+        return ""
+    return cleaned
 
 
-def infer_display_title(title: str, root_url: str, fallback: str = "Standalone Game") -> str:
-    cleaned_title = re.sub(r"\s+", " ", title).strip()
+def infer_title_from_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    generic_segments = {
+        "all games click me",
+        "all-games-click-me",
+        "embed",
+        "embeds",
+        "game",
+        "games",
+        "play",
+        "view",
+    }
+    path_segments = [segment for segment in parsed.path.split("/") if segment]
+    for raw_segment in reversed(path_segments):
+        segment = urllib.parse.unquote(raw_segment).strip()
+        if not segment:
+            continue
+        if re.fullmatch(r"\d+(?:\.[A-Za-z0-9]{1,8})?", segment):
+            continue
+        if re.search(r"\.(?:xml|html?|php|aspx?|json)$", segment, re.IGNORECASE):
+            continue
+        normalized_segment = re.sub(r"[-_.]+", " ", segment).strip().lower()
+        if not normalized_segment or normalized_segment in generic_segments:
+            continue
+        normalized_segment = re.sub(r"\.[A-Za-z0-9]{1,8}$", "", normalized_segment).strip()
+        if not normalized_segment:
+            continue
+        title = " ".join(word.capitalize() for word in normalized_segment.split())
+        if title:
+            return title
+
+    host_part = parsed.netloc.split(".", 1)[0].strip()
+    if not host_part:
+        return ""
+    host_title = re.sub(r"[-_.]+", " ", host_part)
+    host_title = re.sub(r"\s+", " ", host_title).strip()
+    if not host_title:
+        return ""
+    if re.fullmatch(r"www|google|sites", host_title, re.IGNORECASE):
+        return ""
+    return " ".join(word.capitalize() for word in host_title.split())
+
+
+def infer_product_name_from_entry(index_html: str, fallback: str, source_url: str = "") -> str:
+    cleaned = clean_inferred_title(extract_html_title(index_html))
+    if cleaned:
+        return cleaned
+    if source_url:
+        from_url = infer_title_from_url(source_url)
+        if from_url:
+            return from_url
+    return fallback
+
+
+def infer_display_title(
+    title: str,
+    root_url: str,
+    fallback: str = "Standalone Game",
+    source_page_url: str = "",
+) -> str:
+    cleaned_title = clean_inferred_title(title)
     if cleaned_title:
         return cleaned_title
 
-    parsed = urllib.parse.urlparse(root_url)
-    path_segments = [segment for segment in parsed.path.split("/") if segment]
-    if path_segments:
-        source = urllib.parse.unquote(path_segments[-1])
-    else:
-        source = parsed.netloc.split(".", 1)[0]
-
-    source = re.sub(r"[-_.]+", " ", source)
-    source = re.sub(r"\s+", " ", source).strip()
-    if not source:
-        return fallback
-    return " ".join(word.capitalize() for word in source.split())
+    for candidate_url in (root_url, source_page_url):
+        inferred = infer_title_from_url(candidate_url)
+        if inferred:
+            return inferred
+    return fallback
 
 
 def absolutize_markup_urls(document_html: str, source_url: str) -> str:
@@ -6490,18 +6558,26 @@ def infer_output_name_from_url(root_url: str, loader_url: str) -> str:
     return slugify_name(host_part)
 
 
-def infer_output_name_from_entry(title: str, root_url: str, fallback_name: str = "standalone-game") -> str:
-    if title:
-        cleaned = slugify_name(title)
+def infer_output_name_from_entry(
+    title: str,
+    root_url: str,
+    fallback_name: str = "standalone-game",
+    source_page_url: str = "",
+) -> str:
+    cleaned_title = clean_inferred_title(title)
+    if cleaned_title:
+        cleaned = slugify_name(cleaned_title)
         if cleaned:
             return cleaned
 
-    parsed = urllib.parse.urlparse(root_url)
-    path_segments = [segment for segment in parsed.path.split("/") if segment]
-    if path_segments:
-        return slugify_name(path_segments[-1])
+    for candidate_url in (root_url, source_page_url):
+        inferred_title = infer_title_from_url(candidate_url)
+        if inferred_title:
+            cleaned = slugify_name(inferred_title)
+            if cleaned:
+                return cleaned
 
-    host_part = parsed.netloc.split(".")[0] or fallback_name
+    host_part = urllib.parse.urlparse(root_url).netloc.split(".")[0] or fallback_name
     return slugify_name(host_part)
 
 
@@ -6764,7 +6840,11 @@ def export_html_entry(
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    title = infer_display_title(extract_html_title(detected_entry.index_html), root_url)
+    title = infer_display_title(
+        extract_html_title(detected_entry.index_html),
+        root_url,
+        source_page_url=detected_entry.source_page_url or input_url,
+    )
     support_files = copy_eagler_support_files(output_dir)
     progress_payload = load_json_file(progress_file)
     progress_payload.update(
@@ -6876,6 +6956,7 @@ def export_remote_stream_entry(
     title = infer_display_title(
         str(detected_entry.metadata.get("app_name") or extract_html_title(detected_entry.index_html)),
         root_url,
+        source_page_url=detected_entry.source_page_url or input_url,
     )
     remote_url = str(detected_entry.metadata.get("remote_url") or detected_entry.index_url).strip()
     if not remote_url:
@@ -7309,18 +7390,21 @@ def main(argv: Sequence[str]) -> int:
             detected_eagler_entry.title,
             root_url,
             fallback_name="eaglercraft",
+            source_page_url=input_url,
         )
     elif entry_kind == "html" and detected_html_entry is not None:
         output_name = args.out_dir.strip() or infer_output_name_from_entry(
             extract_html_title(detected_html_entry.index_html),
             root_url,
             fallback_name="html-game",
+            source_page_url=detected_html_entry.source_page_url or input_url,
         )
     elif entry_kind == "remote_stream" and detected_remote_entry is not None:
         output_name = args.out_dir.strip() or infer_output_name_from_entry(
             str(detected_remote_entry.metadata.get("app_name") or extract_html_title(detected_remote_entry.index_html)),
             root_url,
             fallback_name="remote-stream",
+            source_page_url=detected_remote_entry.source_page_url or input_url,
         )
     else:
         output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
@@ -7502,7 +7586,11 @@ def main(argv: Sequence[str]) -> int:
         enable_source_url_spoof = True
 
     product_name = (
-        infer_product_name_from_entry(detected_build.index_html, slugify_name(output_dir.name))
+        infer_product_name_from_entry(
+            detected_build.index_html,
+            slugify_name(output_dir.name),
+            source_url=source_page_url,
+        )
         if (not direct_mode and detected_build is not None)
         else slugify_name(output_dir.name)
     )
