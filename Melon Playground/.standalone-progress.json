@@ -1,0 +1,74 @@
+{
+  "candidate_urls": {
+    "loader": [
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.loader.js"
+    ],
+    "framework": [
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js",
+      "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.unityweb",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.unityweb",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.gz",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.br"
+    ],
+    "data": [
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data",
+      "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.unityweb",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.unityweb",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.gz",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.br"
+    ],
+    "wasm": [
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm",
+      "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.unityweb",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.unityweb",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.gz",
+      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.br"
+    ]
+  },
+  "assets": {
+    "loader": {
+      "filename": "ragdoll-playground-v25041512.loader.js",
+      "url": "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.loader.js",
+      "size": 42615
+    },
+    "framework": {
+      "filename": "ragdoll-playground-v25041512.framework.js.unityweb",
+      "url": "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.unityweb",
+      "size": 905187
+    },
+    "data": {
+      "filename": "ragdoll-playground-v25041512.data.unityweb",
+      "url": "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.unityweb",
+      "size": 75791100
+    },
+    "wasm": {
+      "filename": "ragdoll-playground-v25041512.wasm.unityweb",
+      "url": "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.unityweb",
+      "size": 34222969
+    }
+  },
+  "completed": true,
+  "summary": {
+    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground",
+    "index_html": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground\\index.html",
+    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground\\required-functions.json",
+    "loader": "ragdoll-playground-v25041512.loader.js",
+    "framework": "ragdoll-playground-v25041512.framework.js.unityweb",
+    "data": "ragdoll-playground-v25041512.data.unityweb",
+    "wasm": "ragdoll-playground-v25041512.wasm.unityweb",
+    "required_function_count": 0,
+    "window_root_count": 0,
+    "window_callable_chain_count": 0,
+    "used_br_assets": true,
+    "used_compressed_assets": true,
+    "site_lock_framework_patched": false,
+    "build_kind": "modern",
+    "mode": "entry_auto",
+    "source_page_url": "https://1games.io/game/ragdoll-playground/",
+    "source_url_spoof_enabled": false,
+    "original_folder_url": "",
+    "streaming_assets_url": "",
+    "auxiliary_asset_rewrites": {},
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground\\.standalone-progress.json"
+  }
+}

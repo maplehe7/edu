@@ -83,6 +83,7 @@ class DetectedEntry:
     index_url: str
     index_html: str
     source_page_url: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -491,13 +492,23 @@ def looks_like_html_game_entry_html(index_html: str) -> bool:
 def is_ignored_embedded_url(url: str) -> bool:
     lower = url.lower()
     ignored_fragments = (
+        "about:blank",
+        "amazon-adsystem.com",
+        "bugpilot.now.gg",
+        "cloudflareinsights.com",
+        "doubleclick.net",
         "fonts.googleapis.com",
         "fonts.gstatic.com",
+        "google.com/recaptcha",
+        "googlesyndication.com",
         "googletagmanager.com",
         "google-analytics.com",
         "facebook.com/sharer",
         "gstatic.com/",
         "linkedin.com/share",
+        "openx.net",
+        "pbs-cs.",
+        "pubads.g.doubleclick.net",
         "apis.google.com/js/api.js",
         "lh3.googleusercontent.com",
         "reddit.com/submit",
@@ -673,6 +684,165 @@ def discover_crazygames_entry_url(index_html: str, index_url: str) -> str:
     return ""
 
 
+def extract_next_data_payload(index_html: str) -> dict[str, Any]:
+    match = re.search(
+        r"""<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)</script>""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if not match:
+        return {}
+    raw_payload = html.unescape(match.group(1)).strip()
+    if not raw_payload:
+        return {}
+    try:
+        payload = json.loads(raw_payload)
+    except json.JSONDecodeError:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def extract_nowgg_entry_metadata(index_html: str, index_url: str) -> dict[str, Any]:
+    parsed = urllib.parse.urlparse(index_url)
+    if not parsed.netloc.lower().endswith("now.gg"):
+        return {}
+
+    next_data = extract_next_data_payload(index_html)
+    if not next_data:
+        return {}
+
+    page_props = next_data.get("props", {}).get("pageProps", {})
+    if not isinstance(page_props, dict):
+        return {}
+
+    app_info = page_props.get("appInfo", {})
+    if not isinstance(app_info, dict):
+        app_info = {}
+    developer_info = app_info.get("appDeveloperInfo", {})
+    if not isinstance(developer_info, dict):
+        developer_info = {}
+
+    app_page_specific_data = page_props.get("appPageSpecificData", {})
+    if not isinstance(app_page_specific_data, dict):
+        app_page_specific_data = {}
+    app_package_info = app_page_specific_data.get("appPackageInfo", {})
+    if not isinstance(app_package_info, dict):
+        app_package_info = {}
+    app_package_data = app_package_info.get("data", {})
+    if not isinstance(app_package_data, dict):
+        app_package_data = {}
+
+    direct_candidates: list[tuple[int, str]] = []
+    seen_direct_candidates: set[str] = set()
+
+    def add_candidate(raw_url: Any, score: int) -> None:
+        if not isinstance(raw_url, str):
+            return
+        candidate = raw_url.strip()
+        if not candidate:
+            return
+        try:
+            absolute = normalize_url(urllib.parse.urljoin(index_url, candidate))
+        except FetchError:
+            return
+        if absolute == normalize_url(index_url):
+            return
+        parsed_candidate = urllib.parse.urlparse(absolute)
+        if parsed_candidate.netloc.lower() != parsed.netloc.lower():
+            return
+        if absolute in seen_direct_candidates:
+            return
+        seen_direct_candidates.add(absolute)
+        direct_candidates.append((score, absolute))
+
+    add_candidate(app_package_data.get("html_game_url"), 300)
+    add_candidate(app_info.get("embeddedGameUrl"), 260)
+    add_candidate(app_package_data.get("play_theme_url"), 220)
+
+    def add_heuristic_candidates(container: Mapping[str, Any], base_score: int) -> None:
+        for key, value in container.items():
+            if not isinstance(value, str):
+                continue
+            key_lower = key.lower()
+            if "url" not in key_lower:
+                continue
+            if any(token in key_lower for token in ("apppage", "canonical", "share")):
+                continue
+            if any(token in key_lower for token in ("html", "game", "embed", "iframe", "entry", "play")):
+                add_candidate(value, base_score)
+
+    add_heuristic_candidates(app_package_data, 160)
+    add_heuristic_candidates(app_info, 120)
+    direct_candidates.sort(key=lambda item: (-item[0], item[1]))
+
+    return {
+        "remote_provider": "now.gg",
+        "app_id": str(app_info.get("appId") or "").strip(),
+        "app_name": str(app_info.get("appName") or "").strip(),
+        "app_slug": str(app_info.get("appSlug") or "").strip(),
+        "app_type": str(app_info.get("appType") or "").strip(),
+        "package_name": str(app_info.get("packageName") or "").strip(),
+        "developer_slug": str(developer_info.get("developerSlug") or "").strip(),
+        "play_domain": str(app_info.get("playDomain") or "").strip(),
+        "enable_play_page": bool(app_info.get("enablePlayPage")),
+        "app_page_url": str(app_info.get("appPageUrl") or "").strip(),
+        "direct_candidate_urls": [item[1] for item in direct_candidates],
+    }
+
+
+def discover_nowgg_entry(index_html: str, index_url: str) -> DetectedEntry | None:
+    metadata = extract_nowgg_entry_metadata(index_html, index_url)
+    if not metadata:
+        return None
+
+    direct_candidate_urls = metadata.get("direct_candidate_urls", [])
+    if not isinstance(direct_candidate_urls, list):
+        direct_candidate_urls = []
+
+    for candidate_url in direct_candidate_urls:
+        if not isinstance(candidate_url, str) or not candidate_url:
+            continue
+        try:
+            resolved_url, raw, _, _ = fetch_url(candidate_url, referer_url=index_url)
+        except FetchError:
+            continue
+        if not raw:
+            continue
+        candidate_text = decode_html_body(raw)
+        candidate_kind = detect_supported_entry_kind(candidate_text)
+        if candidate_kind:
+            return DetectedEntry(
+                entry_kind=candidate_kind,
+                index_url=resolved_url,
+                index_html=candidate_text,
+                source_page_url=index_url,
+                metadata=dict(metadata),
+            )
+        external_unity_entry = detect_unity_entry_from_external_scripts(candidate_text, resolved_url)
+        if external_unity_entry is not None:
+            return DetectedEntry(
+                entry_kind=external_unity_entry.entry_kind,
+                index_url=external_unity_entry.index_url,
+                index_html=external_unity_entry.index_html,
+                source_page_url=index_url,
+                metadata=dict(metadata),
+            )
+
+    remote_metadata = dict(metadata)
+    remote_metadata["remote_url"] = metadata.get("app_page_url") or index_url
+    remote_metadata["remote_kind"] = "webrtc_stream"
+    remote_metadata["remote_stream_reason"] = (
+        "now.gg app page does not expose a same-origin downloadable HTML payload"
+    )
+    return DetectedEntry(
+        entry_kind="remote_stream",
+        index_url=index_url,
+        index_html=index_html,
+        source_page_url=index_url,
+        metadata=remote_metadata,
+    )
+
+
 def detect_unity_entry_from_external_scripts(
     index_html: str,
     index_url: str,
@@ -720,17 +890,15 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
                     source_page_url=index_url,
                 )
 
-        theme_host_entry_url = discover_theme_host_entry_url(index_html, index_url)
-        if theme_host_entry_url:
-            result = inspect_url(theme_host_entry_url, depth + 1, referer_url=index_url)
-            if result:
-                return result
-
         crazygames_entry_url = discover_crazygames_entry_url(index_html, index_url)
         if crazygames_entry_url:
             result = inspect_url(crazygames_entry_url, depth + 1, referer_url=index_url)
             if result:
                 return result
+
+        nowgg_entry = discover_nowgg_entry(index_html, index_url)
+        if nowgg_entry is not None:
+            return nowgg_entry
 
         detected_kind = detect_supported_entry_kind(index_html)
         if detected_kind in {"unity", "eaglercraft"}:
@@ -745,15 +913,14 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
         if external_unity_entry is not None:
             return external_unity_entry
 
-        if detected_kind == "html":
-            return DetectedEntry(
-                entry_kind=detected_kind,
-                index_url=index_url,
-                index_html=index_html,
-                source_page_url=index_url,
-            )
-
         if depth >= 6:
+            if detected_kind == "html":
+                return DetectedEntry(
+                    entry_kind=detected_kind,
+                    index_url=index_url,
+                    index_html=index_html,
+                    source_page_url=index_url,
+                )
             errors.append(f"{source} -> reached embed recursion limit")
             return None
 
@@ -774,6 +941,14 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
             result = inspect_url(child_url, depth + 1, referer_url=index_url)
             if result:
                 return result
+
+        if detected_kind == "html":
+            return DetectedEntry(
+                entry_kind=detected_kind,
+                index_url=index_url,
+                index_html=index_html,
+                source_page_url=index_url,
+            )
 
         errors.append(f"{source} -> fetched but no supported build reference found")
         return None
@@ -807,6 +982,7 @@ def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str
     patterns = (
         r"""<iframe[^>]+src=["']([^"']+)["']""",
         r"""data-url=["']([^"']+)["']""",
+        r"""data-(?:iframe|embed|embed-url|game|game-url|src)=["']([^"']+)["']""",
         r"""(?:const|let|var)\s+[A-Za-z_$][A-Za-z0-9_$]*URL\s*=\s*["'](https?://[^"']+)["']""",
         r"""(?:src|href)\s*:\s*["'](https?://[^"']+)["']""",
         r"""window\.open\(\s*["'](https?://[^"']+)["']""",
@@ -822,7 +998,10 @@ def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str
         candidate = html.unescape(raw).replace("\\/", "/").strip()
         if not candidate:
             continue
-        absolute = normalize_url(urllib.parse.urljoin(index_url, candidate))
+        try:
+            absolute = normalize_url(urllib.parse.urljoin(index_url, candidate))
+        except FetchError:
+            continue
         if is_ignored_embedded_url(absolute):
             continue
         if absolute not in seen:
@@ -841,6 +1020,10 @@ def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str
             and "/games/" in parsed_url.path.lower()
         ):
             score += 140
+        if "/game/" in parsed_url.path.lower():
+            score += 120
+        if parsed_url.netloc and parsed_url.netloc != parsed_index.netloc:
+            score += 40
         if "script.google.com/macros" in lower:
             score += 100
         if "googleusercontent.com/embeds/" in lower:
@@ -868,160 +1051,6 @@ def extract_html_title(index_html: str) -> str:
         return ""
     title = re.sub(r"\s+", " ", html.unescape(match.group(1))).strip()
     return title
-
-
-def tokenize_match_text(value: str) -> list[str]:
-    ignored = {
-        "and",
-        "browser",
-        "chrome",
-        "chromebook",
-        "desktop",
-        "for",
-        "free",
-        "game",
-        "gamecomets",
-        "games",
-        "html5",
-        "modern",
-        "online",
-        "play",
-        "windows",
-    }
-    tokens: list[str] = []
-    seen: set[str] = set()
-    for token in re.findall(r"[A-Za-z0-9]+", value.lower()):
-        if len(token) < 3 or token in ignored or token in seen:
-            continue
-        seen.add(token)
-        tokens.append(token)
-    return tokens
-
-
-def extract_theme_host(index_html: str) -> str:
-    matches = re.findall(
-        r"""(?:href|src)=["'][^"']*themes/([A-Za-z0-9.-]+)/""",
-        index_html,
-        re.IGNORECASE,
-    )
-    for match in matches:
-        candidate = match.strip().lower()
-        if "." in candidate:
-            return candidate
-    return ""
-
-
-def is_probable_html_page_url(url: str) -> bool:
-    path = urllib.parse.urlparse(url).path.lower()
-    if not path or path.endswith("/"):
-        return True
-    basename = path.rsplit("/", 1)[-1]
-    if "." not in basename:
-        return True
-    return basename.endswith((".asp", ".aspx", ".htm", ".html", ".php"))
-
-
-def score_theme_host_page_url(url: str, title_tokens: Sequence[str], slug_tokens: Sequence[str]) -> int:
-    path_text = urllib.parse.unquote(urllib.parse.urlparse(url).path).lower().replace("-", " ")
-    score = 0
-    for token in title_tokens:
-        if token in path_text:
-            score += 14
-    for token in slug_tokens:
-        if token in path_text:
-            score += 8
-    if "/game" in path_text:
-        score += 3
-    if path_text in {"", "/"}:
-        score -= 12
-    for fragment in ("/category", "/contact", "/hot-games", "/new-games", "/privacy", "/search", "/terms"):
-        if fragment in path_text:
-            score -= 25
-    return score
-
-
-def discover_theme_host_entry_url(index_html: str, index_url: str) -> str:
-    theme_host = extract_theme_host(index_html)
-    if not theme_host:
-        return ""
-    current_host = urllib.parse.urlparse(index_url).netloc.lower()
-    if current_host == theme_host:
-        return ""
-
-    title_tokens = tokenize_match_text(extract_html_title(index_html))
-    slug_tokens = tokenize_match_text(urllib.parse.unquote(urllib.parse.urlparse(index_url).path))
-    sitemap_queue = [f"https://{theme_host}/sitemap.xml"]
-    seen_sitemaps: set[str] = set()
-    candidate_urls: list[str] = []
-    seen_candidates: set[str] = set()
-
-    while sitemap_queue and len(candidate_urls) < 250:
-        sitemap_url = sitemap_queue.pop(0)
-        if sitemap_url in seen_sitemaps:
-            continue
-        seen_sitemaps.add(sitemap_url)
-        try:
-            resolved, raw, _, _ = fetch_url(sitemap_url, referer_url=index_url)
-        except FetchError:
-            continue
-        text = decode_html_body(raw)
-        for raw_loc in re.findall(r"<loc>\s*([^<]+?)\s*</loc>", text, re.IGNORECASE):
-            candidate = normalize_url(html.unescape(raw_loc).strip())
-            parsed = urllib.parse.urlparse(candidate)
-            if parsed.netloc.lower() != theme_host:
-                continue
-            if candidate.lower().endswith(".xml"):
-                if candidate not in seen_sitemaps:
-                    sitemap_queue.append(candidate)
-                continue
-            if not is_probable_html_page_url(candidate) or candidate in seen_candidates:
-                continue
-            seen_candidates.add(candidate)
-            candidate_urls.append(candidate)
-
-    if not candidate_urls:
-        try:
-            resolved, raw, _, _ = fetch_url(f"https://{theme_host}/", referer_url=index_url)
-        except FetchError:
-            return ""
-        home_html = decode_html_body(raw)
-        for raw_href in re.findall(r"""<a[^>]+href=["']([^"']+)["']""", home_html, re.IGNORECASE):
-            candidate = normalize_url(urllib.parse.urljoin(resolved, html.unescape(raw_href).strip()))
-            parsed = urllib.parse.urlparse(candidate)
-            if parsed.netloc.lower() != theme_host:
-                continue
-            if not is_probable_html_page_url(candidate) or candidate in seen_candidates:
-                continue
-            seen_candidates.add(candidate)
-            candidate_urls.append(candidate)
-
-    ranked_urls = sorted(
-        candidate_urls,
-        key=lambda url: (-score_theme_host_page_url(url, title_tokens, slug_tokens), url),
-    )
-    best_url = ""
-    best_score = -1
-    for candidate in ranked_urls[:10]:
-        try:
-            resolved, raw, _, _ = fetch_url(candidate, referer_url=index_url)
-        except FetchError:
-            continue
-        page_html = decode_html_body(raw)
-        if detect_supported_entry_kind(page_html) != "unity":
-            continue
-        candidate_score = score_theme_host_page_url(resolved, title_tokens, slug_tokens)
-        page_title = extract_html_title(page_html).lower()
-        for token in title_tokens:
-            if token in page_title:
-                candidate_score += 12
-        if "createunityinstance" in page_html.lower():
-            candidate_score += 8
-        if "window.originalfolder" in page_html.lower():
-            candidate_score += 6
-        if candidate_score > best_score:
-            best_url = resolved
-            best_score = candidate_score
-    return best_url
 
 
 def extract_inline_script_blocks(index_html: str) -> list[str]:
@@ -1187,6 +1216,209 @@ def resolve_optional_url(raw_value: str, base_url: str) -> str:
     return normalize_url(urllib.parse.urljoin(base_url, raw_value))
 
 
+def strip_wrapping_parentheses(expression: str) -> str:
+    trimmed = expression.strip()
+    while trimmed.startswith("(") and trimmed.endswith(")"):
+        depth = 0
+        balanced = True
+        for index, char in enumerate(trimmed):
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth < 0:
+                    balanced = False
+                    break
+                if depth == 0 and index != len(trimmed) - 1:
+                    balanced = False
+                    break
+        if not balanced or depth != 0:
+            break
+        trimmed = trimmed[1:-1].strip()
+    return trimmed
+
+
+def split_js_top_level(expression: str, delimiter: str) -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    quote = ""
+    escaped = False
+
+    for char in expression:
+        if quote:
+            current.append(char)
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = ""
+            continue
+
+        if char in {"'", '"', "`"}:
+            quote = char
+            current.append(char)
+            continue
+        if char in "([{":
+            depth += 1
+            current.append(char)
+            continue
+        if char in ")]}":
+            depth = max(0, depth - 1)
+            current.append(char)
+            continue
+        if char == delimiter and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+            continue
+        current.append(char)
+
+    parts.append("".join(current).strip())
+    return parts
+
+
+def split_js_top_level_ternary(expression: str) -> tuple[str, str, str] | None:
+    quote = ""
+    escaped = False
+    depth = 0
+    question_index = -1
+    colon_index = -1
+
+    for index, char in enumerate(expression):
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = ""
+            continue
+
+        if char in {"'", '"', "`"}:
+            quote = char
+            continue
+        if char in "([{":
+            depth += 1
+            continue
+        if char in ")]}":
+            depth = max(0, depth - 1)
+            continue
+        if depth != 0:
+            continue
+        if char == "?" and question_index < 0:
+            question_index = index
+            continue
+        if char == ":" and question_index >= 0:
+            colon_index = index
+            break
+
+    if question_index < 0 or colon_index < 0:
+        return None
+    return (
+        expression[:question_index].strip(),
+        expression[question_index + 1 : colon_index].strip(),
+        expression[colon_index + 1 :].strip(),
+    )
+
+
+def decode_js_string_token(token: str) -> str:
+    stripped = token.strip()
+    if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in {"'", '"', "`"}:
+        return decode_js_string_literal(stripped[1:-1])
+    return ""
+
+
+def expand_js_string_expression(
+    expression: str,
+    env: Mapping[str, Sequence[str]],
+    max_candidates: int = 8,
+) -> list[str]:
+    trimmed = strip_wrapping_parentheses(expression)
+    if not trimmed:
+        return []
+
+    literal_value = decode_js_string_token(trimmed)
+    if literal_value or (len(trimmed) >= 2 and trimmed[0] == trimmed[-1] and trimmed[0] in {"'", '"', "`"}):
+        return [literal_value]
+
+    ternary_parts = split_js_top_level_ternary(trimmed)
+    if ternary_parts is not None:
+        _, when_true, when_false = ternary_parts
+        combined: list[str] = []
+        seen: set[str] = set()
+        for candidate in expand_js_string_expression(when_true, env, max_candidates) + expand_js_string_expression(
+            when_false,
+            env,
+            max_candidates,
+        ):
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            combined.append(candidate)
+            if len(combined) >= max_candidates:
+                break
+        return combined
+
+    concat_parts = split_js_top_level(trimmed, "+")
+    if len(concat_parts) > 1:
+        combinations = [""]
+        for part in concat_parts:
+            part_candidates = expand_js_string_expression(part, env, max_candidates)
+            if not part_candidates:
+                return []
+            next_combinations: list[str] = []
+            for prefix in combinations:
+                for suffix in part_candidates:
+                    next_combinations.append(prefix + suffix)
+                    if len(next_combinations) >= max_candidates:
+                        break
+                if len(next_combinations) >= max_candidates:
+                    break
+            combinations = next_combinations
+            if not combinations:
+                return []
+        return combinations[:max_candidates]
+
+    if re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*", trimmed):
+        return list(env.get(trimmed, []))[:max_candidates]
+
+    return []
+
+
+def extract_js_string_variable_candidates(
+    index_html: str,
+    variable_names: Sequence[str] | None = None,
+) -> dict[str, list[str]]:
+    interested_names = set(variable_names or ())
+    assignment_pattern = re.compile(
+        r"""(?:^|[\n;{}])\s*(?:(?:const|let|var)\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*([^;]+);""",
+        re.MULTILINE,
+    )
+    env: dict[str, list[str]] = {}
+
+    for match in assignment_pattern.finditer(index_html):
+        variable_name = match.group(1)
+        if interested_names and variable_name not in interested_names:
+            continue
+        expression = match.group(2).strip()
+        candidates = expand_js_string_expression(expression, env)
+        if not candidates:
+            continue
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for candidate in candidates:
+            normalized_candidate = candidate.replace("\\/", "/").strip()
+            if not normalized_candidate or normalized_candidate in seen:
+                continue
+            seen.add(normalized_candidate)
+            deduped.append(normalized_candidate)
+        if deduped:
+            env[variable_name] = deduped
+
+    return env
+
+
 def detect_eagler_entry(index_url: str, index_html: str) -> DetectedEaglerEntry:
     bootstrap_script = extract_eagler_bootstrap_script(index_html)
     assets_raw = extract_eagler_option_string(bootstrap_script, "assetsURI")
@@ -1210,36 +1442,68 @@ def detect_eagler_entry(index_url: str, index_html: str) -> DetectedEaglerEntry:
     )
 
 
-def extract_build_url_prefix(index_html: str) -> str:
+def extract_build_url_prefix_candidates(index_html: str) -> list[str]:
+    env = extract_js_string_variable_candidates(
+        index_html,
+        variable_names=("baseUrl", "versionFolder", "buildUrl", "loaderUrl"),
+    )
+    build_url_candidates = list(env.get("buildUrl", []))
+    if build_url_candidates:
+        return build_url_candidates
+
     match = re.search(
         r"""(?:const|let|var)\s+buildUrl\s*=\s*["']([^"']+)["']""",
         index_html,
         re.IGNORECASE,
     )
     if not match:
-        return ""
-    return html.unescape(match.group(1)).replace("\\/", "/").strip()
+        return []
+    return [html.unescape(match.group(1)).replace("\\/", "/").strip()]
+
+
+def extract_build_url_prefix(index_html: str) -> str:
+    candidates = extract_build_url_prefix_candidates(index_html)
+    return candidates[0] if candidates else ""
+
+
+def absolutize_with_build_prefix_candidates(
+    raw_value: str,
+    index_url: str,
+    build_prefix_candidates: Sequence[str],
+) -> list[str]:
+    candidate = html.unescape(raw_value).replace("\\/", "/").strip()
+    prefixes = list(build_prefix_candidates) if build_prefix_candidates else [""]
+    resolved_urls: list[str] = []
+    seen: set[str] = set()
+
+    for prefix in prefixes:
+        adjusted = candidate
+        normalized_prefix = prefix.strip("/")
+        if normalized_prefix and adjusted.startswith("/") and not adjusted.startswith("//"):
+            if adjusted.lstrip("/").startswith(normalized_prefix + "/"):
+                adjusted = adjusted.lstrip("/")
+            else:
+                adjusted = normalized_prefix + adjusted
+        try:
+            absolute = normalize_url(urllib.parse.urljoin(index_url, adjusted))
+        except FetchError:
+            continue
+        if absolute in seen:
+            continue
+        seen.add(absolute)
+        resolved_urls.append(absolute)
+
+    return resolved_urls
 
 
 def extract_urls_with_suffix(index_html: str, index_url: str, suffix_regex: str) -> list[str]:
     # Find quoted URLs in script/html content.
     pattern = re.compile(rf"""["']([^"']+?{suffix_regex}(?:\?[^"']*)?)["']""", re.IGNORECASE)
     urls: list[str] = []
-    build_prefix = extract_build_url_prefix(index_html)
-    normalized_prefix = build_prefix.strip("/")
+    build_prefix_candidates = extract_build_url_prefix_candidates(index_html)
 
     for match in pattern.findall(index_html):
-        unescaped = html.unescape(match).replace("\\/", "/")
-        if normalized_prefix and unescaped.startswith("/") and not unescaped.startswith("//"):
-            # Handle patterns like: loaderUrl = buildUrl + "/v111.loader.js"
-            # so "/v111.loader.js" becomes "Build/v111.loader.js".
-            if unescaped.lstrip("/").startswith(normalized_prefix + "/"):
-                unescaped = unescaped.lstrip("/")
-            else:
-                unescaped = normalized_prefix + unescaped
-        absolute = urllib.parse.urljoin(index_url, unescaped)
-        absolute = normalize_url(absolute)
-        urls.append(absolute)
+        urls.extend(absolutize_with_build_prefix_candidates(match, index_url, build_prefix_candidates))
 
     deduped: list[str] = []
     seen = set()
@@ -1251,16 +1515,7 @@ def extract_urls_with_suffix(index_html: str, index_url: str, suffix_regex: str)
 
 
 def extract_config_asset_urls(index_html: str, index_url: str) -> dict[str, list[str]]:
-    build_prefix = extract_build_url_prefix(index_html).strip("/")
-
-    def absolutize(raw_value: str) -> str:
-        candidate = html.unescape(raw_value).replace("\\/", "/")
-        if build_prefix and candidate.startswith("/") and not candidate.startswith("//"):
-            if candidate.lstrip("/").startswith(build_prefix + "/"):
-                candidate = candidate.lstrip("/")
-            else:
-                candidate = build_prefix + candidate
-        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+    build_prefix_candidates = extract_build_url_prefix_candidates(index_html)
 
     def collect_for_key(key: str) -> list[str]:
         found: list[str] = []
@@ -1276,16 +1531,16 @@ def extract_config_asset_urls(index_html: str, index_url: str) -> dict[str, list
         )
 
         for raw in concat_pattern.findall(index_html):
-            absolute = absolutize(raw)
-            if absolute not in seen:
-                found.append(absolute)
-                seen.add(absolute)
+            for absolute in absolutize_with_build_prefix_candidates(raw, index_url, build_prefix_candidates):
+                if absolute not in seen:
+                    found.append(absolute)
+                    seen.add(absolute)
 
         for raw in direct_pattern.findall(index_html):
-            absolute = absolutize(raw)
-            if absolute not in seen:
-                found.append(absolute)
-                seen.add(absolute)
+            for absolute in absolutize_with_build_prefix_candidates(raw, index_url, build_prefix_candidates):
+                if absolute not in seen:
+                    found.append(absolute)
+                    seen.add(absolute)
 
         return found
 
@@ -1316,16 +1571,7 @@ def extract_streaming_assets_url(
     index_url: str,
     original_folder_url: str = "",
 ) -> str:
-    build_prefix = extract_build_url_prefix(index_html).strip("/")
-
-    def absolutize(raw_value: str) -> str:
-        candidate = decode_js_string_literal(raw_value).replace("\\/", "/").strip()
-        if build_prefix and candidate.startswith("/") and not candidate.startswith("//"):
-            if candidate.lstrip("/").startswith(build_prefix + "/"):
-                candidate = candidate.lstrip("/")
-            else:
-                candidate = build_prefix + candidate
-        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+    build_prefix_candidates = extract_build_url_prefix_candidates(index_html)
 
     if original_folder_url:
         original_folder_match = re.search(
@@ -1345,7 +1591,12 @@ def extract_streaming_assets_url(
         re.IGNORECASE,
     )
     if concat_match:
-        return absolutize(concat_match.group(1))
+        candidates = absolutize_with_build_prefix_candidates(
+            concat_match.group(1),
+            index_url,
+            build_prefix_candidates,
+        )
+        return candidates[0] if candidates else ""
 
     direct_match = re.search(
         r"""streamingAssetsUrl\s*:\s*["'`]([^"'`]+)["'`]""",
@@ -1353,7 +1604,12 @@ def extract_streaming_assets_url(
         re.IGNORECASE,
     )
     if direct_match:
-        return absolutize(direct_match.group(1))
+        candidates = absolutize_with_build_prefix_candidates(
+            direct_match.group(1),
+            index_url,
+            build_prefix_candidates,
+        )
+        return candidates[0] if candidates else ""
 
     return ""
 
@@ -1391,6 +1647,14 @@ def should_route_setting_to_parent_root(
 
 
 def extract_loader_url(index_html: str, index_url: str) -> str:
+    env = extract_js_string_variable_candidates(
+        index_html,
+        variable_names=("baseUrl", "versionFolder", "buildUrl", "loaderUrl"),
+    )
+    loader_candidates = env.get("loaderUrl", [])
+    if loader_candidates:
+        return normalize_url(urllib.parse.urljoin(index_url, loader_candidates[0]))
+
     build_prefix = extract_build_url_prefix(index_html)
     normalized_prefix = build_prefix.strip("/")
 
@@ -5586,9 +5850,25 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
     return document
 
 
-def generate_html_launcher_index_html(title: str, embed_filename: str) -> str:
-    embed_url_js = json.dumps(f"./{embed_filename}", ensure_ascii=False)
+def generate_html_launcher_index_html(
+    title: str,
+    embed_filename: str = "",
+    remote_url: str = "",
+    play_note: str = "Saves to local storage",
+    launch_here_label: str = "LAUNCH HERE",
+    launch_fullscreen_label: str = "LAUNCH FULLSCREEN",
+    initial_status: str = "Choose how you want to launch",
+) -> str:
+    embed_url_js = json.dumps(f"./{embed_filename}" if embed_filename else "", ensure_ascii=False)
     embed_title_js = json.dumps(title or "Game", ensure_ascii=False)
+    remote_url_js = json.dumps(remote_url or "", ensure_ascii=False)
+    play_note_js = json.dumps(play_note or "", ensure_ascii=False)
+    launch_here_label_js = json.dumps(launch_here_label or "LAUNCH HERE", ensure_ascii=False)
+    launch_fullscreen_label_js = json.dumps(
+        launch_fullscreen_label or "LAUNCH FULLSCREEN",
+        ensure_ascii=False,
+    )
+    initial_status_js = json.dumps(initial_status or "Choose how you want to launch", ensure_ascii=False)
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5628,6 +5908,11 @@ def generate_html_launcher_index_html(title: str, embed_filename: str) -> str:
 <script>
 window.OCEAN_EMBED_URL = {embed_url_js};
 window.OCEAN_EMBED_TITLE = {embed_title_js};
+window.OCEAN_REMOTE_URL = {remote_url_js};
+window.OCEAN_PLAY_NOTE = {play_note_js};
+window.OCEAN_LAUNCH_FRAME_LABEL = {launch_here_label_js};
+window.OCEAN_LAUNCH_FULLSCREEN_LABEL = {launch_fullscreen_label_js};
+window.OCEAN_INITIAL_STATUS = {initial_status_js};
 </script>
 <script src="./ocean-launcher.js"></script>
 </body>
@@ -5729,6 +6014,95 @@ def export_html_entry(
         "external_stylesheet_urls": external_links["stylesheets"],
         "external_frame_urls": external_links["frames"],
         "external_other_urls": external_links["other_links"],
+        "progress_file": str(progress_file),
+    }
+    (output_dir / "standalone-build-info.json").write_text(
+        json.dumps(summary, indent=2),
+        encoding="utf-8",
+    )
+
+    progress_payload = load_json_file(progress_file)
+    progress_payload["completed"] = True
+    progress_payload["summary"] = summary
+    save_json_file(progress_file, progress_payload)
+
+    return summary
+
+
+def export_remote_stream_entry(
+    output_dir: Path,
+    progress_file: Path,
+    detected_entry: DetectedEntry,
+    input_url: str,
+    root_url: str,
+) -> dict[str, Any]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    title = infer_display_title(
+        str(detected_entry.metadata.get("app_name") or extract_html_title(detected_entry.index_html)),
+        root_url,
+    )
+    remote_url = str(detected_entry.metadata.get("remote_url") or detected_entry.index_url).strip()
+    if not remote_url:
+        raise FetchError("Remote stream entry did not provide a launch URL.")
+
+    support_files = copy_eagler_support_files(output_dir)
+    progress_payload = load_json_file(progress_file)
+    progress_payload.update(
+        {
+            "mode": "entry_auto",
+            "entry_kind": "remote_stream",
+            "root_url": root_url,
+            "input_url": input_url,
+            "resolved_entry_url": detected_entry.index_url,
+            "remote_url": remote_url,
+            "title": title,
+            "completed": False,
+        }
+    )
+    save_json_file(progress_file, progress_payload)
+
+    index_content = generate_html_launcher_index_html(
+        title=title,
+        remote_url=remote_url,
+        play_note="Cloud-streamed on now.gg",
+        launch_here_label="OPEN NOW.GG",
+        launch_fullscreen_label="OPEN IN NEW TAB",
+        initial_status="Cloud-streamed app. Choose how you want to open it",
+    )
+    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
+
+    required_functions_payload = {
+        "count": 0,
+        "functions": [],
+        "window_root_count": 0,
+        "window_roots": [],
+        "window_callable_chain_count": 0,
+        "window_callable_chains": [],
+    }
+    (output_dir / "required-functions.json").write_text(
+        json.dumps(required_functions_payload, indent=2),
+        encoding="utf-8",
+    )
+
+    summary = {
+        "output_dir": str(output_dir),
+        "index_html": str(output_dir / "index.html"),
+        "required_functions_file": str(output_dir / "required-functions.json"),
+        "mode": "entry_auto",
+        "entry_kind": "remote_stream",
+        "title": title,
+        "input_url": input_url,
+        "root_url": root_url,
+        "resolved_entry_url": detected_entry.index_url,
+        "remote_url": remote_url,
+        "remote_provider": detected_entry.metadata.get("remote_provider", ""),
+        "remote_kind": detected_entry.metadata.get("remote_kind", ""),
+        "remote_stream_reason": detected_entry.metadata.get("remote_stream_reason", ""),
+        "launcher": "ocean-launcher",
+        "asset_strategy": "not_mirrored_remote_stream",
+        "support_files": support_files,
+        "metadata": detected_entry.metadata,
         "progress_file": str(progress_file),
     }
     (output_dir / "standalone-build-info.json").write_text(
@@ -6042,6 +6416,7 @@ def main(argv: Sequence[str]) -> int:
     detected_build: DetectedBuild | None = None
     detected_eagler_entry: DetectedEaglerEntry | None = None
     detected_html_entry: DetectedEntry | None = None
+    detected_remote_entry: DetectedEntry | None = None
 
     if direct_mode:
         loader_url = normalize_url(args.loader_url)
@@ -6082,6 +6457,12 @@ def main(argv: Sequence[str]) -> int:
             log(f"Resolved Eagler assets URL: {detected_eagler_entry.assets_url}")
             if detected_eagler_entry.locales_url:
                 log(f"Resolved Eagler locales URL: {detected_eagler_entry.locales_url}")
+        elif entry_kind == "remote_stream":
+            detected_remote_entry = detected_entry
+            log(f"Resolved remote stream URL: {detected_remote_entry.metadata.get('remote_url', detected_remote_entry.index_url)}")
+            remote_provider = str(detected_remote_entry.metadata.get("remote_provider") or "").strip()
+            if remote_provider:
+                log(f"Detected remote provider: {remote_provider}")
         else:
             detected_html_entry = detected_entry
             log(f"Resolved HTML entry URL: {detected_html_entry.index_url}")
@@ -6099,6 +6480,12 @@ def main(argv: Sequence[str]) -> int:
             extract_html_title(detected_html_entry.index_html),
             root_url,
             fallback_name="html-game",
+        )
+    elif entry_kind == "remote_stream" and detected_remote_entry is not None:
+        output_name = args.out_dir.strip() or infer_output_name_from_entry(
+            str(detected_remote_entry.metadata.get("app_name") or extract_html_title(detected_remote_entry.index_html)),
+            root_url,
+            fallback_name="remote-stream",
         )
     else:
         output_name = args.out_dir.strip() or infer_output_name_from_url(root_url, loader_url)
@@ -6140,6 +6527,18 @@ def main(argv: Sequence[str]) -> int:
             output_dir=output_dir,
             progress_file=progress_file,
             detected_entry=detected_html_entry,
+            input_url=input_url,
+            root_url=root_url,
+        )
+        log("Done.")
+        log(json.dumps(summary, indent=2))
+        return 0
+
+    if entry_kind == "remote_stream" and detected_remote_entry is not None:
+        summary = export_remote_stream_entry(
+            output_dir=output_dir,
+            progress_file=progress_file,
+            detected_entry=detected_remote_entry,
             input_url=input_url,
             root_url=root_url,
         )
