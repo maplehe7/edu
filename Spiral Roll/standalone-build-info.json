@@ -23,6 +23,19 @@
     "container_blocks": 1,
     "comment_blocks": 1
   },
+  "nonessential_markup_removed": {
+    "canonical_links": 0
+  },
+  "html_runtime_mirror": {},
+  "source_external_script_urls": [
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/mains.js",
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/gamesnacks.js",
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js",
+    "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/main.js"
+  ],
+  "source_external_stylesheet_urls": [],
+  "source_external_frame_urls": [],
+  "source_external_other_urls": [],
   "external_script_urls": [
     "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/mains.js",
     "https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/gamesnacks.js",

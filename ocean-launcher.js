@@ -321,6 +321,17 @@
     return;
   }
 
+  const stepLog =
+    document.getElementById("stepLog") ||
+    (function () {
+      const element = document.createElement("div");
+      element.id = "stepLog";
+      element.setAttribute("aria-live", "polite");
+      element.setAttribute("aria-atomic", "false");
+      loadingScreen.appendChild(element);
+      return element;
+    })();
+
   launchFrameBtn.textContent = launchFrameLabel;
   launchFullscreenBtn.textContent = launchFullscreenLabel;
   if (playNote) {
@@ -338,6 +349,10 @@
   let fakeProgressTimer = 0;
   let fakeProgressValue = 0;
   let handoffPollTimer = 0;
+  const stepLogEntries = [];
+  const loaderStepEpoch = Date.now();
+  let lastLoggedStep = "";
+  let lastProgressBucket = -1;
   const requestedLaunchMode = (function () {
     try {
       return new URL(window.location.href).searchParams.get("launchMode") || "";
@@ -388,6 +403,36 @@
       .catch(function () {
         // Continue without blocking launch.
       });
+  }
+
+  function logLoaderStep(message) {
+    if (!stepLog || typeof message !== "string") {
+      return;
+    }
+    const cleanMessage = message.replace(/\s+/g, " ").trim();
+    if (!cleanMessage) {
+      return;
+    }
+    const progressMatch = /^Loading (\d+)%$/.exec(cleanMessage);
+    if (progressMatch) {
+      const percent = Number(progressMatch[1]);
+      const bucket =
+        percent >= 100 ? 100 : Math.max(0, Math.floor(percent / 10) * 10);
+      if (bucket === lastProgressBucket && percent !== 0 && percent !== 100) {
+        return;
+      }
+      lastProgressBucket = bucket;
+    } else if (cleanMessage === lastLoggedStep) {
+      return;
+    } else {
+      lastLoggedStep = cleanMessage;
+    }
+    const elapsedSeconds = ((Date.now() - loaderStepEpoch) / 1000).toFixed(1);
+    stepLogEntries.push(elapsedSeconds + "s  " + cleanMessage);
+    while (stepLogEntries.length > 8) {
+      stepLogEntries.shift();
+    }
+    stepLog.textContent = stepLogEntries.join("\n");
   }
 
   function getSameOriginFrameContext(frame) {
@@ -474,6 +519,7 @@
 
   function setStatus(text) {
     status.textContent = text;
+    logLoaderStep(text);
   }
 
   function setProgress(progress) {
@@ -804,6 +850,7 @@
       return;
     }
     started = true;
+    logLoaderStep("Launch requested");
     loadingScreen.classList.add("is-loading");
     clearLaunchPanelHideTimer();
     launchPanel.style.display = "";
@@ -842,6 +889,7 @@
 
   setProgressVisibility(false);
   setProgress(0);
+  logLoaderStep("Shell initialized");
   setStatus(initialStatusText);
 
   window.addEventListener("wheel", preventFullscreenScroll, { passive: false });

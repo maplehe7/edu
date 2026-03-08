@@ -3563,6 +3563,7 @@ def generate_index_html(
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>{html.escape(product_name)}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet" />
@@ -3872,6 +3873,20 @@ def generate_index_html(
       letter-spacing: -0.01em;
       text-shadow: 0 2px 18px rgba(0, 0, 0, 0.38);
     }}
+    #stepLog {{
+      position: absolute;
+      right: 14px;
+      bottom: 10px;
+      z-index: 6;
+      max-width: min(46vw, 540px);
+      color: rgba(230, 244, 255, 0.58);
+      font: 500 10px/1.38 "Cascadia Mono", Consolas, "Courier New", monospace;
+      text-align: right;
+      white-space: pre-line;
+      pointer-events: none;
+      text-shadow: none;
+      opacity: 0.96;
+    }}
     #progressTrack {{
       display: none;
       width: 100%;
@@ -3916,6 +3931,12 @@ def generate_index_html(
       }}
       #status {{
         font-size: 14px;
+      }}
+      #stepLog {{
+        right: 10px;
+        bottom: 8px;
+        max-width: 72vw;
+        font-size: 9px;
       }}
     }}
     @media (max-height: 760px) {{
@@ -3965,6 +3986,7 @@ def generate_index_html(
         </div>
         <div id="status">Choose how you want to launch</div>
       </div>
+      <div id="stepLog" aria-live="polite" aria-atomic="false"></div>
     </div>
   </div>
 
@@ -5023,6 +5045,7 @@ def generate_index_html(
       const launchFullscreenBtn = document.getElementById("launchFullscreenBtn");
       const launchFrameBtn = document.getElementById("launchFrameBtn");
       const status = document.getElementById("status");
+      const stepLog = document.getElementById("stepLog");
 
       let started = false;
       let loadingScreenDismissed = false;
@@ -5032,6 +5055,10 @@ def generate_index_html(
       let buildWarmupStarted = false;
       let sourceUrlSpoofApplied = false;
       const resourceHints = new Set();
+      const stepLogEntries = [];
+      const loaderStepEpoch = Date.now();
+      let lastLoggedStep = "";
+      let lastProgressBucket = -1;
       if (ORIGINAL_FOLDER_URL) {{
         window.originalFolder = ORIGINAL_FOLDER_URL;
       }}
@@ -5077,10 +5104,41 @@ def generate_index_html(
         legacyContainer.style.display = "none";
       }}
 
+      function logLoaderStep(message) {{
+        if (!stepLog || typeof message !== "string") {{
+          return;
+        }}
+        const cleanMessage = message.replace(/\\s+/g, " ").trim();
+        if (!cleanMessage) {{
+          return;
+        }}
+        const progressMatch = /^Loading (\\d+)%$/.exec(cleanMessage);
+        if (progressMatch) {{
+          const percent = Number(progressMatch[1]);
+          const bucket =
+            percent >= 100 ? 100 : Math.max(0, Math.floor(percent / 10) * 10);
+          if (bucket === lastProgressBucket && percent !== 0 && percent !== 100) {{
+            return;
+          }}
+          lastProgressBucket = bucket;
+        }} else if (cleanMessage === lastLoggedStep) {{
+          return;
+        }} else {{
+          lastLoggedStep = cleanMessage;
+        }}
+        const elapsedSeconds = ((Date.now() - loaderStepEpoch) / 1000).toFixed(1);
+        stepLogEntries.push(elapsedSeconds + "s  " + cleanMessage);
+        while (stepLogEntries.length > 8) {{
+          stepLogEntries.shift();
+        }}
+        stepLog.textContent = stepLogEntries.join("\\n");
+      }}
+
       function setStatus(text) {{
         if (status) {{
           status.textContent = text;
         }}
+        logLoaderStep(text);
       }}
 
       function setLoadState(value) {{
@@ -5276,6 +5334,7 @@ def generate_index_html(
           BUILD_KIND === "modern" &&
           typeof window.createUnityInstance === "function"
         ) {{
+          logLoaderStep("Unity loader script already ready");
           return Promise.resolve();
         }}
         if (
@@ -5283,6 +5342,7 @@ def generate_index_html(
           window.UnityLoader &&
           typeof window.UnityLoader.instantiate === "function"
         ) {{
+          logLoaderStep("Legacy Unity loader already ready");
           return Promise.resolve();
         }}
         if (loaderScriptPromise) {{
@@ -5290,20 +5350,27 @@ def generate_index_html(
         }}
 
         loaderScriptPromise = new Promise(function (resolve, reject) {{
+          logLoaderStep("Loading Unity loader script");
           const existing = document.querySelector("script[data-ocean-unity-loader='1']");
           if (existing) {{
             if (existing.getAttribute("data-ocean-loader-ready") === "1") {{
+              logLoaderStep("Unity loader script loaded");
               resolve();
               return;
             }}
             if (existing.getAttribute("data-ocean-loader-error") === "1") {{
               loaderScriptPromise = null;
+              logLoaderStep("Unity loader script failed");
               reject(new Error("Failed to load Unity loader script"));
               return;
             }}
-            existing.addEventListener("load", resolve, {{ once: true }});
+            existing.addEventListener("load", function () {{
+              logLoaderStep("Unity loader script loaded");
+              resolve();
+            }}, {{ once: true }});
             existing.addEventListener("error", function () {{
               loaderScriptPromise = null;
+              logLoaderStep("Unity loader script failed");
               reject(new Error("Failed to load Unity loader script"));
             }}, {{ once: true }});
             return;
@@ -5315,11 +5382,13 @@ def generate_index_html(
           script.setAttribute("data-ocean-unity-loader", "1");
           script.onload = function () {{
             script.setAttribute("data-ocean-loader-ready", "1");
+            logLoaderStep("Unity loader script loaded");
             resolve();
           }};
           script.onerror = function () {{
             script.setAttribute("data-ocean-loader-error", "1");
             loaderScriptPromise = null;
+            logLoaderStep("Unity loader script failed");
             reject(new Error("Failed to load Unity loader script"));
           }};
           document.body.appendChild(script);
@@ -5505,6 +5574,7 @@ def generate_index_html(
           return;
         }}
         sourceUrlSpoofApplied = true;
+        logLoaderStep("Source URL spoof enabled");
         const actualLocation = window.location;
         const spoofLocation = {{
           href: spoofUrl.toString(),
@@ -5737,19 +5807,25 @@ def generate_index_html(
           typeof document.hasStorageAccess === "function" &&
           typeof document.requestStorageAccess === "function";
         if (!hasApi) {{
+          logLoaderStep("Storage access API unavailable");
           return Promise.resolve();
         }}
+        logLoaderStep("Checking storage access");
         return document.hasStorageAccess()
           .then(function (hasAccess) {{
             if (hasAccess) {{
+              logLoaderStep("Storage access already granted");
               return;
             }}
+            logLoaderStep("Requesting storage access");
             return document.requestStorageAccess().catch(function () {{
               // Continue without hard-failing game load.
+              logLoaderStep("Storage access request failed");
             }});
           }})
           .catch(function () {{
             // Continue without hard-failing game load.
+            logLoaderStep("Storage access check failed");
           }});
       }}
 
@@ -6051,6 +6127,7 @@ def generate_index_html(
       }}
 
       function applyEntryPageSupport(unityConfig) {{
+        logLoaderStep("Preparing game config");
         installGlobalSupportStubs();
         const extractedConfig = Object.assign({{}}, ENTRY_PAGE_CONFIG || {{}});
         if (extractedConfig.gdHost === "__standalone_isHostOnGD__") {{
@@ -6211,6 +6288,7 @@ def generate_index_html(
       }}
 
       function startModernGame(loaderUrl) {{
+        logLoaderStep("Starting Unity runtime");
         const unityConfig = {{
           dataUrl: buildBuildAssetUrl(DATA_FILE),
           frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
@@ -6230,6 +6308,7 @@ def generate_index_html(
         const config = applyEntryPageSupport(unityConfig);
 {decompression_fallback_line}        ensureLoaderScriptLoaded(loaderUrl)
           .then(function () {{
+          logLoaderStep("Creating Unity instance");
           if (typeof createUnityInstance !== "function") {{
             resetLaunchState();
             setLoadState("failed");
@@ -6246,6 +6325,7 @@ def generate_index_html(
             window.gameInstance = unityInstance;
             maybeBootstrapUnitySupport(unityInstance);
             setProgress(1);
+            logLoaderStep("Unity instance ready");
             setStatus("Ready");
             window.setTimeout(dismissLoadingScreen, 380);
           }})
@@ -6272,6 +6352,7 @@ def generate_index_html(
           return;
         }}
 
+        logLoaderStep("Preparing legacy Unity config");
         const configBlob = new Blob(
           [JSON.stringify(buildLegacyConfig())],
           {{ type: "application/json" }}
@@ -6286,6 +6367,7 @@ def generate_index_html(
 
         ensureLoaderScriptLoaded(loaderUrl)
           .then(function () {{
+          logLoaderStep("Creating legacy Unity instance");
           const instantiate =
             window.UnityLoader && typeof window.UnityLoader.instantiate === "function"
               ? window.UnityLoader.instantiate
@@ -6306,6 +6388,7 @@ def generate_index_html(
                   window.setTimeout(function () {{
                     releaseLegacyConfigUrl();
                     dismissLoadingScreen();
+                    logLoaderStep("Legacy Unity instance ready");
                     setStatus("Ready");
                   }}, 380);
                 }}
@@ -6334,6 +6417,7 @@ def generate_index_html(
         if (started) {{
           return;
         }}
+        logLoaderStep("Launch requested");
         started = true;
         setLoadState("loading");
         if (loadingScreen) {{
@@ -6368,6 +6452,7 @@ def generate_index_html(
       setProgressVisibility(false);
       setProgress(0);
       setLoadState("idle");
+      logLoaderStep("Shell initialized");
       setStatus("Choose how you want to launch");
 
       window.addEventListener("wheel", preventFullscreenScroll, {{ passive: false }});
@@ -6890,6 +6975,7 @@ def generate_html_launcher_index_html(
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
 <title>{html.escape(title)}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="./ocean-launcher.css" />
 </head>
 <body>

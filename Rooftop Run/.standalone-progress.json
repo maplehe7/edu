@@ -58,10 +58,20 @@
     "window_callable_chain_count": 25,
     "used_br_assets": true,
     "used_compressed_assets": true,
+    "site_lock_framework_patched": false,
+    "gmsoft_host_bridge_patched": false,
+    "gmsoft_sendmessage_defaults_patched": false,
+    "sendmessage_value_compat_patched": false,
     "build_kind": "modern",
     "mode": "entry_auto",
-    "source_page_url": "https://www.crazygames.com/game/rooftop-run/",
+    "source_page_url": "https://games.crazygames.com/en_US/rooftop-run/index.html",
     "source_url_spoof_enabled": true,
+    "original_folder_url": "",
+    "streaming_assets_url": "",
+    "asset_cache_buster": "7dc3cfbb8ef9",
+    "gmsoft_like_build": false,
+    "page_config_keys": [],
+    "auxiliary_asset_rewrites": {},
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\.standalone-progress.json"
   }
 }

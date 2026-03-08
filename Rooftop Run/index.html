@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Rooftop Run</title>
+  <title>Rooftop Run Game Files - Crazy Games</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet" />
@@ -313,6 +314,20 @@
       letter-spacing: -0.01em;
       text-shadow: 0 2px 18px rgba(0, 0, 0, 0.38);
     }
+    #stepLog {
+      position: absolute;
+      right: 14px;
+      bottom: 10px;
+      z-index: 6;
+      max-width: min(46vw, 540px);
+      color: rgba(230, 244, 255, 0.58);
+      font: 500 10px/1.38 "Cascadia Mono", Consolas, "Courier New", monospace;
+      text-align: right;
+      white-space: pre-line;
+      pointer-events: none;
+      text-shadow: none;
+      opacity: 0.96;
+    }
     #progressTrack {
       display: none;
       width: 100%;
@@ -357,6 +372,12 @@
       }
       #status {
         font-size: 14px;
+      }
+      #stepLog {
+        right: 10px;
+        bottom: 8px;
+        max-width: 72vw;
+        font-size: 9px;
       }
     }
     @media (max-height: 760px) {
@@ -406,6 +427,7 @@
         </div>
         <div id="status">Choose how you want to launch</div>
       </div>
+      <div id="stepLog" aria-live="polite" aria-atomic="false"></div>
     </div>
   </div>
 
@@ -416,7 +438,7 @@
       const EMPTY = "";
       const ZERO = "0";
       const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
-      const SOURCE_PAGE_URL = "https://www.crazygames.com/game/rooftop-run/";
+      const SOURCE_PAGE_URL = "https://games.crazygames.com/en_US/rooftop-run/index.html";
       const ENABLE_SOURCE_URL_SPOOF = true;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
@@ -430,6 +452,13 @@
       window.__unityStandaloneLocalPageUrl = LOCAL_PAGE_URL;
       if (SOURCE_PAGE_URL) {
         window.__unityStandaloneSourcePageUrl = SOURCE_PAGE_URL;
+        try {
+          window.__unityStandaloneSourceHost = new URL(SOURCE_PAGE_URL).hostname || "";
+        } catch (err) {
+          window.__unityStandaloneSourceHost = "";
+        }
+      } else if (typeof window.__unityStandaloneSourceHost !== "string") {
+        window.__unityStandaloneSourceHost = "";
       }
 
       function rewriteVendorScriptUrl(value) {
@@ -1418,7 +1447,7 @@
 
   <script>
     (function () {
-      const PRODUCT_NAME = "Rooftop Run";
+      const PRODUCT_NAME = "Rooftop Run Game Files - Crazy Games";
       const BUILD_KIND = "modern";
       const BUILD_DIR = "Build";
       const LOADER_FILE = "RoofTop Web.loader.js";
@@ -1427,10 +1456,24 @@
       const WASM_FILE = "RoofTop Web.wasm.br";
       const LEGACY_CONFIG = {};
       const SOURCE_PAGE_URL =
-        window.__unityStandaloneSourcePageUrl || "https://www.crazygames.com/game/rooftop-run/";
+        window.__unityStandaloneSourcePageUrl || "https://games.crazygames.com/en_US/rooftop-run/index.html";
       const ENABLE_SOURCE_URL_SPOOF = true;
+      const ORIGINAL_FOLDER_URL = "";
+      const STREAMING_ASSETS_URL = "";
+      const BUILD_CACHE_BUSTER = "7dc3cfbb8ef9";
+      const ENTRY_PAGE_CONFIG = {};
+      const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
+      const LOCAL_HOST_NAME = (function () {
+        try {
+          return new URL(LOCAL_PAGE_URL).hostname || "";
+        } catch (err) {
+          return window.location && window.location.hostname
+            ? String(window.location.hostname)
+            : "";
+        }
+      })();
       const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
       const ROOT = document.documentElement;
 
@@ -1443,6 +1486,7 @@
       const launchFullscreenBtn = document.getElementById("launchFullscreenBtn");
       const launchFrameBtn = document.getElementById("launchFrameBtn");
       const status = document.getElementById("status");
+      const stepLog = document.getElementById("stepLog");
 
       let started = false;
       let loadingScreenDismissed = false;
@@ -1452,6 +1496,15 @@
       let buildWarmupStarted = false;
       let sourceUrlSpoofApplied = false;
       const resourceHints = new Set();
+      const stepLogEntries = [];
+      const loaderStepEpoch = Date.now();
+      let lastLoggedStep = "";
+      let lastProgressBucket = -1;
+      if (ORIGINAL_FOLDER_URL) {
+        window.originalFolder = ORIGINAL_FOLDER_URL;
+      }
+      window.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
+      globalThis.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
       const requestedLaunchMode = (function () {
         try {
           return new URL(LOCAL_PAGE_URL).searchParams.get("launchMode") || "";
@@ -1492,10 +1545,41 @@
         legacyContainer.style.display = "none";
       }
 
+      function logLoaderStep(message) {
+        if (!stepLog || typeof message !== "string") {
+          return;
+        }
+        const cleanMessage = message.replace(/\s+/g, " ").trim();
+        if (!cleanMessage) {
+          return;
+        }
+        const progressMatch = /^Loading (\d+)%$/.exec(cleanMessage);
+        if (progressMatch) {
+          const percent = Number(progressMatch[1]);
+          const bucket =
+            percent >= 100 ? 100 : Math.max(0, Math.floor(percent / 10) * 10);
+          if (bucket === lastProgressBucket && percent !== 0 && percent !== 100) {
+            return;
+          }
+          lastProgressBucket = bucket;
+        } else if (cleanMessage === lastLoggedStep) {
+          return;
+        } else {
+          lastLoggedStep = cleanMessage;
+        }
+        const elapsedSeconds = ((Date.now() - loaderStepEpoch) / 1000).toFixed(1);
+        stepLogEntries.push(elapsedSeconds + "s  " + cleanMessage);
+        while (stepLogEntries.length > 8) {
+          stepLogEntries.shift();
+        }
+        stepLog.textContent = stepLogEntries.join("\n");
+      }
+
       function setStatus(text) {
         if (status) {
           status.textContent = text;
         }
+        logLoaderStep(text);
       }
 
       function setLoadState(value) {
@@ -1649,9 +1733,17 @@
         return new URL(cleanPath, LOCAL_PAGE_URL).toString();
       }
 
-      function buildBuildAssetUrl(name) {
+      function buildBuildAssetUrl(name, includeCacheBuster) {
         const cleanName = String(name || "").replace(/^\.?\//, "");
-        return new URL(cleanName, LOCAL_BUILD_ROOT_URL).toString();
+        const assetUrl = new URL(cleanName, LOCAL_BUILD_ROOT_URL);
+        if (
+          includeCacheBuster !== false &&
+          BUILD_CACHE_BUSTER &&
+          /(^|\/)[^/?#]+\.[^/?#]+$/.test(cleanName)
+        ) {
+          assetUrl.searchParams.set("v", BUILD_CACHE_BUSTER);
+        }
+        return assetUrl.toString();
       }
 
       function appendResourceHint(url, rel, asValue, fetchPriority) {
@@ -1683,6 +1775,7 @@
           BUILD_KIND === "modern" &&
           typeof window.createUnityInstance === "function"
         ) {
+          logLoaderStep("Unity loader script already ready");
           return Promise.resolve();
         }
         if (
@@ -1690,6 +1783,7 @@
           window.UnityLoader &&
           typeof window.UnityLoader.instantiate === "function"
         ) {
+          logLoaderStep("Legacy Unity loader already ready");
           return Promise.resolve();
         }
         if (loaderScriptPromise) {
@@ -1697,20 +1791,27 @@
         }
 
         loaderScriptPromise = new Promise(function (resolve, reject) {
+          logLoaderStep("Loading Unity loader script");
           const existing = document.querySelector("script[data-ocean-unity-loader='1']");
           if (existing) {
             if (existing.getAttribute("data-ocean-loader-ready") === "1") {
+              logLoaderStep("Unity loader script loaded");
               resolve();
               return;
             }
             if (existing.getAttribute("data-ocean-loader-error") === "1") {
               loaderScriptPromise = null;
+              logLoaderStep("Unity loader script failed");
               reject(new Error("Failed to load Unity loader script"));
               return;
             }
-            existing.addEventListener("load", resolve, { once: true });
+            existing.addEventListener("load", function () {
+              logLoaderStep("Unity loader script loaded");
+              resolve();
+            }, { once: true });
             existing.addEventListener("error", function () {
               loaderScriptPromise = null;
+              logLoaderStep("Unity loader script failed");
               reject(new Error("Failed to load Unity loader script"));
             }, { once: true });
             return;
@@ -1722,11 +1823,13 @@
           script.setAttribute("data-ocean-unity-loader", "1");
           script.onload = function () {
             script.setAttribute("data-ocean-loader-ready", "1");
+            logLoaderStep("Unity loader script loaded");
             resolve();
           };
           script.onerror = function () {
             script.setAttribute("data-ocean-loader-error", "1");
             loaderScriptPromise = null;
+            logLoaderStep("Unity loader script failed");
             reject(new Error("Failed to load Unity loader script"));
           };
           document.body.appendChild(script);
@@ -1799,6 +1902,102 @@
         }
       }
 
+      function installAuxiliaryAssetUrlRewrites(rewriteMap) {
+        if (!rewriteMap || typeof rewriteMap !== "object") {
+          return;
+        }
+        const entries = Object.entries(rewriteMap)
+          .filter(function (entry) {
+            return (
+              Array.isArray(entry) &&
+              typeof entry[0] === "string" &&
+              entry[0] &&
+              typeof entry[1] === "string" &&
+              entry[1]
+            );
+          })
+          .map(function (entry) {
+            return [entry[0], new URL(entry[1], LOCAL_PAGE_URL).toString()];
+          });
+        if (!entries.length) {
+          return;
+        }
+        const rewriteTable = new Map();
+        entries.forEach(function (entry) {
+          const sourceUrl = entry[0];
+          const localUrl = entry[1];
+          rewriteTable.set(sourceUrl, localUrl);
+          try {
+            const sourcePath = new URL(sourceUrl).pathname;
+            if (sourcePath) {
+              rewriteTable.set(sourcePath, localUrl);
+              rewriteTable.set(new URL(sourcePath, LOCAL_PAGE_URL).toString(), localUrl);
+            }
+          } catch (err) {
+            // Ignore URL parsing failures.
+          }
+        });
+        window.__unityStandaloneAuxiliaryAssetUrls = rewriteTable;
+        if (window.__unityStandaloneAuxiliaryAssetRewriteInstalled) {
+          return;
+        }
+        window.__unityStandaloneAuxiliaryAssetRewriteInstalled = true;
+
+        function rewriteUrlValue(value) {
+          if (typeof value !== "string" || !value) {
+            return value;
+          }
+          if (rewriteTable.has(value)) {
+            return rewriteTable.get(value);
+          }
+          try {
+            const absolute = new URL(value, LOCAL_PAGE_URL).toString();
+            if (rewriteTable.has(absolute)) {
+              return rewriteTable.get(absolute);
+            }
+          } catch (err) {
+            // Ignore URL parsing failures.
+          }
+          if (typeof SOURCE_PAGE_URL === "string" && SOURCE_PAGE_URL) {
+            try {
+              const absoluteSource = new URL(value, SOURCE_PAGE_URL).toString();
+              if (rewriteTable.has(absoluteSource)) {
+                return rewriteTable.get(absoluteSource);
+              }
+            } catch (err) {
+              // Ignore URL parsing failures.
+            }
+          }
+          try {
+            const absoluteLocal = new URL(value, LOCAL_PAGE_URL).toString();
+            return rewriteTable.get(absoluteLocal) || value;
+          } catch (err) {
+            return value;
+          }
+        }
+
+        if (typeof window.fetch === "function") {
+          const originalFetch = window.fetch.bind(window);
+          window.fetch = function (input, init) {
+            if (typeof input === "string") {
+              return originalFetch(rewriteUrlValue(input), init);
+            }
+            if (typeof Request !== "undefined" && input instanceof Request) {
+              return originalFetch(new Request(rewriteUrlValue(input.url), input), init);
+            }
+            return originalFetch(input, init);
+          };
+        }
+
+        if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+          const originalOpen = window.XMLHttpRequest.prototype.open;
+          window.XMLHttpRequest.prototype.open = function (method, url) {
+            arguments[1] = rewriteUrlValue(typeof url === "string" ? url : String(url || ""));
+            return originalOpen.apply(this, arguments);
+          };
+        }
+      }
+
       function maybeSpoofSourcePageUrl() {
         if (
           sourceUrlSpoofApplied ||
@@ -1816,6 +2015,7 @@
           return;
         }
         sourceUrlSpoofApplied = true;
+        logLoaderStep("Source URL spoof enabled");
         const actualLocation = window.location;
         const spoofLocation = {
           href: spoofUrl.toString(),
@@ -1868,6 +2068,91 @@
           return spoofLocation;
         });
       }
+
+      function getEffectiveSourceUrl() {
+        if (typeof SOURCE_PAGE_URL === "string" && SOURCE_PAGE_URL) {
+          return SOURCE_PAGE_URL;
+        }
+        return LOCAL_PAGE_URL;
+      }
+
+      function getEffectiveSourceHost() {
+        const candidateUrls = [getEffectiveSourceUrl(), LOCAL_PAGE_URL];
+        for (const candidate of candidateUrls) {
+          try {
+            const parsed = new URL(candidate);
+            if (parsed.hostname) {
+              return parsed.hostname;
+            }
+          } catch (err) {
+            // Ignore invalid URL candidates.
+          }
+        }
+        return window.location && window.location.hostname
+          ? String(window.location.hostname)
+          : EMPTY;
+      }
+
+      function getLocalHostName() {
+        if (typeof LOCAL_HOST_NAME === "string" && LOCAL_HOST_NAME) {
+          return LOCAL_HOST_NAME;
+        }
+        return window.location && window.location.hostname
+          ? String(window.location.hostname)
+          : EMPTY;
+      }
+
+      function getEffectiveSourceSiteUrl() {
+        const candidateUrls = [getEffectiveSourceUrl(), SOURCE_PAGE_URL];
+        for (const candidate of candidateUrls) {
+          if (typeof candidate !== "string" || !candidate) {
+            continue;
+          }
+          try {
+            return new URL("./", candidate).toString();
+          } catch (err) {
+            // Ignore invalid URL candidates.
+          }
+        }
+        return EMPTY;
+      }
+
+      function getEffectiveGmsoftParamPayload() {
+        const sharedConfig =
+          window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object"
+            ? window.GMSOFT_OPTIONS
+            : window.config && typeof window.config === "object"
+              ? window.config
+              : {};
+        const localHost = getLocalHostName();
+        const sourceSiteUrl = getEffectiveSourceSiteUrl();
+        if (localHost) {
+          sharedConfig.domainHost = localHost;
+        }
+        if (!sharedConfig.sourceHtml && sourceSiteUrl) {
+          sharedConfig.sourceHtml = sourceSiteUrl;
+        }
+        if (!sharedConfig.sourceHtml && window.config && typeof window.config.sourceHtml === "string") {
+          sharedConfig.sourceHtml = window.config.sourceHtml;
+        }
+        if (
+          !sharedConfig.pub_id &&
+          typeof sharedConfig.pubId === "string" &&
+          sharedConfig.pubId
+        ) {
+          sharedConfig.pub_id = sharedConfig.pubId;
+        }
+        if (
+          !sharedConfig.pubId &&
+          typeof sharedConfig.pub_id === "string" &&
+          sharedConfig.pub_id
+        ) {
+          sharedConfig.pubId = sharedConfig.pub_id;
+        }
+        return JSON.stringify(sharedConfig);
+      }
+
+      installAuxiliaryAssetUrlRewrites(AUXILIARY_ASSET_REWRITES);
 
       function resetLaunchState() {
         started = false;
@@ -1963,19 +2248,25 @@
           typeof document.hasStorageAccess === "function" &&
           typeof document.requestStorageAccess === "function";
         if (!hasApi) {
+          logLoaderStep("Storage access API unavailable");
           return Promise.resolve();
         }
+        logLoaderStep("Checking storage access");
         return document.hasStorageAccess()
           .then(function (hasAccess) {
             if (hasAccess) {
+              logLoaderStep("Storage access already granted");
               return;
             }
+            logLoaderStep("Requesting storage access");
             return document.requestStorageAccess().catch(function () {
               // Continue without hard-failing game load.
+              logLoaderStep("Storage access request failed");
             });
           })
           .catch(function () {
             // Continue without hard-failing game load.
+            logLoaderStep("Storage access check failed");
           });
       }
 
@@ -1993,17 +2284,457 @@
             return;
           }
           const relativeValue = value.replace(/^\.?\//, "");
-          config[key] = buildBuildAssetUrl(relativeValue);
+          config[key] = buildBuildAssetUrl(
+            relativeValue,
+            key !== "wasmCodeUrl"
+          );
         });
         return config;
       }
 
+      function createFirebaseRefStub() {
+        return {
+          transaction: function (updater) {
+            if (typeof updater === "function") {
+              try {
+                updater(null);
+              } catch (err) {
+                // Ignore local stub transaction updater errors.
+              }
+            }
+            return Promise.resolve({
+              val: function () {
+                return null;
+              },
+            });
+          },
+          once: function () {
+            return Promise.resolve({
+              val: function () {
+                return null;
+              },
+            });
+          },
+          set: function () {
+            return Promise.resolve();
+          },
+          update: function () {
+            return Promise.resolve();
+          },
+          remove: function () {
+            return Promise.resolve();
+          },
+          push: function () {
+            return createFirebaseRefStub();
+          },
+          child: function () {
+            return createFirebaseRefStub();
+          },
+          orderByChild: function () {
+            return this;
+          },
+          equalTo: function () {
+            return this;
+          },
+          limitToFirst: function () {
+            return this;
+          },
+          on: function (_eventName, callback) {
+            if (typeof callback === "function") {
+              callback({
+                val: function () {
+                  return null;
+                },
+              });
+            }
+            return callback;
+          },
+          off: function () {
+            return;
+          },
+        };
+      }
+
+      function createFirebaseStub() {
+        const analytics = {
+          setUserProperties: function () {
+            return;
+          },
+          logEvent: function () {
+            return;
+          },
+        };
+        const auth = {
+          currentUser: null,
+          signInAnonymously: function () {
+            return Promise.resolve({});
+          },
+          signInWithEmailAndPassword: function () {
+            return Promise.resolve({});
+          },
+          createUserWithEmailAndPassword: function () {
+            return Promise.resolve({});
+          },
+          signOut: function () {
+            return Promise.resolve();
+          },
+          onAuthStateChanged: function (callback) {
+            if (typeof callback === "function") {
+              callback(null);
+            }
+            return function () {
+              return;
+            };
+          },
+        };
+        const firestoreDoc = {
+          get: function () {
+            return Promise.resolve({
+              exists: false,
+              data: function () {
+                return {};
+              },
+            });
+          },
+          set: function () {
+            return Promise.resolve();
+          },
+          update: function () {
+            return Promise.resolve();
+          },
+        };
+        const firestore = {
+          collection: function () {
+            return {
+              doc: function () {
+                return firestoreDoc;
+              },
+              add: function () {
+                return Promise.resolve({});
+              },
+              get: function () {
+                return Promise.resolve({
+                  docs: [],
+                });
+              },
+            };
+          },
+        };
+        return {
+          initializeApp: function () {
+            return {};
+          },
+          analytics: function () {
+            return analytics;
+          },
+          database: function () {
+            return {
+              ref: function () {
+                return createFirebaseRefStub();
+              },
+            };
+          },
+          auth: function () {
+            return auth;
+          },
+          firestore: function () {
+            return firestore;
+          },
+        };
+      }
+
+      function installGlobalSupportStubs() {
+        if (!window.firebase || typeof window.firebase !== "object") {
+          window.firebase = createFirebaseStub();
+        }
+        globalThis.firebase = window.firebase;
+
+        if (typeof window.firebaseSetUserProperties !== "function") {
+          window.firebaseSetUserProperties = function (props) {
+            try {
+              return window.firebase.analytics().setUserProperties(props || {});
+            } catch (err) {
+              return;
+            }
+          };
+        }
+        if (typeof window.firebaseLogEvent !== "function") {
+          window.firebaseLogEvent = function (eventName) {
+            try {
+              return window.firebase.analytics().logEvent(eventName || "");
+            } catch (err) {
+              return;
+            }
+          };
+        }
+        if (typeof window.firebaseLogEventParameter !== "function") {
+          window.firebaseLogEventParameter = function (eventName, eventParams) {
+            try {
+              return window.firebase.analytics().logEvent(eventName || "", eventParams || {});
+            } catch (err) {
+              return;
+            }
+          };
+        }
+
+        if (!window.GMDEBUG || typeof window.GMDEBUG !== "object") {
+          window.GMDEBUG = {};
+        }
+        globalThis.GMDEBUG = window.GMDEBUG;
+
+        if (typeof window.adConfig !== "function") {
+          window.adConfig = function (options) {
+            if (options && typeof options.onReady === "function") {
+              options.onReady();
+            }
+          };
+        }
+
+        if (!Array.isArray(window.adsbygoogle)) {
+          window.adsbygoogle = [];
+        }
+
+        if (!window.LocalAds || typeof window.LocalAds !== "object") {
+          window.LocalAds = {
+            fetchAd: function (callback) {
+              if (typeof callback === "function") {
+                callback({});
+              }
+            },
+            refetchAd: function (callback) {
+              if (typeof callback === "function") {
+                callback({});
+              }
+            },
+            registerRewardCallbacks: function (callbacks) {
+              if (callbacks && typeof callbacks.onReady === "function") {
+                callbacks.onReady();
+              }
+            },
+            showRewardAd: function () {
+              return;
+            },
+            showAd: function () {
+              return;
+            },
+            available: function () {
+              return false;
+            },
+          };
+        }
+
+        if (!window.preroll || typeof window.preroll !== "object") {
+          window.preroll = {
+            config: {
+              loaderObjectName: "LocalAds",
+            },
+          };
+        }
+        if (!window.preroll.config || typeof window.preroll.config !== "object") {
+          window.preroll.config = {
+            loaderObjectName: "LocalAds",
+          };
+        }
+        if (!window.preroll.config.loaderObjectName) {
+          window.preroll.config.loaderObjectName = "LocalAds";
+        }
+
+        if (typeof window.isDiffHost !== "function") {
+          window.isDiffHost = function () {
+            try {
+              if (window.top && window === window.top) {
+                return false;
+              }
+              if (window.top.location.hostname === window.location.hostname) {
+                return false;
+              }
+            } catch (err) {
+              return true;
+            }
+            return true;
+          };
+        }
+
+        if (typeof window.isHostOnGD !== "function") {
+          window.isHostOnGD = function () {
+            const domainParts = String(window.location.hostname || "").split(".");
+            const mainDomain = domainParts.slice(-2).join(".");
+            return mainDomain === "gamedistribution.com";
+          };
+        }
+        if (typeof window.isHostOnGDSDK !== "function") {
+          window.isHostOnGDSDK = window.isHostOnGD;
+        }
+      }
+
+      function applyEntryPageSupport(unityConfig) {
+        logLoaderStep("Preparing game config");
+        installGlobalSupportStubs();
+        const extractedConfig = Object.assign({}, ENTRY_PAGE_CONFIG || {});
+        if (extractedConfig.gdHost === "__standalone_isHostOnGD__") {
+          extractedConfig.gdHost = window.isHostOnGD();
+        }
+        if (!extractedConfig.streamingAssetsUrl && STREAMING_ASSETS_URL) {
+          extractedConfig.streamingAssetsUrl = STREAMING_ASSETS_URL;
+        }
+        extractedConfig.enableAds = false;
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "eventLog")) {
+          extractedConfig.eventLog = false;
+        }
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "enablePromotion")) {
+          extractedConfig.enablePromotion = false;
+        }
+        if (Object.prototype.hasOwnProperty.call(extractedConfig, "enableMoreGame")) {
+          extractedConfig.enableMoreGame = "no";
+        }
+
+        const mergedConfig = Object.assign({}, unityConfig, extractedConfig);
+        mergedConfig.dataUrl = unityConfig.dataUrl;
+        mergedConfig.frameworkUrl = unityConfig.frameworkUrl;
+        mergedConfig.codeUrl = unityConfig.codeUrl;
+        mergedConfig.cacheControl = unityConfig.cacheControl;
+        mergedConfig.devicePixelRatio = unityConfig.devicePixelRatio;
+        mergedConfig.matchWebGLToCanvasSize = unityConfig.matchWebGLToCanvasSize;
+        mergedConfig.webglContextAttributes = unityConfig.webglContextAttributes;
+        mergedConfig.referrer = document.referrer || "";
+        mergedConfig.enableAds = false;
+        mergedConfig.allow_embed = "yes";
+        mergedConfig.allow_host = "yes";
+        mergedConfig.allow_play = "yes";
+        mergedConfig.sdkversion = Number(mergedConfig.sdkversion) || 5;
+        mergedConfig.unlockTimer = Number(mergedConfig.unlockTimer) || 60;
+        mergedConfig.timeShowInter = Number(mergedConfig.timeShowInter) || 60;
+        mergedConfig.timeShowReward = Number(mergedConfig.timeShowReward) || 60;
+        mergedConfig.adsDebug = true;
+        mergedConfig.game = mergedConfig.game || null;
+        mergedConfig.promotion = mergedConfig.promotion || null;
+        mergedConfig.companyName = mergedConfig.companyName || PRODUCT_NAME;
+        mergedConfig.productName = mergedConfig.productName || PRODUCT_NAME;
+        mergedConfig.productVersion = mergedConfig.productVersion || "1.0.0";
+        if (!mergedConfig.pub_id && typeof mergedConfig.pubId === "string") {
+          mergedConfig.pub_id = mergedConfig.pubId;
+        }
+        if (!mergedConfig.pubId && typeof mergedConfig.pub_id === "string") {
+          mergedConfig.pubId = mergedConfig.pub_id;
+        }
+
+        const gmsoftDefaults = {
+          allow_embed: "yes",
+          allow_host: "yes",
+          allow_play: "yes",
+          debug_mode: "yes",
+          enableAds: false,
+          enablePreroll: false,
+          domainHost: getLocalHostName(),
+          sourceHtml: getEffectiveSourceSiteUrl(),
+          gameId: typeof mergedConfig.gameId === "string" ? mergedConfig.gameId : "",
+          hostindex: Number(extractedConfig.hostindex) || 0,
+          sdkType: typeof mergedConfig.sdkType === "string" && mergedConfig.sdkType
+            ? mergedConfig.sdkType
+            : "disabled",
+          sdkversion: Number(mergedConfig.sdkversion) || 5,
+          unlockTimer: Number(mergedConfig.unlockTimer) || 60,
+          timeShowInter: Number(mergedConfig.timeShowInter) || 60,
+          timeShowReward: Number(mergedConfig.timeShowReward) || 60,
+          adsDebug: true,
+          game: mergedConfig.game || null,
+          promotion: mergedConfig.promotion || null,
+        };
+        Object.assign(mergedConfig, gmsoftDefaults);
+        if (window.GMSOFT_OPTIONS && typeof window.GMSOFT_OPTIONS === "object") {
+          Object.assign(mergedConfig, window.GMSOFT_OPTIONS);
+        }
+        mergedConfig.domainHost = getLocalHostName() || mergedConfig.domainHost || "";
+        mergedConfig.sourceHtml =
+          getEffectiveSourceSiteUrl() ||
+          mergedConfig.sourceHtml ||
+          "";
+        mergedConfig.enableAds = false;
+        mergedConfig.enablePreroll = false;
+        mergedConfig.allow_embed = "yes";
+        mergedConfig.allow_host = "yes";
+        mergedConfig.allow_play = "yes";
+        if (typeof mergedConfig.gameId === "string" && mergedConfig.gameId) {
+          mergedConfig.gameId = mergedConfig.gameId;
+        }
+
+        window.config = mergedConfig;
+        globalThis.config = mergedConfig;
+        window.GMSOFT_OPTIONS = mergedConfig;
+        globalThis.GMSOFT_OPTIONS = mergedConfig;
+        return mergedConfig;
+      }
+
+      function maybeBootstrapUnitySupport(unityInstance) {
+        if (
+          !unityInstance ||
+          typeof unityInstance.SendMessage !== "function" ||
+          !ENTRY_PAGE_CONFIG ||
+          typeof ENTRY_PAGE_CONFIG !== "object"
+        ) {
+          return;
+        }
+        const looksLikeGmsoftBuild =
+          Boolean(ENTRY_PAGE_CONFIG.gameId) ||
+          Boolean(ENTRY_PAGE_CONFIG.buildAPI) ||
+          Object.prototype.hasOwnProperty.call(ENTRY_PAGE_CONFIG, "hostindex");
+        if (!looksLikeGmsoftBuild) {
+          return;
+        }
+
+        function safeSend(objectName, methodName, value) {
+          try {
+            if (typeof value === "undefined") {
+              unityInstance.SendMessage(objectName, methodName);
+            } else {
+              unityInstance.SendMessage(objectName, methodName, value);
+            }
+          } catch (err) {
+            // Ignore unsupported bridge calls for non-GmSoft builds.
+          }
+        }
+
+        function syncGmsoftPayload() {
+          if (!window.GMSOFT_OPTIONS || typeof window.GMSOFT_OPTIONS !== "object") {
+            return;
+          }
+          const localHost = getLocalHostName();
+          if (localHost) {
+            window.GMSOFT_OPTIONS.domainHost = localHost;
+          }
+          if (!window.GMSOFT_OPTIONS.sourceHtml) {
+            window.GMSOFT_OPTIONS.sourceHtml = getEffectiveSourceSiteUrl();
+          }
+          if (
+            !window.GMSOFT_OPTIONS.sourceHtml &&
+            window.config &&
+            typeof window.config.sourceHtml === "string"
+          ) {
+            window.GMSOFT_OPTIONS.sourceHtml = window.config.sourceHtml;
+          }
+          const payload = getEffectiveGmsoftParamPayload();
+          safeSend("GmSoft", "SetUnityHostName", localHost || "");
+          safeSend("GmSoft", "SetParam", payload);
+        }
+
+        syncGmsoftPayload();
+        [300, 900, 1800, 3200, 5200].forEach(function (delay) {
+          window.setTimeout(syncGmsoftPayload, delay);
+        });
+        try {
+          document.dispatchEvent(new CustomEvent("gmsoftSdkReady"));
+        } catch (err) {
+          // Ignore event dispatch failures.
+        }
+      }
+
       function startModernGame(loaderUrl) {
-        const config = {
+        logLoaderStep("Starting Unity runtime");
+        const unityConfig = {
           dataUrl: buildBuildAssetUrl(DATA_FILE),
           frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
           codeUrl: buildBuildAssetUrl(WASM_FILE),
-          streamingAssetsUrl: buildBuildAssetUrl("StreamingAssets"),
+          streamingAssetsUrl: STREAMING_ASSETS_URL || buildBuildAssetUrl("StreamingAssets"),
           companyName: PRODUCT_NAME,
           productName: PRODUCT_NAME,
           productVersion: "1.0.0",
@@ -2015,9 +2746,11 @@
             powerPreference: "high-performance",
           },
         };
+        const config = applyEntryPageSupport(unityConfig);
   config.decompressionFallback = true;
         ensureLoaderScriptLoaded(loaderUrl)
           .then(function () {
+          logLoaderStep("Creating Unity instance");
           if (typeof createUnityInstance !== "function") {
             resetLaunchState();
             setLoadState("failed");
@@ -2029,8 +2762,12 @@
             const percent = setProgress(progress);
             setStatus("Loading " + percent + "%");
           })
-          .then(function () {
+          .then(function (unityInstance) {
+            window.unityInstance = unityInstance;
+            window.gameInstance = unityInstance;
+            maybeBootstrapUnitySupport(unityInstance);
             setProgress(1);
+            logLoaderStep("Unity instance ready");
             setStatus("Ready");
             window.setTimeout(dismissLoadingScreen, 380);
           })
@@ -2057,6 +2794,7 @@
           return;
         }
 
+        logLoaderStep("Preparing legacy Unity config");
         const configBlob = new Blob(
           [JSON.stringify(buildLegacyConfig())],
           { type: "application/json" }
@@ -2071,6 +2809,7 @@
 
         ensureLoaderScriptLoaded(loaderUrl)
           .then(function () {
+          logLoaderStep("Creating legacy Unity instance");
           const instantiate =
             window.UnityLoader && typeof window.UnityLoader.instantiate === "function"
               ? window.UnityLoader.instantiate
@@ -2091,6 +2830,7 @@
                   window.setTimeout(function () {
                     releaseLegacyConfigUrl();
                     dismissLoadingScreen();
+                    logLoaderStep("Legacy Unity instance ready");
                     setStatus("Ready");
                   }, 380);
                 }
@@ -2119,6 +2859,7 @@
         if (started) {
           return;
         }
+        logLoaderStep("Launch requested");
         started = true;
         setLoadState("loading");
         if (loadingScreen) {
@@ -2153,6 +2894,7 @@
       setProgressVisibility(false);
       setProgress(0);
       setLoadState("idle");
+      logLoaderStep("Shell initialized");
       setStatus("Choose how you want to launch");
 
       window.addEventListener("wheel", preventFullscreenScroll, { passive: false });

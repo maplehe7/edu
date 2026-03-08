@@ -61,10 +61,25 @@
     "window_callable_chain_count": 21,
     "used_br_assets": true,
     "used_compressed_assets": true,
+    "site_lock_framework_patched": false,
+    "gmsoft_host_bridge_patched": false,
+    "gmsoft_sendmessage_defaults_patched": false,
+    "sendmessage_value_compat_patched": false,
     "build_kind": "modern",
     "mode": "entry_auto",
     "source_page_url": "https://bitlifeonline.github.io/ragdoll-archers/",
-    "source_url_spoof_enabled": false,
+    "source_url_spoof_enabled": true,
+    "original_folder_url": "",
+    "streaming_assets_url": "https://bitlifeonline.github.io/ragdoll-archers/StreamingAssets",
+    "asset_cache_buster": "77ac7e527e0b",
+    "gmsoft_like_build": false,
+    "page_config_keys": [
+      "companyName",
+      "productName",
+      "productVersion",
+      "streamingAssetsUrl"
+    ],
+    "auxiliary_asset_rewrites": {},
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Ragdoll Archers\\.standalone-progress.json"
   }
 }

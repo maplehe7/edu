@@ -4,7 +4,7 @@
   "window_root_count": 3,
   "window_roots": [
     "GMSOFT_OPTIONS",
-    "__unityStandaloneSourceHost",
+    "__unityStandaloneLocalHostName",
     "config"
   ],
   "window_callable_chain_count": 0,

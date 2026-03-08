@@ -279,14 +279,34 @@
   const launchPanel = document.getElementById("launchPanel");
   const launchFullscreenBtn = document.getElementById("launchFullscreenBtn");
   const launchFrameBtn = document.getElementById("launchFrameBtn");
+  const playNote = document.getElementById("playNote");
   const status = document.getElementById("status");
   const startMain = typeof window.main === "function" ? window.main.bind(window) : null;
   const embedUrl =
     typeof window.OCEAN_EMBED_URL === "string" ? window.OCEAN_EMBED_URL.trim() : "";
+  const remoteUrl =
+    typeof window.OCEAN_REMOTE_URL === "string" ? window.OCEAN_REMOTE_URL.trim() : "";
   const embedTitle =
     typeof window.OCEAN_EMBED_TITLE === "string" && window.OCEAN_EMBED_TITLE.trim()
       ? window.OCEAN_EMBED_TITLE.trim()
       : "Game";
+  const initialStatusText =
+    typeof window.OCEAN_INITIAL_STATUS === "string" && window.OCEAN_INITIAL_STATUS.trim()
+      ? window.OCEAN_INITIAL_STATUS.trim()
+      : "Choose how you want to launch";
+  const playNoteText =
+    typeof window.OCEAN_PLAY_NOTE === "string" ? window.OCEAN_PLAY_NOTE.trim() : "";
+  const launchFrameLabel =
+    typeof window.OCEAN_LAUNCH_FRAME_LABEL === "string" &&
+    window.OCEAN_LAUNCH_FRAME_LABEL.trim()
+      ? window.OCEAN_LAUNCH_FRAME_LABEL.trim()
+      : "LAUNCH HERE";
+  const launchFullscreenLabel =
+    typeof window.OCEAN_LAUNCH_FULLSCREEN_LABEL === "string" &&
+    window.OCEAN_LAUNCH_FULLSCREEN_LABEL.trim()
+      ? window.OCEAN_LAUNCH_FULLSCREEN_LABEL.trim()
+      : "LAUNCH FULLSCREEN";
+  const remoteLaunchOnly = Boolean(remoteUrl && !embedUrl && !startMain);
 
   if (
     !gameFrame ||
@@ -301,12 +321,38 @@
     return;
   }
 
+  const stepLog =
+    document.getElementById("stepLog") ||
+    (function () {
+      const element = document.createElement("div");
+      element.id = "stepLog";
+      element.setAttribute("aria-live", "polite");
+      element.setAttribute("aria-atomic", "false");
+      loadingScreen.appendChild(element);
+      return element;
+    })();
+
+  launchFrameBtn.textContent = launchFrameLabel;
+  launchFullscreenBtn.textContent = launchFullscreenLabel;
+  if (playNote) {
+    if (playNoteText) {
+      playNote.textContent = playNoteText;
+      playNote.style.display = "";
+    } else {
+      playNote.style.display = "none";
+    }
+  }
+
   let started = false;
   let loadingScreenDismissed = false;
   let launchPanelHideTimer = 0;
   let fakeProgressTimer = 0;
   let fakeProgressValue = 0;
   let handoffPollTimer = 0;
+  const stepLogEntries = [];
+  const loaderStepEpoch = Date.now();
+  let lastLoggedStep = "";
+  let lastProgressBucket = -1;
   const requestedLaunchMode = (function () {
     try {
       return new URL(window.location.href).searchParams.get("launchMode") || "";
@@ -357,6 +403,36 @@
       .catch(function () {
         // Continue without blocking launch.
       });
+  }
+
+  function logLoaderStep(message) {
+    if (!stepLog || typeof message !== "string") {
+      return;
+    }
+    const cleanMessage = message.replace(/\s+/g, " ").trim();
+    if (!cleanMessage) {
+      return;
+    }
+    const progressMatch = /^Loading (\d+)%$/.exec(cleanMessage);
+    if (progressMatch) {
+      const percent = Number(progressMatch[1]);
+      const bucket =
+        percent >= 100 ? 100 : Math.max(0, Math.floor(percent / 10) * 10);
+      if (bucket === lastProgressBucket && percent !== 0 && percent !== 100) {
+        return;
+      }
+      lastProgressBucket = bucket;
+    } else if (cleanMessage === lastLoggedStep) {
+      return;
+    } else {
+      lastLoggedStep = cleanMessage;
+    }
+    const elapsedSeconds = ((Date.now() - loaderStepEpoch) / 1000).toFixed(1);
+    stepLogEntries.push(elapsedSeconds + "s  " + cleanMessage);
+    while (stepLogEntries.length > 8) {
+      stepLogEntries.shift();
+    }
+    stepLog.textContent = stepLogEntries.join("\n");
   }
 
   function getSameOriginFrameContext(frame) {
@@ -443,6 +519,7 @@
 
   function setStatus(text) {
     status.textContent = text;
+    logLoaderStep(text);
   }
 
   function setProgress(progress) {
@@ -585,7 +662,7 @@
     setProgressVisibility(false);
     fakeProgressValue = 0;
     setProgress(0);
-    setStatus("Choose how you want to launch");
+    setStatus(initialStatusText);
   }
 
   function startFakeProgress() {
@@ -685,6 +762,20 @@
   }
 
   function startFullscreenGame() {
+    if (remoteLaunchOnly) {
+      const popup = window.open(remoteUrl, "_blank");
+      if (!popup || popup.closed) {
+        setStatus("New tab blocked. Allow popups or use open here.");
+        return;
+      }
+      try {
+        popup.opener = null;
+      } catch (err) {
+        // Ignore opener hardening failures.
+      }
+      setStatus("Opened remote stream in a new tab");
+      return;
+    }
     const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
     if (!popup || popup.closed) {
       setStatus("New tab blocked. Allow popups or use launch here.");
@@ -714,7 +805,7 @@
       frame.setAttribute("allowfullscreen", "");
       frame.setAttribute(
         "allow",
-        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write"
+        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write; storage-access-by-user-activation"
       );
 
       function settleWith(fn, value) {
@@ -746,11 +837,20 @@
     if (started) {
       return;
     }
-    if (!startMain && !embedUrl) {
+    if (!startMain && !embedUrl && !remoteUrl) {
       setStatus("Game bootstrap is missing");
       return;
     }
+    if (remoteLaunchOnly) {
+      started = true;
+      setStatus("Opening remote stream");
+      window.setTimeout(function () {
+        window.location.assign(remoteUrl);
+      }, 40);
+      return;
+    }
     started = true;
+    logLoaderStep("Launch requested");
     loadingScreen.classList.add("is-loading");
     clearLaunchPanelHideTimer();
     launchPanel.style.display = "";
@@ -789,7 +889,8 @@
 
   setProgressVisibility(false);
   setProgress(0);
-  setStatus("Choose how you want to launch");
+  logLoaderStep("Shell initialized");
+  setStatus(initialStatusText);
 
   window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
   window.addEventListener("touchmove", preventFullscreenScroll, { passive: false });
