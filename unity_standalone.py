@@ -3301,7 +3301,10 @@ def strip_nonessential_html_markup(document_html: str) -> tuple[str, dict[str, i
 
 
 def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str, int]]:
-    patched = document_html
+    patched = re.sub(r"</\s*body\s*>", "</body>", document_html, flags=re.IGNORECASE)
+    patched = re.sub(r"</\s*html\s*>", "</html>", patched, flags=re.IGNORECASE)
+    patched = re.sub(r"(?im)^[ \t]*/body>\s*$", "</body>", patched)
+    patched = re.sub(r"(?im)^[ \t]*body>\s*$", "</body>", patched)
     patch_counts = {
         "countdown_guarded": 0,
         "countdown_autostart_injected": 0,
@@ -3335,12 +3338,25 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
     )
     needs_mobile_autolaunch = "_eaglercraftX_mobile_launch_client" in patched
 
+    if needs_countdown_autostart and not needs_mobile_autolaunch:
+        patched, direct_start_count = re.subn(
+            r"""launchInterval\s*=\s*setInterval\(\s*launchTick\s*,\s*50\s*\)\s*;""",
+            "launchCounter = 100; launchTick();",
+            patched,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+        if direct_start_count:
+            patch_counts["countdown_autostart_injected"] = 1
+            return patched, patch_counts
+
     if not needs_countdown_autostart and not needs_mobile_autolaunch:
         return patched, patch_counts
 
     helper_script = """
 <script>
 (function () {
+  var assumeImplicitStart = __OCEAN_ASSUME_IMPLICIT_START__;
   var countdownHandled = false;
 
   function removeCountdownNode() {
@@ -3358,12 +3374,16 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
     }
     if (typeof window.launchTick === "function") {
       countdownHandled = true;
-      if (window.launchInterval) {
-        try {
-          clearInterval(window.launchInterval);
-        } catch (err) {
+      if (assumeImplicitStart) {
+        if (window.launchInterval) {
+          try {
+            clearInterval(window.launchInterval);
+          } catch (err) {
+          }
+          window.launchInterval = null;
         }
-        window.launchInterval = null;
+        removeCountdownNode();
+        return;
       }
       if (typeof window.launchCounter !== "number" || !isFinite(window.launchCounter)) {
         window.launchCounter = 100;
@@ -3371,20 +3391,6 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
         window.launchCounter = 100;
       }
       removeCountdownNode();
-      window.setTimeout(function () {
-        try {
-          window.launchTick();
-        } catch (err) {
-          var countdown = document.getElementById("launch_countdown_screen");
-          if (countdown && countdown.parentNode) {
-            countdown.parentNode.removeChild(countdown);
-          }
-          if (!window.__oceanEaglerMainStarted && typeof window.main === "function") {
-            window.__oceanEaglerMainStarted = true;
-            window.main();
-          }
-        }
-      }, 0);
       return;
     }
     if (!window.__oceanEaglerMainStarted && typeof window.main === "function") {
@@ -3444,7 +3450,10 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
   }
 })();
 </script>
-""".strip()
+""".replace(
+        "__OCEAN_ASSUME_IMPLICIT_START__",
+        "true" if needs_mobile_autolaunch else "false",
+    ).strip()
 
     lower_patched = patched.lower()
     body_close_index = lower_patched.rfind("</body>")
@@ -7771,6 +7780,8 @@ def copy_eagler_support_files(output_dir: Path) -> list[str]:
 
 def generate_html_entry_index_html(title: str, source_html: str) -> str:
     document = source_html.lstrip("\ufeff").strip()
+    document = re.sub(r"(?im)^[ \t]*/body>\s*$", "", document)
+    document = re.sub(r"(?im)^[ \t]*body>\s*$", "", document)
     if not document:
         raise FetchError("Detected HTML entry was empty.")
 
@@ -7844,6 +7855,22 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
 
     if not re.match(r"<!doctype\s+html", document, re.IGNORECASE):
         document = "<!DOCTYPE html>\n" + document
+
+    if re.search(r"<body\b", document, re.IGNORECASE) and not re.search(
+        r"</body\s*>",
+        document,
+        re.IGNORECASE,
+    ):
+        if re.search(r"</html\s*>", document, re.IGNORECASE):
+            document = re.sub(
+                r"</html\s*>",
+                "</body>\n</html>",
+                document,
+                count=1,
+                flags=re.IGNORECASE,
+            )
+        else:
+            document += "\n</body>\n"
 
     return document
 
