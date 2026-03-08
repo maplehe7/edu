@@ -21,9 +21,11 @@
   "source_url_spoof_enabled": true,
   "original_folder_url": "",
   "streaming_assets_url": "",
-  "asset_cache_buster": "7dc3cfbb8ef9",
+  "asset_cache_buster": "8f327e525b27",
   "gmsoft_like_build": false,
   "page_config_keys": [],
   "auxiliary_asset_rewrites": {},
+  "support_script_files": [],
+  "support_script_urls": [],
   "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\.standalone-progress.json"
 }

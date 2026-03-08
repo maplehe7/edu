@@ -293,7 +293,7 @@
   const initialStatusText =
     typeof window.OCEAN_INITIAL_STATUS === "string" && window.OCEAN_INITIAL_STATUS.trim()
       ? window.OCEAN_INITIAL_STATUS.trim()
-      : "Choose how you want to launch";
+      : "Awaiting launch-mode selection";
   const playNoteText =
     typeof window.OCEAN_PLAY_NOTE === "string" ? window.OCEAN_PLAY_NOTE.trim() : "";
   const launchFrameLabel =
@@ -382,6 +382,157 @@
     "End",
   ]);
 
+  function safeUrlHost(value) {
+    if (!value) {
+      return "";
+    }
+    try {
+      return new URL(value, window.location.href).host || "";
+    } catch (err) {
+      return "";
+    }
+  }
+
+  function launcherTargetKind() {
+    if (remoteLaunchOnly) {
+      return "remote_stream";
+    }
+    if (embedUrl) {
+      return "iframe_embed";
+    }
+    if (startMain) {
+      return "inline_bootstrap";
+    }
+    return "unknown";
+  }
+
+  function launcherProgressPhase(percent) {
+    if (percent <= 0) {
+      return "init";
+    }
+    if (percent < 20) {
+      return "launch-prep";
+    }
+    if (percent < 45) {
+      return "frame-bootstrap";
+    }
+    if (percent < 75) {
+      return "asset-warmup";
+    }
+    if (percent < 100) {
+      return "runtime-handoff";
+    }
+    return "ready";
+  }
+
+  function formatTechnicalStatusText(message) {
+    const cleanMessage = String(message || "").replace(/\s+/g, " ").trim();
+    if (!cleanMessage) {
+      return "";
+    }
+    if (
+      cleanMessage === initialStatusText ||
+      cleanMessage === "Choose how you want to launch" ||
+      cleanMessage === "Awaiting launch-mode selection"
+    ) {
+      return "Awaiting launch-mode selection";
+    }
+    const progressMatch = /^Loading (\d+)%$/.exec(cleanMessage);
+    if (progressMatch) {
+      const percent = Number(progressMatch[1]);
+      return (
+        "Handoff progress=" +
+        percent +
+        "% phase=" +
+        launcherProgressPhase(percent)
+      );
+    }
+    switch (cleanMessage) {
+      case "Game bootstrap is missing":
+        return "Fatal: no bootstrap target detected";
+      case "Opening remote stream":
+        return "Remote handoff in progress";
+      case "Opened fullscreen in a new tab":
+        return "Fullscreen handoff opened in new tab";
+      case "Opened remote stream in a new tab":
+        return "Remote stream opened in new tab";
+      case "New tab blocked. Allow popups or use open here.":
+      case "New tab blocked. Allow popups or use launch here.":
+        return "Popup blocked; new-tab handoff aborted";
+      case "Ready":
+        return "Runtime handoff complete";
+      case "Failed to load game":
+        return "Fatal: launcher handoff failed";
+      default:
+        return cleanMessage;
+    }
+  }
+
+  function formatTechnicalStepMessage(message) {
+    const cleanMessage = String(message || "").replace(/\s+/g, " ").trim();
+    if (!cleanMessage) {
+      return "";
+    }
+    const progressMatch = /^Loading (\d+)%$/.exec(cleanMessage);
+    if (progressMatch) {
+      const percent = Number(progressMatch[1]);
+      return (
+        "[handoff.progress] value=" +
+        percent +
+        "% phase=" +
+        launcherProgressPhase(percent) +
+        " target=" +
+        launcherTargetKind()
+      );
+    }
+    switch (cleanMessage) {
+      case "Awaiting launch-mode selection":
+      case "Choose how you want to launch":
+        return "[shell.idle] awaiting launch-mode selection";
+      case "Shell initialized":
+        return (
+          "[shell.init] launcher-ready kind=" +
+          launcherTargetKind() +
+          " mode=" +
+          (requestedLaunchMode || "page") +
+          " proto=" +
+          window.location.protocol.replace(":", "") +
+          " targetHost=" +
+          safeUrlHost(remoteUrl || embedUrl || window.location.href)
+        );
+      case "Launch requested":
+        return "[launch] user-activation accepted target=" + launcherTargetKind();
+      case "Storage access API unavailable":
+        return "[storage] API unavailable; continuing";
+      case "Checking storage access":
+        return "[storage] hasStorageAccess() probe";
+      case "Storage access already granted":
+        return "[storage] access already granted";
+      case "Requesting storage access":
+        return "[storage] requestStorageAccess()";
+      case "Storage access request failed":
+        return "[storage] requestStorageAccess() failed; continuing";
+      case "Storage access check failed":
+        return "[storage] hasStorageAccess() failed; continuing";
+      case "Preparing embedded frame":
+        return "[embed] iframe bootstrap requested host=" + safeUrlHost(embedUrl);
+      case "Embedded iframe attached":
+        return "[embed] iframe DOM attached host=" + safeUrlHost(embedUrl);
+      case "Embedded iframe loaded":
+        return "[embed] iframe load event received";
+      case "Invoking inline bootstrap":
+        return "[bootstrap.inline] main()";
+      case "Waiting for runtime handoff":
+        return "[handoff] waiting for runtime attachment";
+      case "Runtime handoff complete":
+        return "[handoff] runtime attachment confirmed";
+      case "Remote stream handoff starting":
+        return "[handoff.remote] navigating host=" + safeUrlHost(remoteUrl);
+      default:
+        return cleanMessage;
+    }
+  }
+
   function ensureStorageAccess(targetDocument) {
     const storageDocument = targetDocument || document;
     const hasApi =
@@ -389,18 +540,24 @@
       typeof storageDocument.hasStorageAccess === "function" &&
       typeof storageDocument.requestStorageAccess === "function";
     if (!hasApi) {
+      logLoaderStep("Storage access API unavailable");
       return Promise.resolve();
     }
+    logLoaderStep("Checking storage access");
     return Promise.resolve(storageDocument.hasStorageAccess())
       .then(function (hasAccess) {
         if (hasAccess) {
+          logLoaderStep("Storage access already granted");
           return;
         }
+        logLoaderStep("Requesting storage access");
         return storageDocument.requestStorageAccess().catch(function () {
+          logLoaderStep("Storage access request failed");
           // Continue without blocking launch.
         });
       })
       .catch(function () {
+        logLoaderStep("Storage access check failed");
         // Continue without blocking launch.
       });
   }
@@ -414,6 +571,10 @@
       return;
     }
     const progressMatch = /^Loading (\d+)%$/.exec(cleanMessage);
+    const formattedMessage = formatTechnicalStepMessage(cleanMessage);
+    if (!formattedMessage) {
+      return;
+    }
     if (progressMatch) {
       const percent = Number(progressMatch[1]);
       const bucket =
@@ -422,13 +583,13 @@
         return;
       }
       lastProgressBucket = bucket;
-    } else if (cleanMessage === lastLoggedStep) {
+    } else if (formattedMessage === lastLoggedStep) {
       return;
     } else {
-      lastLoggedStep = cleanMessage;
+      lastLoggedStep = formattedMessage;
     }
     const elapsedSeconds = ((Date.now() - loaderStepEpoch) / 1000).toFixed(1);
-    stepLogEntries.push(elapsedSeconds + "s  " + cleanMessage);
+    stepLogEntries.push(elapsedSeconds + "s  " + formattedMessage);
     while (stepLogEntries.length > 8) {
       stepLogEntries.shift();
     }
@@ -518,7 +679,7 @@
   }
 
   function setStatus(text) {
-    status.textContent = text;
+    status.textContent = formatTechnicalStatusText(text);
     logLoaderStep(text);
   }
 
@@ -691,11 +852,13 @@
     clearFakeProgressTimer();
     clearHandoffPollTimer();
     setProgress(1);
+    logLoaderStep("Runtime handoff complete");
     setStatus("Ready");
     window.setTimeout(dismissLoadingScreen, 380);
   }
 
   function waitForGameHandoff() {
+    logLoaderStep("Waiting for runtime handoff");
     clearHandoffPollTimer();
     const deadline = Date.now() + 4000;
     handoffPollTimer = window.setInterval(function () {
@@ -793,6 +956,7 @@
     if (!embedUrl) {
       return Promise.reject(new Error("Embedded game URL is missing"));
     }
+    logLoaderStep("Preparing embedded frame");
     return new Promise(function (resolve, reject) {
       let settled = false;
       const frame = document.createElement("iframe");
@@ -817,6 +981,7 @@
       }
 
       frame.addEventListener("load", function () {
+        logLoaderStep("Embedded iframe loaded");
         prepareEmbeddedFrame(frame).finally(function () {
           settleWith(resolve);
         });
@@ -827,6 +992,7 @@
 
       clearGameFrame();
       gameFrame.appendChild(frame);
+      logLoaderStep("Embedded iframe attached");
       window.setTimeout(function () {
         settleWith(resolve);
       }, 12000);
@@ -843,6 +1009,7 @@
     }
     if (remoteLaunchOnly) {
       started = true;
+      logLoaderStep("Remote stream handoff starting");
       setStatus("Opening remote stream");
       window.setTimeout(function () {
         window.location.assign(remoteUrl);
@@ -872,6 +1039,7 @@
       })
       .then(function () {
         if (startMain) {
+          logLoaderStep("Invoking inline bootstrap");
           return startMain();
         }
         return startEmbeddedGame();

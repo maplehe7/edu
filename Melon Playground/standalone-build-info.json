@@ -21,7 +21,7 @@
   "source_url_spoof_enabled": false,
   "original_folder_url": "",
   "streaming_assets_url": "25041512/StreamingAssets",
-  "asset_cache_buster": "c63bda6a1647",
+  "asset_cache_buster": "5e9b9b5a76c5",
   "gmsoft_like_build": true,
   "page_config_keys": [
     "buildAPI",
@@ -37,5 +37,19 @@
     "pubId"
   ],
   "auxiliary_asset_rewrites": {},
+  "support_script_files": [
+    "support/gmsoftsdk_v5.js",
+    "support/firebase-auth-compat.js",
+    "support/firebase-analytics-compat.js",
+    "support/firebase-app-compat.js",
+    "support/firebase-firestore-compat.js"
+  ],
+  "support_script_urls": [
+    "https://games.1games.io/lib/gmsoftsdk_v5.js",
+    "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js",
+    "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js",
+    "https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js",
+    "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"
+  ],
   "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground\\.standalone-progress.json"
 }

@@ -16,6 +16,7 @@ import gzip
 import hashlib
 import html
 import http.client
+import io
 import json
 import os
 import re
@@ -24,6 +25,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -562,6 +564,37 @@ def looks_like_html(raw: bytes) -> bool:
     return sample.startswith(b"<!doctype html") or b"<html" in sample
 
 
+def extract_single_html_from_zip_payload(raw: bytes) -> tuple[str, str]:
+    if not raw.startswith(b"PK\x03\x04"):
+        return "", ""
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            html_names = [name for name in archive.namelist() if name.lower().endswith((".html", ".htm"))]
+            if not html_names:
+                return "", ""
+            preferred_name = html_names[0]
+            preferred_score = -1
+            preferred_html = ""
+            for name in html_names:
+                try:
+                    candidate_html = decode_html_body(archive.read(name))
+                except KeyError:
+                    continue
+                score = 0
+                lower = candidate_html.lower()
+                if "window.eaglercraftxopts" in lower:
+                    score += 5
+                if "<html" in lower:
+                    score += 2
+                if score > preferred_score:
+                    preferred_name = name
+                    preferred_score = score
+                    preferred_html = candidate_html
+            return preferred_name, preferred_html
+    except (zipfile.BadZipFile, OSError):
+        return "", ""
+
+
 CRAZYGAMES_LOCALE_MAP = {
     "ar": "ar_SA",
     "br": "pt_BR",
@@ -649,6 +682,15 @@ def looks_like_unity_entry_html(index_html: str) -> bool:
     )
 
 
+def looks_like_split_unity_bootstrap_page(index_html: str) -> bool:
+    lower = index_html.lower()
+    return (
+        looks_like_unity_entry_html(index_html)
+        and ("fetchandcombineparts" in lower or "dataparts" in lower or "wasmparts" in lower)
+        and ("dataurl: \"\"" in lower or "codeurl: \"\"" in lower)
+    )
+
+
 def looks_like_eagler_entry_html(index_html: str) -> bool:
     lower = index_html.lower()
     return (
@@ -659,6 +701,16 @@ def looks_like_eagler_entry_html(index_html: str) -> bool:
         )
         or ("eaglercraft" in lower and "main();" in lower and "game_frame" in lower)
     )
+
+
+def looks_like_inline_eagler_payload_html(index_html: str) -> bool:
+    if not looks_like_eagler_entry_html(index_html):
+        return False
+    lower = index_html.lower()
+    has_external_scripts = re.search(r"""<script[^>]+\bsrc=["'][^"']+["']""", index_html, re.IGNORECASE)
+    has_inline_runtime = "var main;(function(){" in lower or "$rt_seed" in lower
+    has_data_assets = "assetsuri" in lower and "data:application/octet-stream;base64," in lower
+    return not has_external_scripts and (has_inline_runtime or has_data_assets)
 
 
 def looks_like_html_game_entry_html(index_html: str) -> bool:
@@ -1202,10 +1254,24 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
         visited_urls.add(normalized_candidate)
 
         try:
-            resolved, raw, _, _ = fetch_url(normalized_candidate, referer_url=referer_url)
+            resolved, raw, content_type, _ = fetch_url(normalized_candidate, referer_url=referer_url)
         except FetchError as exc:
             errors.append(str(exc))
             return None
+
+        if (
+            content_type == "application/zip"
+            or normalized_candidate.lower().endswith(".zip")
+            or raw.startswith(b"PK\x03\x04")
+        ):
+            zip_member_name, zipped_html = extract_single_html_from_zip_payload(raw)
+            if zipped_html:
+                return inspect_html(
+                    resolved,
+                    zipped_html,
+                    depth,
+                    f"{resolved} -> {zip_member_name}",
+                )
 
         text = decode_html_body(raw)
         return inspect_html(resolved, text, depth, resolved)
@@ -1339,7 +1405,12 @@ def is_ignored_external_script_url(script_url: str) -> bool:
         "google-analytics.com",
         "doubleclick.net",
         "googleads.g.doubleclick.net",
+        "googletagservices.com",
         "connect.facebook.net",
+        "mgid.com",
+        "taboola.com",
+        "outbrain.com",
+        "amazon-adsystem.com",
         "platform.twitter.com",
         "pagead2.googlesyndication.com",
         "imasdk.googleapis.com",
@@ -1389,6 +1460,21 @@ def should_ignore_unity_support_script_url(script_url: str, page_url: str) -> bo
         parsed_script.scheme == parsed_page.scheme
         and parsed_script.netloc == parsed_page.netloc
     )
+    lower = remove_query_and_fragment(script_url).lower()
+    wrapper_ui_tokens = (
+        "jquery",
+        "rating",
+        "raty",
+        "comment",
+        "share",
+        "theme",
+        "bootstrap",
+        "swiper",
+        "slick",
+        "carousel",
+    )
+    if any(token in lower for token in wrapper_ui_tokens):
+        return True
     if same_origin:
         return False
     return is_ignored_external_script_url(script_url)
@@ -3817,9 +3903,6 @@ def generate_index_html(
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>{html.escape(product_name)}</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root {{
       color-scheme: dark;
@@ -3839,7 +3922,7 @@ def generate_index_html(
       overflow: hidden;
       background: var(--bg);
       color: var(--text);
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-family: "Segoe UI Variable Text", "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }}
@@ -4080,7 +4163,7 @@ def generate_index_html(
       border-radius: 999px;
       background: linear-gradient(180deg, rgba(10, 16, 31, 0.86), rgba(10, 18, 38, 0.96));
       color: #effcff;
-      font: 800 14px/1.1 "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font: 800 14px/1.1 "Segoe UI Variable Text", "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       cursor: pointer;
@@ -4237,7 +4320,7 @@ def generate_index_html(
         <div id="progressTrack" aria-hidden="true">
           <div id="progressFill"></div>
         </div>
-        <div id="status">Choose how you want to launch</div>
+        <div id="status">Awaiting launch-mode selection</div>
       </div>
       <div id="stepLog" aria-live="polite" aria-atomic="false"></div>
     </div>
@@ -5138,9 +5221,17 @@ def generate_index_html(
       let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       let waveTime = 0;
       let shootingStar = null;
+      const isEmbeddedFrame = (function () {{
+        try {{
+          return Boolean(window.top && window.top !== window);
+        }} catch (err) {{
+          return true;
+        }}
+      }})();
       const reduceMotion =
         typeof window.matchMedia === "function" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const lightweightBackdrop = reduceMotion || isEmbeddedFrame;
       const mouse = {{ x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 }};
 
       function isVisible() {{
@@ -5266,7 +5357,10 @@ def generate_index_html(
       function seedStars() {{
         stars = [];
         const count = Math.round(
-          Math.min(160, Math.max(90, (window.innerWidth * window.innerHeight) / 14000))
+          Math.min(
+            lightweightBackdrop ? 72 : 160,
+            Math.max(lightweightBackdrop ? 42 : 90, (window.innerWidth * window.innerHeight) / 14000)
+          )
         );
         for (let index = 0; index < count; index += 1) {{
           stars.push(new Star(Math.random()));
@@ -5282,7 +5376,7 @@ def generate_index_html(
       }}
 
       function scheduleShootingStar() {{
-        if (reduceMotion || !isBackdropActive()) {{
+        if (lightweightBackdrop || !isBackdropActive()) {{
           return;
         }}
         window.setTimeout(function () {{
@@ -5313,7 +5407,7 @@ def generate_index_html(
       }}
 
       function smoothMouse() {{
-        if (!isBackdropActive()) {{
+        if (lightweightBackdrop || !isBackdropActive()) {{
           return;
         }}
         mouse.x += (mouse.tx - mouse.x) * 0.06;
@@ -5328,6 +5422,15 @@ def generate_index_html(
         const width = window.innerWidth;
         const height = window.innerHeight;
         waveCtx.clearRect(0, 0, width, height);
+        if (lightweightBackdrop) {{
+          const horizon = height * 0.62;
+          const gradient = waveCtx.createLinearGradient(0, horizon - 120, 0, height);
+          gradient.addColorStop(0, "rgba(34,211,238,0.035)");
+          gradient.addColorStop(1, "rgba(59,130,246,0.055)");
+          waveCtx.fillStyle = gradient;
+          waveCtx.fillRect(0, horizon, width, height - horizon);
+          return;
+        }}
         const ampBoost = 1 + (0.9 - mouse.y) * 0.65;
         const phaseShift = (mouse.x - 0.5) * 1.2;
         const horizon = height * (0.56 + (mouse.y - 0.5) * 0.08);
@@ -5378,7 +5481,7 @@ def generate_index_html(
       window.addEventListener("resize", resizeAll);
 
       resizeAll();
-      if (reduceMotion) {{
+      if (lightweightBackdrop) {{
         mouse.tx = 0.5;
         mouse.ty = 0.5;
       }} else {{
@@ -5457,6 +5560,18 @@ def generate_index_html(
           return "";
         }}
       }})();
+      const isEmbeddedFrame = (function () {{
+        try {{
+          return Boolean(window.top && window.top !== window);
+        }} catch (err) {{
+          return true;
+        }}
+      }})();
+      const constrainedPerformanceMode = Boolean(
+        isEmbeddedFrame ||
+          (Number(navigator.deviceMemory) > 0 && Number(navigator.deviceMemory) <= 4) ||
+          (Number(navigator.hardwareConcurrency) > 0 && Number(navigator.hardwareConcurrency) <= 4)
+      );
       const forceFullscreenScrollLock = requestedLaunchMode === "fullscreen";
       const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
       const fullscreenScrollKeys = new Set([
@@ -5479,6 +5594,152 @@ def generate_index_html(
         "End",
       ]);
 
+      function safeUrlHost(value) {{
+        if (!value) {{
+          return "";
+        }}
+        try {{
+          return new URL(value, LOCAL_PAGE_URL).host || "";
+        }} catch (err) {{
+          return "";
+        }}
+      }}
+
+      function safeFileName(value) {{
+        const clean = String(value || "").split("?")[0].split("#")[0];
+        const parts = clean.split("/");
+        return parts[parts.length - 1] || clean;
+      }}
+
+      function buildLaunchModeLabel() {{
+        return requestedLaunchMode || (isEmbeddedFrame ? "embed" : "page");
+      }}
+
+      function unityProgressPhase(percent) {{
+        if (percent <= 0) {{
+          return "init";
+        }}
+        if (percent < 20) {{
+          return "loader-fetch";
+        }}
+        if (percent < 45) {{
+          return "loader-eval";
+        }}
+        if (percent < 70) {{
+          return "data-transfer";
+        }}
+        if (percent < 90) {{
+          return "wasm-compile";
+        }}
+        if (percent < 100) {{
+          return "runtime-warmup";
+        }}
+        return "first-frame";
+      }}
+
+      function formatTechnicalStatusText(message) {{
+        const cleanMessage = String(message || "").replace(/\\s+/g, " ").trim();
+        if (!cleanMessage) {{
+          return "";
+        }}
+        if (
+          cleanMessage === "Choose how you want to launch" ||
+          cleanMessage === "Awaiting launch-mode selection"
+        ) {{
+          return "Awaiting launch-mode selection";
+        }}
+        const progressMatch = /^Loading (\\d+)%$/.exec(cleanMessage);
+        if (progressMatch) {{
+          const percent = Number(progressMatch[1]);
+          return "Unity bootstrap progress=" + percent + "% phase=" + unityProgressPhase(percent);
+        }}
+        switch (cleanMessage) {{
+          case "Use HTTP or HTTPS to run this build":
+            return "Blocked: protocol=file; serve over http(s)";
+          case "New tab blocked. Allow popups or use launch here.":
+            return "Popup blocked; fullscreen handoff aborted";
+          case "Opened fullscreen in a new tab":
+            return "Fullscreen handoff opened in new tab";
+          case "Loader error: createUnityInstance is missing":
+            return "Fatal: createUnityInstance missing after loader eval";
+          case "Loader error: UnityLoader.instantiate is missing":
+            return "Fatal: UnityLoader.instantiate missing after loader eval";
+          case "Failed to load Unity loader script":
+            return "Fatal: loader script fetch/eval failed";
+          case "Legacy Unity container is missing":
+            return "Fatal: legacy container missing";
+          case "Failed to prepare legacy Unity config":
+            return "Fatal: legacy config assembly failed";
+          case "Failed to load game":
+            return "Fatal: runtime bootstrap failed";
+          case "Ready":
+            return "Runtime ready; canvas attached";
+          default:
+            return cleanMessage;
+        }}
+      }}
+
+      function formatTechnicalStepMessage(message) {{
+        const cleanMessage = String(message || "").replace(/\\s+/g, " ").trim();
+        if (!cleanMessage) {{
+          return "";
+        }}
+        const progressMatch = /^Loading (\\d+)%$/.exec(cleanMessage);
+        if (progressMatch) {{
+          const percent = Number(progressMatch[1]);
+          return "[unity.progress] value=" + percent + "% phase=" + unityProgressPhase(percent) + " kind=" + BUILD_KIND;
+        }}
+        switch (cleanMessage) {{
+          case "Awaiting launch-mode selection":
+          case "Choose how you want to launch":
+            return "[shell.idle] awaiting launch-mode selection";
+          case "Shell initialized":
+            return "[shell.init] launcher-ready kind=" + BUILD_KIND + " mode=" + buildLaunchModeLabel() + " embed=" + (isEmbeddedFrame ? "1" : "0") + " proto=" + window.location.protocol.replace(":", "") + " loader=" + safeFileName(LOADER_FILE);
+          case "Launch requested":
+            return "[launch] user-activation accepted mode=" + buildLaunchModeLabel();
+          case "Storage access API unavailable":
+            return "[storage] API unavailable; continuing";
+          case "Checking storage access":
+            return "[storage] hasStorageAccess() probe";
+          case "Storage access already granted":
+            return "[storage] access already granted";
+          case "Requesting storage access":
+            return "[storage] requestStorageAccess()";
+          case "Storage access request failed":
+            return "[storage] requestStorageAccess() failed; continuing";
+          case "Storage access check failed":
+            return "[storage] hasStorageAccess() failed; continuing";
+          case "Preparing game config":
+            return "[config] unityConfig loader=" + safeFileName(LOADER_FILE) + " data=" + safeFileName(DATA_FILE) + " wasm=" + safeFileName(WASM_FILE);
+          case "Preparing legacy Unity config":
+            return "[config.legacy] building JSON config payload";
+          case "Loading Unity loader script":
+            return "[net.loader] GET " + buildBuildAssetUrl(LOADER_FILE, true);
+          case "Unity loader script loaded":
+            return "[net.loader] ready file=" + safeFileName(LOADER_FILE);
+          case "Unity loader script failed":
+            return "[net.loader] failed file=" + safeFileName(LOADER_FILE);
+          case "Unity loader script already ready":
+            return "[net.loader] reuse existing loader instance";
+          case "Legacy Unity loader already ready":
+            return "[net.loader.legacy] reuse existing loader instance";
+          case "Source URL spoof enabled":
+            return "[compat] source-url-spoof enabled host=" + safeUrlHost(SOURCE_PAGE_URL);
+          case "Starting Unity runtime":
+            return "[unity.bootstrap] begin dpr=" + computeUnityDevicePixelRatio().toFixed(2) + " sourceHost=" + safeUrlHost(SOURCE_PAGE_URL || LOCAL_PAGE_URL);
+          case "Creating Unity instance":
+            return "[unity.bootstrap] createUnityInstance()";
+          case "Unity instance ready":
+            return "[unity.runtime] ready product=" + PRODUCT_NAME + " host=" + safeUrlHost(LOCAL_PAGE_URL);
+          case "Creating legacy Unity instance":
+            return "[unity.bootstrap.legacy] UnityLoader.instantiate()";
+          case "Legacy Unity instance ready":
+            return "[unity.runtime.legacy] ready product=" + PRODUCT_NAME + " host=" + safeUrlHost(LOCAL_PAGE_URL);
+          default:
+            return cleanMessage;
+        }}
+      }}
+
       if (BUILD_KIND === "legacy_json") {{
         if (canvas) {{
           canvas.style.display = "none";
@@ -5499,6 +5760,10 @@ def generate_index_html(
           return;
         }}
         const progressMatch = /^Loading (\\d+)%$/.exec(cleanMessage);
+        const formattedMessage = formatTechnicalStepMessage(cleanMessage);
+        if (!formattedMessage) {{
+          return;
+        }}
         if (progressMatch) {{
           const percent = Number(progressMatch[1]);
           const bucket =
@@ -5507,13 +5772,13 @@ def generate_index_html(
             return;
           }}
           lastProgressBucket = bucket;
-        }} else if (cleanMessage === lastLoggedStep) {{
+        }} else if (formattedMessage === lastLoggedStep) {{
           return;
         }} else {{
-          lastLoggedStep = cleanMessage;
+          lastLoggedStep = formattedMessage;
         }}
         const elapsedSeconds = ((Date.now() - loaderStepEpoch) / 1000).toFixed(1);
-        stepLogEntries.push(elapsedSeconds + "s  " + cleanMessage);
+        stepLogEntries.push(elapsedSeconds + "s  " + formattedMessage);
         while (stepLogEntries.length > 8) {{
           stepLogEntries.shift();
         }}
@@ -5522,7 +5787,7 @@ def generate_index_html(
 
       function setStatus(text) {{
         if (status) {{
-          status.textContent = text;
+          status.textContent = formatTechnicalStatusText(text);
         }}
         logLoaderStep(text);
       }}
@@ -5801,7 +6066,14 @@ def generate_index_html(
 
       function computeUnityDevicePixelRatio() {{
         const nativeDpr = Number(window.devicePixelRatio) || 1;
-        const cap = requestedLaunchMode === "fullscreen" ? 1.5 : 1.15;
+        let cap = requestedLaunchMode === "fullscreen" ? 1.5 : 1.15;
+        if (constrainedPerformanceMode && requestedLaunchMode === "fullscreen") {{
+          cap = 1.25;
+        }} else if (isEmbeddedFrame) {{
+          cap = 1;
+        }} else if (constrainedPerformanceMode) {{
+          cap = 1.05;
+        }}
         return Math.max(1, Math.min(nativeDpr, cap));
       }}
 
@@ -5816,12 +6088,13 @@ def generate_index_html(
           {{ url: loaderUrl, as: "script", fetchPriority: "high" }},
           {{ url: buildBuildAssetUrl(FRAMEWORK_FILE), as: "fetch", fetchPriority: "high" }},
           {{ url: buildBuildAssetUrl(WASM_FILE), as: "fetch", fetchPriority: "high" }},
-          {{ url: buildBuildAssetUrl(DATA_FILE), as: "fetch", fetchPriority: "high" }},
         ];
+        if (!isEmbeddedFrame) {{
+          assetUrls.push({{ url: buildBuildAssetUrl(DATA_FILE), as: "fetch", fetchPriority: "high" }});
+        }}
 
         assetUrls.forEach(function (entry) {{
           appendResourceHint(entry.url, "preload", entry.as, entry.fetchPriority);
-          appendResourceHint(entry.url, "prefetch", entry.as, entry.fetchPriority);
         }});
 
         if (!ENABLE_SOURCE_URL_SPOOF) {{
@@ -6840,7 +7113,7 @@ def generate_index_html(
       setProgress(0);
       setLoadState("idle");
       logLoaderStep("Shell initialized");
-      setStatus("Choose how you want to launch");
+      setStatus("Awaiting launch-mode selection");
 
       window.addEventListener("wheel", preventFullscreenScroll, {{ passive: false }});
       window.addEventListener("touchmove", preventFullscreenScroll, {{ passive: false }});
@@ -7396,7 +7669,7 @@ def generate_html_launcher_index_html(
     play_note: str = "Saves to local storage",
     launch_here_label: str = "LAUNCH HERE",
     launch_fullscreen_label: str = "LAUNCH FULLSCREEN",
-    initial_status: str = "Choose how you want to launch",
+    initial_status: str = "Awaiting launch-mode selection",
 ) -> str:
     embed_url_js = json.dumps(f"./{embed_filename}" if embed_filename else "", ensure_ascii=False)
     embed_title_js = json.dumps(title or "Game", ensure_ascii=False)
@@ -7407,7 +7680,7 @@ def generate_html_launcher_index_html(
         launch_fullscreen_label or "LAUNCH FULLSCREEN",
         ensure_ascii=False,
     )
-    initial_status_js = json.dumps(initial_status or "Choose how you want to launch", ensure_ascii=False)
+    initial_status_js = json.dumps(initial_status or "Awaiting launch-mode selection", ensure_ascii=False)
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7442,7 +7715,7 @@ def generate_html_launcher_index_html(
 <div id="progressTrack" aria-hidden="true">
 <div id="progressFill"></div>
 </div>
-<div id="status">Choose how you want to launch</div>
+<div id="status">Awaiting launch-mode selection</div>
 </div>
 </div>
 <script>
@@ -7613,7 +7886,7 @@ def export_remote_stream_entry(
         play_note="Cloud-streamed on now.gg",
         launch_here_label="OPEN NOW.GG",
         launch_fullscreen_label="OPEN IN NEW TAB",
-        initial_status="Cloud-streamed app. Choose how you want to open it",
+        initial_status="Remote stream detected; choose handoff mode",
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -7715,7 +7988,7 @@ def generate_eagler_index_html(
 <div id="progressTrack" aria-hidden="true">
 <div id="progressFill"></div>
 </div>
-<div id="status">Choose how you want to launch</div>
+<div id="status">Awaiting launch-mode selection</div>
 </div>
 </div>
 {entry_script_tags}
@@ -7985,23 +8258,49 @@ def main(argv: Sequence[str]) -> int:
         log(f"Detected entry kind: {entry_kind}")
 
         if entry_kind == "unity":
-            detected_build = detect_entry_build(detected_entry.index_url, detected_entry.index_html)
-            build_kind = detected_build.build_kind
-            legacy_config = detected_build.legacy_config
-            loader_url = detected_build.loader_url
-            candidates = detected_build.candidates
+            if looks_like_split_unity_bootstrap_page(detected_entry.index_html):
+                entry_kind = "html"
+                detected_html_entry = DetectedEntry(
+                    entry_kind="html",
+                    index_url=detected_entry.index_url,
+                    index_html=detected_entry.index_html,
+                    source_page_url=detected_entry.source_page_url or detected_entry.index_url,
+                )
+                log("Falling back to HTML wrapper export for split-part Unity bootstrap page")
+                log(f"Resolved HTML entry URL: {detected_html_entry.index_url}")
+            else:
+                detected_build = detect_entry_build(detected_entry.index_url, detected_entry.index_html)
+                build_kind = detected_build.build_kind
+                legacy_config = detected_build.legacy_config
+                loader_url = detected_build.loader_url
+                candidates = detected_build.candidates
 
-            log(f"Detected build kind: {build_kind}")
-            log(f"Resolved loader URL: {loader_url}")
+                log(f"Detected build kind: {build_kind}")
+                log(f"Resolved loader URL: {loader_url}")
         elif entry_kind == "eaglercraft":
-            detected_eagler_entry = detect_eagler_entry(
-                detected_entry.index_url,
-                detected_entry.index_html,
-            )
-            log(f"Resolved Eagler runtime URL: {detected_eagler_entry.classes_url}")
-            log(f"Resolved Eagler assets URL: {detected_eagler_entry.assets_url}")
-            if detected_eagler_entry.locales_url:
-                log(f"Resolved Eagler locales URL: {detected_eagler_entry.locales_url}")
+            try:
+                detected_eagler_entry = detect_eagler_entry(
+                    detected_entry.index_url,
+                    detected_entry.index_html,
+                )
+            except FetchError as exc:
+                if looks_like_inline_eagler_payload_html(detected_entry.index_html):
+                    entry_kind = "html"
+                    detected_html_entry = DetectedEntry(
+                        entry_kind="html",
+                        index_url=detected_entry.index_url,
+                        index_html=detected_entry.index_html,
+                        source_page_url=detected_entry.source_page_url or detected_entry.index_url,
+                    )
+                    log(f"Falling back to HTML wrapper export for inline Eagler payload: {exc}")
+                    log(f"Resolved HTML entry URL: {detected_html_entry.index_url}")
+                else:
+                    raise
+            else:
+                log(f"Resolved Eagler runtime URL: {detected_eagler_entry.classes_url}")
+                log(f"Resolved Eagler assets URL: {detected_eagler_entry.assets_url}")
+                if detected_eagler_entry.locales_url:
+                    log(f"Resolved Eagler locales URL: {detected_eagler_entry.locales_url}")
         elif entry_kind == "remote_stream":
             detected_remote_entry = detected_entry
             log(f"Resolved remote stream URL: {detected_remote_entry.metadata.get('remote_url', detected_remote_entry.index_url)}")

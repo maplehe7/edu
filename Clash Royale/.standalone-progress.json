@@ -1,38 +1,52 @@
 {
-  "candidate_urls": {
-    "loader": [
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.loader.js"
+  "mode": "entry_auto",
+  "entry_kind": "html",
+  "root_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale/",
+  "input_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale",
+  "resolved_entry_url": "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/21.xml",
+  "title": "Unity WebGL Player | 99Days",
+  "completed": true,
+  "summary": {
+    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale",
+    "index_html": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\index.html",
+    "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\game-root.html",
+    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\required-functions.json",
+    "mode": "entry_auto",
+    "entry_kind": "html",
+    "title": "Unity WebGL Player | 99Days",
+    "input_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale",
+    "root_url": "https://sites.google.com/view/glafx2kd9qhhkprpxgmjqligaqp19s/games/all-games-click-me/clash-royale/",
+    "resolved_entry_url": "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/21.xml",
+    "html_source_mode": "absolutized_embed_root",
+    "launcher": "ocean-launcher",
+    "support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
     ],
-    "framework": [
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.framework.js",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.framework.js.unityweb",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.framework.js.gz",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.framework.js.br"
-    ],
-    "data": [
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.data",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.data.unityweb",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.data.gz",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.data.br"
-    ],
-    "wasm": [
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.wasm",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.wasm.unityweb",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.wasm.gz",
-      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.wasm.br"
-    ]
-  },
-  "assets": {
-    "loader": {
-      "filename": "Build.loader.js",
-      "url": "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.loader.js",
-      "size": 20642
+    "embedded_ad_blocks_removed": {
+      "style_blocks": 1,
+      "script_blocks": 1,
+      "iframe_blocks": 1,
+      "mask_blocks": 1,
+      "container_blocks": 1,
+      "comment_blocks": 0
     },
-    "framework": {
-      "filename": "Build.framework.js",
-      "url": "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/Build/Build.framework.js",
-      "size": 435131
-    }
-  },
-  "completed": false
+    "nonessential_markup_removed": {
+      "canonical_links": 0
+    },
+    "html_runtime_mirror": {},
+    "source_external_script_urls": [],
+    "source_external_stylesheet_urls": [
+      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/style.css"
+    ],
+    "source_external_frame_urls": [],
+    "source_external_other_urls": [],
+    "external_script_urls": [],
+    "external_stylesheet_urls": [
+      "https://cdn.jsdelivr.net/gh/centerclassroom/ola@main/style.css"
+    ],
+    "external_frame_urls": [],
+    "external_other_urls": [],
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Clash Royale\\.standalone-progress.json"
+  }
 }

@@ -71,7 +71,7 @@
     "source_url_spoof_enabled": true,
     "original_folder_url": "",
     "streaming_assets_url": "https://bitlifeonline.github.io/ragdoll-archers/StreamingAssets",
-    "asset_cache_buster": "77ac7e527e0b",
+    "asset_cache_buster": "2ef2b05806a9",
     "gmsoft_like_build": false,
     "page_config_keys": [
       "companyName",
@@ -80,6 +80,12 @@
       "streamingAssetsUrl"
     ],
     "auxiliary_asset_rewrites": {},
+    "support_script_files": [
+      "support/gameloader-helper.js"
+    ],
+    "support_script_urls": [
+      "https://bitlifeonline.github.io/vs/gameloader-helper.js"
+    ],
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Ragdoll Archers\\.standalone-progress.json"
   }
 }
