@@ -5,10 +5,10 @@
   "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\OvO\\required-functions.json",
   "mode": "entry_auto",
   "entry_kind": "html",
-  "title": "OvO \u2013 Play Online at Coolmath Games",
-  "input_url": "https://www.coolmathgames.com/0-ovo",
-  "root_url": "https://www.coolmathgames.com/0-ovo/",
-  "resolved_entry_url": "https://www.coolmathgames.com/0-ovo",
+  "title": "OvO Game: Free Online Stickman Speedrun Platformer Video Game for Kids",
+  "input_url": "https://www.mortgagecalculator.org/money-games/ovo/",
+  "root_url": "https://www.mortgagecalculator.org/money-games/ovo/",
+  "resolved_entry_url": "https://www.mortgagecalculator.org/money-games/ovo/",
   "html_source_mode": "absolutized_embed_root",
   "launcher": "ocean-launcher",
   "support_files": [
@@ -21,20 +21,27 @@
     "iframe_blocks": 0,
     "mask_blocks": 0,
     "container_blocks": 0,
-    "comment_blocks": 6
+    "comment_blocks": 0
   },
   "external_script_urls": [
-    "https://www.coolmathgames.com/sites/default/files/js/js_RbOO6_M5nlwNZGpiYEsTVCwgNSIGE4mo-xokzXSsSRs.js?scope=footer&delta=0&language=en&theme=coolmath&include=eJx1kGFuwzAIhS8UN0eKCGYpKjEe4EXp6edU2lJp2R9jPt57splNNydDAfdxEZ1B0vzGBlwhFlhpguwTFJA9GH3EdUmx453-E2TyR2hNv-QUohqNxy2hljCVxMXDGgZrudR9wJcaB13OmoijEZWraTet6bNRo8tg4QelzH7UAVWlS-4_e-ipXMP_8tiFy_LGK55N0Uy3I_xEunWTcCY72VN1pTy8npKtVZBbNq1zi9AyCDz38TgG7z_YunUCIYuRC8c3jlSpzA"
+    "https://www.mortgagecalculator.org/money-games/ovo/jquery-3.4.1.min.js",
+    "https://www.mortgagecalculator.org/money-games/ovo/GameAnalytics.js",
+    "https://www.mortgagecalculator.org/money-games/ovo/Tween.js",
+    "https://www.mortgagecalculator.org/money-games/ovo/html2canvas.min.js",
+    "https://www.mortgagecalculator.org/money-games/ovo/jquery.gritter.js",
+    "https://www.mortgagecalculator.org/money-games/ovo/howler.js",
+    "https://www.mortgagecalculator.org/money-games/ovo/c2runtime.js",
+    "https://static.getclicky.com/js"
   ],
   "external_stylesheet_urls": [
-    "https://www.coolmathgames.com/sites/default/files/css/css_N_gzpfBrSvEzWFD9eoWCGSovU1B2ypnrJKcORWsJeHc.css?delta=0&language=en&theme=coolmath&include=eJxVjesKgzAMRl-otY80YhM0kDYuiXTu6ecQNvx5Dt-lqkqDWMsiOoNkj0O4L6n-vDHeKS_Q6K-6Ik13peMcEkay0xkVtH0DmdB0m_cI7em587t8v8iTAfLrguQcNM7iA4QsCneOdMUGR13JCh4dGtdc3ZMfHtTKDE4fXytNwA",
-    "https://www.coolmathgames.com/sites/default/files/css/css_i9GiO7-gmsCG-U-aW3mypYxlinPtzhmoMUpSn9qhMqc.css?delta=1&language=en&theme=coolmath&include=eJxVjesKgzAMRl-otY80YhM0kDYuiXTu6ecQNvx5Dt-lqkqDWMsiOoNkj0O4L6n-vDHeKS_Q6K-6Ik13peMcEkay0xkVtH0DmdB0m_cI7em587t8v8iTAfLrguQcNM7iA4QsCneOdMUGR13JCh4dGtdc3ZMfHtTKDE4fXytNwA",
-    "https://www.coolmathgames.com/themes/custom/coolmath/assets/themes/css/_coolmath_default.css?tad9rg"
+    "https://www.mortgagecalculator.org/money-games/ovo/animate.css",
+    "https://www.mortgagecalculator.org/money-games/ovo/hmmg_layoutTransition.css",
+    "https://www.mortgagecalculator.org/money-games/ovo/jquery.gritter.css"
   ],
-  "external_frame_urls": [
-    "https://www.coolmathgames.com/0-ovo/play",
-    "https://www.googletagmanager.com/ns.html?id=GTM-WKRSNN8"
+  "external_frame_urls": [],
+  "external_other_urls": [
+    "https://www.mortgagecalculator.org/money-games/ovo/appmanifest.json",
+    "https://www.mortgagecalculator.org/money-games/ovo/icon-256.png"
   ],
-  "external_other_urls": [],
   "progress_file": "C:\\Users\\hello\\Downloads\\edu\\OvO\\.standalone-progress.json"
 }
