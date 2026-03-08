@@ -270,6 +270,78 @@ def patch_gmsoft_host_bridge(framework_path: Path) -> bool:
     return True
 
 
+def patch_gmsoft_sendmessage_defaults(framework_path: Path) -> bool:
+    if not framework_path.exists():
+        return False
+
+    try:
+        original_raw = framework_path.read_bytes()
+    except OSError:
+        return False
+
+    decoded_bytes = maybe_decompress_bytes(original_raw, framework_path)
+    try:
+        decoded_text = decoded_bytes.decode("utf-8", errors="ignore")
+    except UnicodeDecodeError:
+        return False
+
+    if "__unityStandaloneGmSoftParamErr" in decoded_text:
+        return False
+
+    prefix_pattern = re.compile(
+        r"""function (?P<fn>[_$A-Za-z0-9]+)\((?P<obj>[_$A-Za-z0-9]+),(?P<method>[_$A-Za-z0-9]+),(?P<arg>[_$A-Za-z0-9]+)\)\{"""
+        r"""var (?P<methodptr>[_$A-Za-z0-9]+)=(?P<alloc>[_$A-Za-z0-9]+)\((?P=method)\),(?P<objptr>[_$A-Za-z0-9]+)=(?P=alloc)\((?P=obj)\),(?P<ptr>[_$A-Za-z0-9]+)=0x0;try\{"""
+    )
+    match = prefix_pattern.search(decoded_text)
+    if not match:
+        return False
+
+    start = match.start()
+    end = match.end()
+    window_check = decoded_text[end : end + 1500]
+    if "===undefined" not in window_check:
+        return False
+
+    obj_name = match.group("obj")
+    method_name = match.group("method")
+    arg_name = match.group("arg")
+    injected = (
+        match.group(0)
+        + "if("
+        + arg_name
+        + "===undefined){"
+        + "if("
+        + obj_name
+        + "==='GmSoft'&&"
+        + method_name
+        + "==='SetParam'){"
+        + "try{"
+        + arg_name
+        + "=JSON.stringify(window.GMSOFT_OPTIONS||window.config||{});"
+        + "}catch(__unityStandaloneGmSoftParamErr){"
+        + arg_name
+        + "='{}';}"
+        + "}else if("
+        + obj_name
+        + "==='GmSoft'&&"
+        + method_name
+        + "==='SetUnityHostName'){"
+        + arg_name
+        + "=(window.__unityStandaloneSourceHost||document['\\x6c\\x6f\\x63\\x61\\x74\\x69\\x6f\\x6e']['\\x68\\x6f\\x73\\x74\\x6e\\x61\\x6d\\x65']||'');"
+        + "}"
+        + "}"
+    )
+    patched_text = decoded_text[:start] + injected + decoded_text[end:]
+
+    try:
+        framework_path.write_bytes(
+            encode_bytes_like_source(patched_text.encode("utf-8"), original_raw, framework_path)
+        )
+    except (OSError, RuntimeError):
+        return False
+    return True
+
+
 def patch_sendmessage_value_compat(framework_path: Path) -> bool:
     if not framework_path.exists():
         return False
@@ -7353,10 +7425,12 @@ def main(argv: Sequence[str]) -> int:
         if assets.build_kind == "legacy_json":
             assets.legacy_asset_names["wasmFrameworkUrl"] = patched_framework_path.name
     gmsoft_host_bridge_patched = False
+    gmsoft_sendmessage_defaults_patched = False
     sendmessage_value_compat_patched = False
     if assets.framework_name:
         framework_path = build_dir / assets.framework_name
         gmsoft_host_bridge_patched = patch_gmsoft_host_bridge(framework_path)
+        gmsoft_sendmessage_defaults_patched = patch_gmsoft_sendmessage_defaults(framework_path)
         sendmessage_value_compat_patched = patch_sendmessage_value_compat(framework_path)
     analysis_target = (
         build_dir / assets.framework_name
@@ -7478,6 +7552,7 @@ def main(argv: Sequence[str]) -> int:
         "used_compressed_assets": assets.used_br_assets,
         "site_lock_framework_patched": site_lock_framework_patched,
         "gmsoft_host_bridge_patched": gmsoft_host_bridge_patched,
+        "gmsoft_sendmessage_defaults_patched": gmsoft_sendmessage_defaults_patched,
         "sendmessage_value_compat_patched": sendmessage_value_compat_patched,
         "build_kind": build_kind,
         "mode": "direct_urls" if direct_mode else "entry_auto",

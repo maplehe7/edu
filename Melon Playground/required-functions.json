@@ -1,9 +1,11 @@
 {
   "count": 0,
   "functions": [],
-  "window_root_count": 1,
+  "window_root_count": 3,
   "window_roots": [
-    "__unityStandaloneSourceHost"
+    "GMSOFT_OPTIONS",
+    "__unityStandaloneSourceHost",
+    "config"
   ],
   "window_callable_chain_count": 0,
   "window_callable_chains": []
