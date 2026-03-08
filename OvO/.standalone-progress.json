@@ -31,7 +31,43 @@
       "container_blocks": 0,
       "comment_blocks": 0
     },
-    "external_script_urls": [
+    "html_runtime_mirror": {
+      "mode": "construct2_local_mirror",
+      "source_root_url": "https://www.mortgagecalculator.org/money-games/ovo/",
+      "offline_manifest_url": "https://www.mortgagecalculator.org/money-games/ovo/offline.js",
+      "offline_manifest_file_count": 305,
+      "appmanifest_url": "https://www.mortgagecalculator.org/money-games/ovo/appmanifest.json",
+      "manifest_icon_count": 5,
+      "mirrored_file_count": 308,
+      "mirrored_files_sample": [
+        "jquery-3.4.1.min.js",
+        "GameAnalytics.js",
+        "Tween.js",
+        "html2canvas.min.js",
+        "jquery.gritter.js",
+        "howler.js",
+        "c2runtime.js",
+        "animate.css",
+        "hmmg_layoutTransition.css",
+        "jquery.gritter.css",
+        "appmanifest.json",
+        "icon-256.png",
+        "data.js",
+        "offlineClient.js",
+        "sw.js",
+        "offline.js",
+        "images/body-sheet0.png",
+        "images/head-sheet0.png",
+        "images/leftarm-sheet0.png",
+        "images/collider-sheet0.png",
+        "images/collider-sheet1.png",
+        "images/jumpboost-sheet0.png",
+        "images/endflag-sheet0.png",
+        "images/jumpthrough.png",
+        "images/spritefontdeluxe.png"
+      ]
+    },
+    "source_external_script_urls": [
       "https://www.mortgagecalculator.org/money-games/ovo/jquery-3.4.1.min.js",
       "https://www.mortgagecalculator.org/money-games/ovo/GameAnalytics.js",
       "https://www.mortgagecalculator.org/money-games/ovo/Tween.js",
@@ -41,15 +77,35 @@
       "https://www.mortgagecalculator.org/money-games/ovo/c2runtime.js",
       "https://static.getclicky.com/js"
     ],
-    "external_stylesheet_urls": [
+    "source_external_stylesheet_urls": [
       "https://www.mortgagecalculator.org/money-games/ovo/animate.css",
       "https://www.mortgagecalculator.org/money-games/ovo/hmmg_layoutTransition.css",
       "https://www.mortgagecalculator.org/money-games/ovo/jquery.gritter.css"
     ],
-    "external_frame_urls": [],
-    "external_other_urls": [
+    "source_external_frame_urls": [],
+    "source_external_other_urls": [
       "https://www.mortgagecalculator.org/money-games/ovo/appmanifest.json",
       "https://www.mortgagecalculator.org/money-games/ovo/icon-256.png"
+    ],
+    "external_script_urls": [
+      "./jquery-3.4.1.min.js",
+      "./GameAnalytics.js",
+      "./Tween.js",
+      "./html2canvas.min.js",
+      "./jquery.gritter.js",
+      "./howler.js",
+      "./c2runtime.js",
+      "https://static.getclicky.com/js"
+    ],
+    "external_stylesheet_urls": [
+      "./animate.css",
+      "./hmmg_layoutTransition.css",
+      "./jquery.gritter.css"
+    ],
+    "external_frame_urls": [],
+    "external_other_urls": [
+      "./appmanifest.json",
+      "./icon-256.png"
     ],
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\OvO\\.standalone-progress.json"
   }
