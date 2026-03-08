@@ -440,6 +440,8 @@
       const ENABLE_SOURCE_URL_SPOOF = true;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
+        "https://sdk.crazygames.com/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
+        "https://sdk.crazygames.com/crazygames-sdk-v3.js": "./vs/crazygames-sdk-v3.js",
       };
       const STORAGE_PREFIX = "__unity_standalone_ls__:";
       const LEGACY_STORAGE_PREFIX = "__pg_standalone_ls__:";
@@ -468,6 +470,13 @@
         }
         try {
           const parsed = new URL(value, LOCAL_PAGE_URL);
+          const fileName = (parsed.pathname.split("/").pop() || "").toLowerCase();
+          if (
+            parsed.hostname === "sdk.crazygames.com" &&
+            /^crazygames-sdk-v\d+\.js$/.test(fileName)
+          ) {
+            return "./vs/" + fileName + parsed.search + parsed.hash;
+          }
           const localPage = new URL(LOCAL_PAGE_URL);
           const sameFileOrigin =
             parsed.protocol === "file:" && localPage.protocol === "file:";
@@ -1610,7 +1619,7 @@
       const ENABLE_SOURCE_URL_SPOOF = true;
       const ORIGINAL_FOLDER_URL = "";
       const STREAMING_ASSETS_URL = "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/41/StreamingAssets";
-      const BUILD_CACHE_BUSTER = "6f203595e697";
+      const BUILD_CACHE_BUSTER = "054d4bdac972";
       const ENTRY_PAGE_CONFIG = {"streamingAssetsUrl": "StreamingAssets", "companyName": "Ericetto", "productName": "Ragdoll Archers", "productVersion": "0.1"};
       const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =

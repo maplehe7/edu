@@ -2900,7 +2900,15 @@ def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
         if match.group(2) == "(":
             window_callable_chains.add(chain)
 
-    requires_crazygames_sdk = "/vs/crazygames-sdk-v2.js" in raw_text
+    requires_crazygames_sdk = any(
+        token in raw_text
+        for token in (
+            "/vs/crazygames-sdk-v2.js",
+            "sdk.crazygames.com/crazygames-sdk-",
+            "window.CrazyGames.SDK",
+            "CrazyGames.SDK.",
+        )
+    )
 
     return FrameworkAnalysis(
         required_functions=sorted(filtered_functions),
@@ -3913,105 +3921,174 @@ def generate_crazygames_sdk_stub() -> str:
   var sdk = root.SDK = root.SDK || {};
   var ad = sdk.ad = sdk.ad || {};
   var banner = sdk.banner = sdk.banner || {};
+  var data = sdk.data = sdk.data || {};
+  var environment = sdk.environment = sdk.environment || {};
   var game = sdk.game = sdk.game || {};
   var user = sdk.user = sdk.user || {};
+  var storagePrefix = "__unity_standalone_crazygames__:";
+  var authListeners = [];
 
-  if (typeof sdk.addInitCallback !== "function") {
-    sdk.addInitCallback = function (callback) {
-      if (typeof callback === "function") {
-        callback({});
+  function resolved(value) {
+    return Promise.resolve(value);
+  }
+
+  function safeCall(callback) {
+    if (typeof callback !== "function") {
+      return;
+    }
+    try {
+      callback.apply(null, Array.prototype.slice.call(arguments, 1));
+    } catch (_err) {}
+  }
+
+  function readStorageValue(key) {
+    var normalized = String(key == null ? "" : key);
+    try {
+      var prefixed = window.localStorage.getItem(storagePrefix + normalized);
+      if (prefixed !== null) {
+        return prefixed;
       }
+      return window.localStorage.getItem(normalized);
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function writeStorageValue(key, value) {
+    var normalized = String(key == null ? "" : key);
+    var stringValue = String(value == null ? "" : value);
+    try {
+      window.localStorage.setItem(storagePrefix + normalized, stringValue);
+      window.localStorage.setItem(normalized, stringValue);
+    } catch (_err) {}
+    return stringValue;
+  }
+
+  function removeStorageValue(key) {
+    var normalized = String(key == null ? "" : key);
+    try {
+      window.localStorage.removeItem(storagePrefix + normalized);
+      window.localStorage.removeItem(normalized);
+    } catch (_err) {}
+  }
+
+  sdk.addInitCallback = function (callback) {
+    safeCall(callback, {});
+  };
+  sdk.init = function () {
+    return resolved({});
+  };
+  ad.hasAdblock = function (callback) {
+    safeCall(callback, null, false);
+    return resolved(false);
+  };
+  ad.requestAd = function (_adType, callbacks) {
+    callbacks = callbacks || {};
+    safeCall(callbacks.adStarted);
+    safeCall(callbacks.adFinished);
+    safeCall(callbacks.adComplete);
+    safeCall(callbacks.adDismissed);
+    return resolved("closed");
+  };
+  banner.requestOverlayBanners = function (_banners, callback) {
+    safeCall(callback, "", "bannerRendered", null);
+    return resolved("bannerRendered");
+  };
+  data.getItem = function (key) {
+    return readStorageValue(key);
+  };
+  data.setItem = function (key, value) {
+    return writeStorageValue(key, value);
+  };
+  data.removeItem = function (key) {
+    removeStorageValue(key);
+  };
+  data.clear = function () {
+    try {
+      Object.keys(window.localStorage).forEach(function (key) {
+        if (key.indexOf(storagePrefix) === 0) {
+          window.localStorage.removeItem(key);
+        }
+      });
+    } catch (_err) {}
+  };
+  data.syncUnityGameData = function () {
+    return resolved();
+  };
+  game.gameplayStart = function () {
+    return resolved();
+  };
+  game.gameplayStop = function () {
+    return resolved();
+  };
+  game.happytime = function () {
+    return resolved();
+  };
+  game.hideInviteButton = function () {
+    return resolved();
+  };
+  game.showInviteButton = function () {
+    return resolved();
+  };
+  game.inviteLink = function () {
+    return resolved("");
+  };
+  user.addAuthListener = function (callback) {
+    if (typeof callback === "function") {
+      authListeners.push(callback);
+    }
+    safeCall(callback, {});
+    return function () {};
+  };
+  user.addScore = function () {
+    return resolved();
+  };
+  user.getUser = function () {
+    return resolved({});
+  };
+  user.getUserToken = function () {
+    return resolved("");
+  };
+  user.getXsollaUserToken = function () {
+    return resolved("");
+  };
+  user.showAccountLinkPrompt = function () {
+    return resolved({});
+  };
+  user.showAuthPrompt = function () {
+    return resolved({});
+  };
+  if (typeof user.systemInfo !== "object" || !user.systemInfo) {
+    user.systemInfo = {
+      countryCode: "",
+      locale: navigator.language || "en-US",
+      os: navigator.platform || "",
+      browser: navigator.userAgent || "",
     };
   }
-  if (typeof ad.hasAdblock !== "function") {
-    ad.hasAdblock = function (callback) {
-      if (typeof callback === "function") {
-        callback(null, false);
-      }
-      return false;
-    };
+  if (typeof user.isUserAccountAvailable !== "boolean") {
+    user.isUserAccountAvailable = false;
   }
-  if (typeof ad.requestAd !== "function") {
-    ad.requestAd = function (_adType, callbacks) {
-      callbacks = callbacks || {};
-      if (typeof callbacks.adStarted === "function") {
-        callbacks.adStarted();
-      }
-      if (typeof callbacks.adFinished === "function") {
-        callbacks.adFinished();
-      }
-      return "closed";
-    };
+  if (typeof environment !== "object" || !environment) {
+    environment = sdk.environment = {};
   }
-  if (typeof banner.requestOverlayBanners !== "function") {
-    banner.requestOverlayBanners = function (_banners, callback) {
-      if (typeof callback === "function") {
-        callback("", "bannerRendered", null);
-      }
-      return "bannerRendered";
-    };
+  if (typeof environment.platform !== "string") {
+    environment.platform = "web";
   }
-  if (typeof game.gameplayStart !== "function") {
-    game.gameplayStart = function () {};
+  if (typeof environment.device !== "string") {
+    environment.device = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+      ? "mobile"
+      : "desktop";
   }
-  if (typeof game.gameplayStop !== "function") {
-    game.gameplayStop = function () {};
-  }
-  if (typeof game.happytime !== "function") {
-    game.happytime = function () {};
-  }
-  if (typeof user.addAuthListener !== "function") {
-    user.addAuthListener = function (callback) {
-      if (typeof callback === "function") {
-        callback({});
-      }
-    };
-  }
-  if (typeof user.addScore !== "function") {
-    user.addScore = function () {};
-  }
-  if (typeof user.getUser !== "function") {
-    user.getUser = function (callback) {
-      if (typeof callback === "function") {
-        callback(null, {});
-      }
-    };
-  }
-  if (typeof user.getUserToken !== "function") {
-    user.getUserToken = function (callback) {
-      if (typeof callback === "function") {
-        callback(null, "");
-      }
-      return "";
-    };
-  }
-  if (typeof user.getXsollaUserToken !== "function") {
-    user.getXsollaUserToken = function (callback) {
-      if (typeof callback === "function") {
-        callback(null, "");
-      }
-      return "";
-    };
-  }
-  if (typeof user.showAccountLinkPrompt !== "function") {
-    user.showAccountLinkPrompt = function (callback) {
-      if (typeof callback === "function") {
-        callback(null, {});
-      }
-    };
-  }
-  if (typeof user.showAuthPrompt !== "function") {
-    user.showAuthPrompt = function (callback) {
-      if (typeof callback === "function") {
-        callback(null, {});
-      }
-    };
-  }
+  sdk.isQaTool = function () {
+    return false;
+  };
 
   var legacyRoot = window.Crazygames = window.Crazygames || {};
   if (typeof legacyRoot.requestInviteUrl !== "function") {
     legacyRoot.requestInviteUrl = function () {};
   }
+  root.init = sdk.init;
 })();\n"""
 
 
@@ -4019,10 +4096,12 @@ def write_vendor_support_files(output_dir: Path, framework_analysis: FrameworkAn
     if framework_analysis.requires_crazygames_sdk:
         vendor_dir = output_dir / "vs"
         vendor_dir.mkdir(parents=True, exist_ok=True)
-        (vendor_dir / "crazygames-sdk-v2.js").write_text(
-            generate_crazygames_sdk_stub(),
-            encoding="utf-8",
-        )
+        stub = generate_crazygames_sdk_stub()
+        for file_name in (
+            "crazygames-sdk-v2.js",
+            "crazygames-sdk-v3.js",
+        ):
+            (vendor_dir / file_name).write_text(stub, encoding="utf-8")
 
 
 def compute_asset_cache_buster(build_dir: Path, assets: DownloadedAssets) -> str:
@@ -4533,6 +4612,8 @@ def generate_index_html(
       const ENABLE_SOURCE_URL_SPOOF = {enable_source_url_spoof_js};
       const SCRIPT_SRC_REDIRECTS = {{
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
+        "https://sdk.crazygames.com/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
+        "https://sdk.crazygames.com/crazygames-sdk-v3.js": "./vs/crazygames-sdk-v3.js",
       }};
       const STORAGE_PREFIX = "__unity_standalone_ls__:";
       const LEGACY_STORAGE_PREFIX = "__pg_standalone_ls__:";
@@ -4561,6 +4642,13 @@ def generate_index_html(
         }}
         try {{
           const parsed = new URL(value, LOCAL_PAGE_URL);
+          const fileName = (parsed.pathname.split("/").pop() || "").toLowerCase();
+          if (
+            parsed.hostname === "sdk.crazygames.com" &&
+            /^crazygames-sdk-v\\d+\\.js$/.test(fileName)
+          ) {{
+            return "./vs/" + fileName + parsed.search + parsed.hash;
+          }}
           const localPage = new URL(LOCAL_PAGE_URL);
           const sameFileOrigin =
             parsed.protocol === "file:" && localPage.protocol === "file:";
