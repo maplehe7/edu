@@ -972,6 +972,30 @@ def discover_gamecomets_entry_url(index_url: str) -> str:
     return ""
 
 
+def discover_eagler_entry_override_url(index_html: str, index_url: str) -> str:
+    parsed = urllib.parse.urlparse(index_url)
+    host = parsed.netloc.lower()
+    normalized_path = parsed.path.lower().rstrip("/")
+    lower_html = index_html.lower()
+
+    # This mirror strips singleplayer entirely; prefer a singleplayer-capable build.
+    if (
+        "singleplayer was removed dumbass" in lower_html
+        or (
+            host in {"raw.githubusercontent.com", "github.com"}
+            and "/vidio-boy/eaglercraft1.8.8/" in normalized_path
+            and normalized_path.endswith("/eaglercraft.1.8.8.html")
+        )
+    ):
+        return (
+            "https://raw.githubusercontent.com/"
+            "srzmnx/eaglerforge-compiled/main/"
+            "EaglercraftX_1.8_Offline_International.html"
+        )
+
+    return ""
+
+
 def extract_next_data_payload(index_html: str) -> dict[str, Any]:
     match = re.search(
         r"""<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)</script>""",
@@ -1187,6 +1211,12 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
         crazygames_entry_url = discover_crazygames_entry_url(index_html, index_url)
         if crazygames_entry_url:
             result = inspect_url(crazygames_entry_url, depth + 1, referer_url=index_url)
+            if result:
+                return result
+
+        eagler_override_entry_url = discover_eagler_entry_override_url(index_html, index_url)
+        if eagler_override_entry_url:
+            result = inspect_url(eagler_override_entry_url, depth + 1, referer_url=index_url)
             if result:
                 return result
 
@@ -3346,17 +3376,18 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
     )
     needs_mobile_autolaunch = "_eaglercraftX_mobile_launch_client" in patched
 
-    if needs_countdown_autostart and not needs_mobile_autolaunch:
+    if needs_countdown_autostart:
         patched, direct_start_count = re.subn(
             r"""launchInterval\s*=\s*setInterval\(\s*launchTick\s*,\s*50\s*\)\s*;""",
-            "launchCounter = 100; launchTick();",
+            "launchCounter = 100; launchInterval = setInterval(launchTick, 50);",
             patched,
             count=1,
             flags=re.IGNORECASE,
         )
         if direct_start_count:
             patch_counts["countdown_autostart_injected"] = 1
-            return patched, patch_counts
+            if not needs_mobile_autolaunch:
+                return patched, patch_counts
 
     if not needs_countdown_autostart and not needs_mobile_autolaunch:
         return patched, patch_counts
@@ -3364,8 +3395,8 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
     helper_script = """
 <script>
 (function () {
-  var assumeImplicitStart = __OCEAN_ASSUME_IMPLICIT_START__;
   var countdownHandled = false;
+  var mobileLaunchHandled = false;
 
   function removeCountdownNode() {
     var countdown = document.getElementById("launch_countdown_screen");
@@ -3376,22 +3407,35 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
     return true;
   }
 
+  function clickCountdownSkipButton() {
+    var skipButton = document.getElementById("skipCountdown");
+    if (!skipButton) {
+      return false;
+    }
+    try {
+      skipButton.click();
+    } catch (err) {
+      return false;
+    }
+    return true;
+  }
+
   function fastForwardCountdown() {
     if (countdownHandled) {
-      return;
+      return false;
+    }
+    if (clickCountdownSkipButton()) {
+      countdownHandled = true;
+      return true;
     }
     if (typeof window.launchTick === "function") {
       countdownHandled = true;
-      if (assumeImplicitStart) {
-        if (window.launchInterval) {
-          try {
-            clearInterval(window.launchInterval);
-          } catch (err) {
-          }
-          window.launchInterval = null;
+      if (window.launchInterval) {
+        try {
+          clearInterval(window.launchInterval);
+        } catch (err) {
         }
-        removeCountdownNode();
-        return;
+        window.launchInterval = null;
       }
       if (typeof window.launchCounter !== "number" || !isFinite(window.launchCounter)) {
         window.launchCounter = 100;
@@ -3399,27 +3443,29 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
         window.launchCounter = 100;
       }
       removeCountdownNode();
-      return;
-    }
-    if (!window.__oceanEaglerMainStarted && typeof window.main === "function") {
-      countdownHandled = true;
-      var countdown = document.getElementById("launch_countdown_screen");
-      if (countdown && countdown.parentNode) {
-        countdown.parentNode.removeChild(countdown);
+      try {
+        window.launchTick();
+      } catch (err) {
       }
-      window.__oceanEaglerMainStarted = true;
-      window.main();
+      return true;
     }
+    return false;
   }
 
   function clickMobileLaunchButton() {
+    if (mobileLaunchHandled) {
+      return false;
+    }
     var button = document.querySelector("._eaglercraftX_mobile_launch_client");
     if (!button) {
       return false;
     }
+    mobileLaunchHandled = true;
     try {
       button.click();
     } catch (err) {
+      mobileLaunchHandled = false;
+      return false;
     }
     var popup = button.closest ? button.closest("div") : button.parentNode;
     if (popup && popup.parentNode && popup !== document.body) {
@@ -3432,8 +3478,11 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
     if (window.eaglercraftXOpts && typeof window.eaglercraftXOpts === "object") {
       window.eaglercraftXOpts.useVisualViewport = false;
     }
-    clickMobileLaunchButton();
-    fastForwardCountdown();
+    var touchedMobile = clickMobileLaunchButton();
+    var touchedCountdown = fastForwardCountdown();
+    if (touchedMobile || touchedCountdown) {
+      window.setTimeout(fastForwardCountdown, 0);
+    }
   }
 
   if (document.readyState === "complete" || document.readyState === "interactive") {
@@ -3446,8 +3495,9 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
 
   if (typeof MutationObserver === "function") {
     var observer = new MutationObserver(function () {
-      var touched = clickMobileLaunchButton();
-      if (touched) {
+      var touchedMobile = clickMobileLaunchButton();
+      var touchedCountdown = fastForwardCountdown();
+      if (touchedMobile || touchedCountdown) {
         window.setTimeout(fastForwardCountdown, 0);
       }
     });
@@ -3458,10 +3508,7 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
   }
 })();
 </script>
-""".replace(
-        "__OCEAN_ASSUME_IMPLICIT_START__",
-        "true" if needs_mobile_autolaunch else "false",
-    ).strip()
+""".strip()
 
     lower_patched = patched.lower()
     body_close_index = lower_patched.rfind("</body>")
@@ -3473,6 +3520,7 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
             patched = patched[:html_close_index] + helper_script + "\n" + patched[html_close_index:]
         else:
             patched += "\n" + helper_script
+    patched = re.sub(r"<<\s*script\b", "<script", patched, flags=re.IGNORECASE)
 
     if needs_countdown_autostart:
         patch_counts["countdown_autostart_injected"] = 1

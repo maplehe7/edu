@@ -3,7 +3,7 @@
   "entry_kind": "html",
   "root_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/",
   "input_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/eaglercraft.1.8.8.html",
-  "resolved_entry_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/eaglercraft.1.8.8.html",
+  "resolved_entry_url": "https://raw.githubusercontent.com/srzmnx/eaglerforge-compiled/main/EaglercraftX_1.8_Offline_International.html",
   "title": "EaglercraftX 1.8",
   "completed": true,
   "summary": {
@@ -16,7 +16,7 @@
     "title": "EaglercraftX 1.8",
     "input_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/eaglercraft.1.8.8.html",
     "root_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/",
-    "resolved_entry_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/eaglercraft.1.8.8.html",
+    "resolved_entry_url": "https://raw.githubusercontent.com/srzmnx/eaglerforge-compiled/main/EaglercraftX_1.8_Offline_International.html",
     "html_source_mode": "absolutized_embed_root",
     "launcher": "ocean-launcher",
     "support_files": [
