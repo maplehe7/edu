@@ -3352,7 +3352,44 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
         "countdown_autostart_injected": 0,
         "mobile_autolaunch_injected": 0,
         "device_pixel_ratio_guarded": 0,
+        "modapi_bridge_injected": 0,
     }
+
+    modapi_bridge_script = """
+<script>
+(function (root) {
+  root = root || (typeof globalThis !== "undefined" ? globalThis : null);
+  if (!root || root.__oceanEaglerModApiBridgeInstalled) {
+    return;
+  }
+  root.__oceanEaglerModApiBridgeInstalled = true;
+  if (typeof root.ModAPI !== "object" || !root.ModAPI) {
+    root.ModAPI = {};
+  }
+  if (typeof root.initAPI !== "function") {
+    root.initAPI = function () {
+      if (typeof root.ModAPI !== "object" || !root.ModAPI) {
+        root.ModAPI = {};
+      }
+      return root.ModAPI;
+    };
+  }
+})(typeof window !== "undefined" ? window : (typeof globalThis !== "undefined" ? globalThis : null));
+</script>
+""".strip()
+
+    if "__oceanEaglerModApiBridgeInstalled" not in patched:
+        lower_patched = patched.lower()
+        first_script_index = lower_patched.find("<script")
+        if first_script_index != -1:
+            patched = patched[:first_script_index] + modapi_bridge_script + "\n" + patched[first_script_index:]
+        else:
+            head_close_index = lower_patched.find("</head>")
+            if head_close_index != -1:
+                patched = patched[:head_close_index] + modapi_bridge_script + "\n" + patched[head_close_index:]
+            else:
+                patched = modapi_bridge_script + "\n" + patched
+        patch_counts["modapi_bridge_injected"] = 1
 
     patched, guarded_count = re.subn(
         r"""document\.getElementById\((['"])launch_countdown_screen\1\)\.remove\(\);\s*main\(\);""",
@@ -8577,6 +8614,26 @@ def generate_eagler_runtime_html(
     bootstrap_script_js = json.dumps(bootstrap_script, ensure_ascii=False)
     assets_path_js = json.dumps(f"./{assets_filename}", ensure_ascii=False)
     locales_url_js = json.dumps(locales_url, ensure_ascii=False)
+    modapi_bridge_script = """<script type="text/javascript">
+(function (root) {
+  root = root || (typeof globalThis !== "undefined" ? globalThis : null);
+  if (!root || root.__oceanEaglerModApiBridgeInstalled) {
+    return;
+  }
+  root.__oceanEaglerModApiBridgeInstalled = true;
+  if (typeof root.ModAPI !== "object" || !root.ModAPI) {
+    root.ModAPI = {};
+  }
+  if (typeof root.initAPI !== "function") {
+    root.initAPI = function () {
+      if (typeof root.ModAPI !== "object" || !root.ModAPI) {
+        root.ModAPI = {};
+      }
+      return root.ModAPI;
+    };
+  }
+})(typeof window !== "undefined" ? window : (typeof globalThis !== "undefined" ? globalThis : null));
+</script>"""
     mobile_script_tag = (
         f'<script type="text/javascript" src="./{html.escape(mobile_script_filename)}"></script>\n'
         if mobile_script_filename
@@ -8613,6 +8670,7 @@ html, body {{
 </head>
 <body>
 <div id="game_frame"></div>
+{modapi_bridge_script}
 {mobile_script_tag}{entry_script_tags}
 <script type="text/javascript">
 "use strict";

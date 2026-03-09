@@ -32,7 +32,8 @@
     "countdown_guarded": 1,
     "countdown_autostart_injected": 1,
     "mobile_autolaunch_injected": 1,
-    "device_pixel_ratio_guarded": 0
+    "device_pixel_ratio_guarded": 0,
+    "modapi_bridge_injected": 1
   },
   "eagler_mobile_option_enabled": true,
   "eagler_mobile_script_file": "eaglermobile.user.js",

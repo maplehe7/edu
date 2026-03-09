@@ -421,7 +421,7 @@
   }
 
   function resolveVariantPromptMessage(launchMode) {
-    return "Choose your controls for this launch.";
+    return "Desktop or Mobile?";
   }
 
   function resolveActiveEmbedUrl() {
@@ -1131,7 +1131,9 @@
     }
     const selectedLabel = labelForLaunchMode(mode);
     return showDecisionDialog({
-      title: "Launch option",
+      title:
+        (recommendedLaunchMode === "fullscreen" ? "Fullscreen" : "Launch here") +
+        " is recommended for this game!",
       body: "Are you sure you want to " + selectedLabel.toLowerCase() + "?",
       buttons: [
         { label: "Confirm", value: mode, primary: true },
@@ -1148,11 +1150,11 @@
     const normalizedLaunchMode =
       launchMode === "fullscreen" || launchMode === "frame" ? launchMode : "frame";
     return showDecisionDialog({
-      title: "Choose controls",
+      title: "What controls do you prefer?",
       body: resolveVariantPromptMessage(normalizedLaunchMode),
       buttons: [
-        { label: resolveEmbedVariantLabel("primary"), value: "primary", primary: true },
-        { label: resolveEmbedVariantLabel("alt"), value: "alt" },
+        { label: resolveEmbedVariantLabel("alt"), value: "alt", primary: true },
+        { label: resolveEmbedVariantLabel("primary"), value: "primary" },
         { label: "Go Back", value: "" },
       ],
       cancelValue: "",
