@@ -71,9 +71,11 @@
     "source_url_spoof_enabled": true,
     "original_folder_url": "",
     "streaming_assets_url": "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/41/StreamingAssets",
-    "asset_cache_buster": "fa0dfe100a5a",
+    "asset_cache_buster": "72011be8caac",
+    "embed_cache_buster": "e23de5aeaed1",
     "launch_options": "both",
     "recommended_launch_mode": "none",
+    "launcher": "ocean-launcher",
     "gmsoft_like_build": false,
     "page_config_keys": [
       "companyName",
@@ -82,6 +84,14 @@
       "streamingAssetsUrl"
     ],
     "auxiliary_asset_rewrites": {},
+    "launcher_support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
+    "support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
     "support_script_files": [],
     "support_script_urls": [],
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Ragdoll Archers\\.standalone-progress.json"

@@ -17,6 +17,7 @@
   "summary": {
     "output_dir": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest",
     "index_html": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest\\index.html",
+    "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest\\game-root.html",
     "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest\\required-functions.json",
     "loader": "loader.js",
     "framework": "work.js",
@@ -39,7 +40,7 @@
     "source_url_spoof_enabled": false,
     "original_folder_url": "https://cdn.jsdelivr.net/gh/geadfut/convert@ffb792062bc34eb0ff245a32612d038194f949af/lib",
     "streaming_assets_url": "https://cdn.jsdelivr.net",
-    "asset_cache_buster": "bb338032e4e2",
+    "asset_cache_buster": "89c3adfa25ed",
     "launch_options": "both",
     "recommended_launch_mode": "fullscreen",
     "gmsoft_like_build": false,

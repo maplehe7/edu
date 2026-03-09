@@ -21,12 +21,22 @@
   "source_url_spoof_enabled": true,
   "original_folder_url": "",
   "streaming_assets_url": "",
-  "asset_cache_buster": "cbd336c73c0a",
+  "asset_cache_buster": "cba64dce29cd",
+  "embed_cache_buster": "16e715322d4c",
   "launch_options": "both",
   "recommended_launch_mode": "none",
+  "launcher": "ocean-launcher",
   "gmsoft_like_build": false,
   "page_config_keys": [],
   "auxiliary_asset_rewrites": {},
+  "launcher_support_files": [
+    "ocean-launcher.css",
+    "ocean-launcher.js"
+  ],
+  "support_files": [
+    "ocean-launcher.css",
+    "ocean-launcher.js"
+  ],
   "support_script_files": [],
   "support_script_urls": [],
   "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\.standalone-progress.json"

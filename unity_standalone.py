@@ -1352,7 +1352,7 @@ def discover_gamecomets_entry_url(index_url: str) -> str:
 
     path = parsed.path.rstrip("/").lower()
     if path in {"/game/geometry-dash-lite", "/games/geometry-dash-lite"}:
-        return "https://geometrydashlite.io/geometry-dash-game/"
+        return "https://sites.google.com/view/drive-u-7-home-10/new-games/gd-lite"
 
     return ""
 
@@ -4633,6 +4633,7 @@ def generate_index_html(
     auxiliary_asset_rewrites: dict[str, str] | None = None,
     allowed_launch_modes: str = "both",
     recommended_launch_mode: str = "none",
+    embedded_mode: bool = False,
 ) -> str:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
         allowed_launch_modes,
@@ -4656,10 +4657,12 @@ def generate_index_html(
     page_config_js = json.dumps(page_config or {}, ensure_ascii=False)
     allowed_launch_modes_js = json.dumps(allowed_launch_modes, ensure_ascii=False)
     recommended_launch_mode_js = json.dumps(recommended_launch_mode, ensure_ascii=False)
+    embedded_mode_js = "true" if embedded_mode else "false"
     auxiliary_asset_rewrites_js = json.dumps(
         auxiliary_asset_rewrites or {},
         ensure_ascii=False,
     )
+    launch_panel_initial_style = ' style="display:none"' if embedded_mode else ""
     support_script_tags = "\n".join(
         f'  <script src="./{html.escape(filename)}"></script>'
         for filename in support_script_filenames
@@ -5085,7 +5088,7 @@ def generate_index_html(
           <h1 id="loadingTitle">Ocean</h1>
           <div id="loadingSubtitle">LAUNCHER</div>
         </div>
-        <div id="launchPanel">
+        <div id="launchPanel"{launch_panel_initial_style}>
           <div id="launchMenu">
             <button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
             <button id="launchFullscreenBtn" class="launchOption" type="button">LAUNCH FULLSCREEN</button>
@@ -6350,6 +6353,7 @@ def generate_index_html(
       }})();
       const ALLOWED_LAUNCH_MODES = {allowed_launch_modes_js};
       const RECOMMENDED_LAUNCH_MODE = {recommended_launch_mode_js};
+      const EMBEDDED_MODE = {embedded_mode_js};
       const launchFrameLabel = "LAUNCH HERE";
       const launchFullscreenLabel = "LAUNCH FULLSCREEN";
 
@@ -6404,11 +6408,13 @@ def generate_index_html(
       const frameLaunchAllowed = allowedLaunchModes !== "fullscreen";
       const fullscreenLaunchAllowed = allowedLaunchModes !== "frame";
       const initialStatusText =
-        allowedLaunchModes === "frame"
-          ? "Frame launch selected by builder"
-          : allowedLaunchModes === "fullscreen"
-            ? "Fullscreen launch selected by builder"
-            : "Awaiting launch-mode selection";
+        EMBEDDED_MODE
+          ? "Preparing Unity runtime"
+          : allowedLaunchModes === "frame"
+            ? "Frame launch selected by builder"
+            : allowedLaunchModes === "fullscreen"
+              ? "Fullscreen launch selected by builder"
+              : "Awaiting launch-mode selection";
       const isEmbeddedFrame = (function () {{
         try {{
           return Boolean(window.top && window.top !== window);
@@ -7362,11 +7368,16 @@ def generate_index_html(
           loadingScreen.classList.remove("is-loading");
         }}
         if (launchPanel) {{
-          launchPanel.style.display = "";
-          launchPanel.classList.remove("is-hidden");
+          if (EMBEDDED_MODE) {{
+            launchPanel.style.display = "none";
+            launchPanel.classList.remove("is-hidden");
+          }} else {{
+            launchPanel.style.display = "";
+            launchPanel.classList.remove("is-hidden");
+          }}
         }}
         releaseLegacyConfigUrl();
-        setProgressVisibility(false);
+        setProgressVisibility(EMBEDDED_MODE);
         setProgress(0);
         setLoadState("idle");
         setStatus(initialStatusText);
@@ -8142,7 +8153,7 @@ def generate_index_html(
         }});
       }}
 
-      setProgressVisibility(false);
+      setProgressVisibility(EMBEDDED_MODE);
       setProgress(0);
       setLoadState("idle");
       logLoaderStep("Shell initialized");
@@ -8168,7 +8179,7 @@ def generate_index_html(
         window.setTimeout(warmUnityBuild, 240);
       }}
 
-      if (consumeAutoStartFlag()) {{
+      if (EMBEDDED_MODE || consumeAutoStartFlag()) {{
         startGame();
       }}
     }})();
@@ -9137,7 +9148,9 @@ def export_custom_split_unity_entry(
     )
     asset_cache_buster = compute_asset_cache_buster(build_dir, assets)
     product_name = title
-    index_content = generate_index_html(
+    launcher_support_files = copy_eagler_support_files(output_dir)
+    embedded_entry_name = "game-root.html"
+    embedded_entry_content = generate_index_html(
         product_name,
         assets,
         required_functions,
@@ -9153,10 +9166,21 @@ def export_custom_split_unity_entry(
         auxiliary_asset_rewrites=auxiliary_asset_rewrites,
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
+        embedded_mode=True,
     )
-    validate_required_function_coverage(index_content, required_functions)
-    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
+    validate_required_function_coverage(embedded_entry_content, required_functions)
+    (output_dir / embedded_entry_name).write_text(embedded_entry_content, encoding="utf-8")
     write_vendor_support_files(output_dir, framework_analysis)
+    embed_cache_buster = compute_output_file_cache_buster(output_dir, [embedded_entry_name])
+    index_content = generate_html_launcher_index_html(
+        title=product_name,
+        embed_filename=embedded_entry_name,
+        allowed_launch_modes=allowed_launch_modes,
+        recommended_launch_mode=recommended_launch_mode,
+        launcher_cache_buster=compute_launcher_support_cache_buster(output_dir),
+        embed_cache_buster=embed_cache_buster,
+    )
+    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
     (output_dir / "required-functions.json").write_text(
         json.dumps(
             {
@@ -9175,6 +9199,7 @@ def export_custom_split_unity_entry(
     summary = {
         "output_dir": str(output_dir),
         "index_html": str(output_dir / "index.html"),
+        "embedded_entry_html": str(output_dir / embedded_entry_name),
         "required_functions_file": str(output_dir / "required-functions.json"),
         "loader": assets.loader_name,
         "framework": assets.framework_name,
@@ -10177,7 +10202,9 @@ def main(argv: Sequence[str]) -> int:
         if (not direct_mode and detected_build is not None)
         else slugify_name(output_dir.name)
     )
-    index_content = generate_index_html(
+    launcher_support_files = copy_eagler_support_files(output_dir)
+    embedded_entry_name = "game-root.html"
+    embedded_entry_content = generate_index_html(
         product_name,
         assets,
         required_functions,
@@ -10193,10 +10220,21 @@ def main(argv: Sequence[str]) -> int:
         auxiliary_asset_rewrites=auxiliary_asset_rewrites,
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
+        embedded_mode=True,
     )
-    validate_required_function_coverage(index_content, required_functions)
-    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
+    validate_required_function_coverage(embedded_entry_content, required_functions)
+    (output_dir / embedded_entry_name).write_text(embedded_entry_content, encoding="utf-8")
     write_vendor_support_files(output_dir, framework_analysis)
+    embed_cache_buster = compute_output_file_cache_buster(output_dir, [embedded_entry_name])
+    index_content = generate_html_launcher_index_html(
+        title=product_name,
+        embed_filename=embedded_entry_name,
+        allowed_launch_modes=allowed_launch_modes,
+        recommended_launch_mode=recommended_launch_mode,
+        launcher_cache_buster=compute_launcher_support_cache_buster(output_dir),
+        embed_cache_buster=embed_cache_buster,
+    )
+    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
     (output_dir / "required-functions.json").write_text(
         json.dumps(
             {
@@ -10215,6 +10253,7 @@ def main(argv: Sequence[str]) -> int:
     summary = {
         "output_dir": str(output_dir),
         "index_html": str(output_dir / "index.html"),
+        "embedded_entry_html": str(output_dir / embedded_entry_name),
         "required_functions_file": str(output_dir / "required-functions.json"),
         "loader": assets.loader_name,
         "framework": assets.framework_name,
@@ -10236,11 +10275,15 @@ def main(argv: Sequence[str]) -> int:
         "original_folder_url": original_folder_url,
         "streaming_assets_url": streaming_assets_url,
         "asset_cache_buster": asset_cache_buster,
+        "embed_cache_buster": embed_cache_buster,
         "launch_options": allowed_launch_modes,
         "recommended_launch_mode": recommended_launch_mode,
+        "launcher": "ocean-launcher",
         "gmsoft_like_build": gmsoft_like_build,
         "page_config_keys": sorted(page_config.keys()),
         "auxiliary_asset_rewrites": auxiliary_asset_rewrites,
+        "launcher_support_files": launcher_support_files,
+        "support_files": launcher_support_files + [item["name"] for item in downloaded_support_scripts],
         "support_script_files": [item["name"] for item in downloaded_support_scripts],
         "support_script_urls": [item["resolved_url"] for item in downloaded_support_scripts],
         "progress_file": str(progress_file),

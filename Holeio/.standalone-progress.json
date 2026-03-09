@@ -71,9 +71,11 @@
     "source_url_spoof_enabled": true,
     "original_folder_url": "",
     "streaming_assets_url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/StreamingAssets",
-    "asset_cache_buster": "7dd45dda1da3",
+    "asset_cache_buster": "dc5530ef4b96",
+    "embed_cache_buster": "3acb04d7e124",
     "launch_options": "both",
     "recommended_launch_mode": "none",
+    "launcher": "ocean-launcher",
     "gmsoft_like_build": false,
     "page_config_keys": [
       "companyName",
@@ -85,6 +87,15 @@
       "streamingAssetsUrl"
     ],
     "auxiliary_asset_rewrites": {},
+    "launcher_support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
+    "support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js",
+      "support/rhmApi.js"
+    ],
     "support_script_files": [
       "support/rhmApi.js"
     ],
