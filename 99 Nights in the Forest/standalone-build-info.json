@@ -39,7 +39,7 @@
   "eagler_mobile_script_file": "",
   "eagler_mobile_script_url": "",
   "launch_options": "both",
-  "recommended_launch_mode": "frame",
+  "recommended_launch_mode": "fullscreen",
   "source_external_script_urls": [
     "https://cdn.jsdelivr.net/gh/st39/sdk@main/api.js"
   ],

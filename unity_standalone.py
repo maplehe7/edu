@@ -679,16 +679,31 @@ def decode_html_body(raw: bytes) -> str:
 
 
 def decode_js_string_literal(raw_value: str) -> str:
-    cleaned = raw_value.replace("\\/", "/")
-    try:
-        decoded = bytes(cleaned, encoding="utf-8").decode("unicode_escape")
-    except UnicodeDecodeError:
-        decoded = cleaned
-    return (
-        decoded.replace('\\"', '"')
-        .replace("\\'", "'")
-        .replace("\\/", "/")
-    )
+    decoded = raw_value
+    for _ in range(3):
+        cleaned = decoded.replace("\\/", "/")
+        try:
+            next_decoded = bytes(cleaned, encoding="utf-8").decode("unicode_escape")
+        except UnicodeDecodeError:
+            next_decoded = cleaned
+        next_decoded = (
+            next_decoded.replace('\\"', '"')
+            .replace("\\'", "'")
+            .replace("\\/", "/")
+        )
+        if next_decoded == decoded:
+            break
+        decoded = next_decoded
+        lowered = decoded.lower()
+        if (
+            "\\n" not in decoded
+            and "\\r" not in decoded
+            and "\\t" not in decoded
+            and "\\x" not in lowered
+            and "\\u00" not in lowered
+        ):
+            break
+    return decoded
 
 
 def looks_like_unity_entry_html(index_html: str) -> bool:
