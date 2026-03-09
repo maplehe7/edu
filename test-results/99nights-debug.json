@@ -1,0 +1,1039 @@
+{
+  "states": [
+    {
+      "tag": "initial",
+      "status": "Awaiting launch-mode selection",
+      "panelDisplay": "flex",
+      "panelHidden": false,
+      "modalVisible": false,
+      "buttons": [
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH HERE"
+        },
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH FULLSCREEN"
+        }
+      ]
+    },
+    {
+      "clicked": "LAUNCH HERE",
+      "result": true
+    },
+    {
+      "tag": "after_LAUNCH HERE",
+      "status": "Awaiting launch-mode selection",
+      "panelDisplay": "flex",
+      "panelHidden": false,
+      "modalVisible": false,
+      "buttons": [
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH HERE"
+        },
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH FULLSCREEN"
+        },
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "Confirm"
+        },
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "Go Back"
+        }
+      ]
+    },
+    {
+      "clicked": "Confirm",
+      "result": true
+    },
+    {
+      "tag": "after_Confirm",
+      "status": "Unity bootstrap progress=90% phase=runtime-warmup",
+      "panelDisplay": "none",
+      "panelHidden": true,
+      "modalVisible": false,
+      "buttons": [
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH HERE"
+        },
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH FULLSCREEN"
+        }
+      ]
+    },
+    {
+      "clicked": "Desktop Controls",
+      "result": false
+    },
+    {
+      "tag": "after_Desktop Controls",
+      "status": "Runtime ready; canvas attached",
+      "panelDisplay": "none",
+      "panelHidden": true,
+      "modalVisible": false,
+      "buttons": [
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH HERE"
+        },
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH FULLSCREEN"
+        }
+      ]
+    },
+    {
+      "clicked": "Moblie Controls",
+      "result": false
+    },
+    {
+      "tag": "after_Moblie Controls",
+      "status": "Runtime ready; canvas attached",
+      "panelDisplay": "none",
+      "panelHidden": true,
+      "modalVisible": false,
+      "buttons": [
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH HERE"
+        },
+        {
+          "disabled": false,
+          "display": "block",
+          "hidden": false,
+          "text": "LAUNCH FULLSCREEN"
+        }
+      ]
+    }
+  ],
+  "logs": [
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:7069 \"navigator.mediaDevices support available\"",
+      "source": "console-api",
+      "timestamp": 1773072532731
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"[UnityMemory] Configuration Parameters - Can be set up in boot.config\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-allocator-temp-initial-block-size-main=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-allocator-temp-initial-block-size-worker=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-temp-allocator-size-nav-mesh-worker=65536\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-temp-allocator-size-audio-worker=65536\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-temp-allocator-size-background-worker=32768\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-bucket-allocator-granularity=16\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-bucket-allocator-bucket-count=8\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-bucket-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-bucket-allocator-block-count=1\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-main-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-thread-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-gfx-main-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-gfx-thread-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533745
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-cache-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-typetree-allocator-block-size=2097152\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-profiler-bucket-allocator-granularity=16\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-profiler-bucket-allocator-bucket-count=8\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-profiler-bucket-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-profiler-bucket-allocator-block-count=1\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-profiler-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-profiler-editor-allocator-block-size=1048576\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-temp-allocator-size-main=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-job-temp-allocator-block-size=2097152\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-job-temp-allocator-block-size-background=1048576\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"    \\\"memorysetup-job-temp-allocator-reduction-small-platforms=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Input System module state changed to: Initialized.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Loading player data from data.unity3d\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Initialize engine version: 2022.3.62f3 (96770f904ca7)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"[Subsystems] Discovering subsystems at path UnitySubsystems\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533746
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/loader.js?v=08f383ae759f 0:1175 \"Creating WebGL 2.0 context.\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Renderer: WebKit WebGL\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Vendor:   WebKit\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"GLES:     3\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \" EXT_clip_control EXT_color_buffer_float EXT_color_buffer_half_float EXT_conservative_depth EXT_depth_clamp EXT_float_blend EXT_polygon_offset_clamp EXT_render_snorm EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge EXT_texture_norm16 KHR_parallel_shader_compile NV_shader_noperspective_interpolation OES_draw_buffers_indexed OES_sample_variables OES_shader_multisample_interpolation OES_texture_float_linear OVR_multiview2 WEBGL_blend_func_extended WEBGL_clip_cull_distance WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode WEBGL_provoking_vertex WEBGL_stencil_texturing GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_depth_clamp GL_EXT_float_blend GL_EXT_polygon_offset_clamp GL_EXT_render_snorm GL_EXT_texture_compression_bptc GL_EXT_texture_compression_rgtc GL_EXT_tex\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"ture_filter_anisotropic GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_KHR_parallel_shader_compile GL_NV_shader_noperspective_interpolation GL_OES_draw_buffers_indexed GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_texture_float_linear GL_OVR_multiview2 GL_WEBGL_blend_func_extended GL_WEBGL_clip_cull_distance GL_WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_debug_renderer_info GL_WEBGL_debug_shaders GL_WEBGL_lose_context GL_WEBGL_multi_draw GL_WEBGL_polygon_mode GL_WEBGL_provoking_vertex GL_WEBGL_stencil_texturing\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  \\u003COpenGL ES 3.0> ; Context handle 1\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533747
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533748
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object '\\u003Cnull>') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Input Manager initialize...\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Input System initialize...\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object 'Currency Image') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The referenced script on this Behaviour (Game Object 'Purchase Image') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533749
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533750
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533751
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533752
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533753
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGB Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"WARNING: RGBA Compressed ETC2 UNorm format is not supported, decompressing texture\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"UnloadTime: 6.000000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533754
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Init Envir inGame\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533755
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Interstitial Adv\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533755
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Load Cloud\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533755
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Load Local\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533755
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"Set Default Saves\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533755
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:56008 \"Trying to get length of sound which is not loaded yet.\"",
+      "source": "console-api",
+      "timestamp": 1773072533755
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The character used for Underline is not available in font asset [LiberationSans SDF].\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The character used for Underline is not available in font asset [LiberationSans SDF].\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45111 \"The character used for Underline is not available in font asset [LiberationSans SDF].\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"[CrystalManager] Subscribed to YG events\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"[CrystalManager] Loaded crystals = 0\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "SEVERE",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45078 \"\u041d\u0435 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u043c\u0435\u0442\u043e\u0434\u044b \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u043f\u0440\u043e\u0433\u0440\u0435\u0441\u0441\u0430 \u0434\u043e \u043f\u043e\u043b\u043d\u043e\u0439 \u0438\u043d\u0438\u0446\u0438\u0430\u043b\u0438\u0437\u0430\u0446\u0438\u0438 PluginYG2.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:45150 \"[CrystalManager] Reward button 'RewardButton' not found in scene\\n\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8773/99%20Nights%20in%20the%20Forest/Build/work.js?v=08f383ae759f 9:64423 \"Audio context resumed after 0.577 seconds.\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "INFO",
+      "message": "https://cdn.jsdelivr.net/gh/st39/sdk@main/sdk.js 1436:39 \"\\n %c %c %c GameMonetize.com HTML5 Ads SDK %c  %c   ads by   https://www.gamemonetize.com/   %c %c %c %c\" \"background: #9C0013; padding:5px 0;\" \"background: #9C0013; padding:5px 0;\" \"color: #FFFFFF; background: #030307; padding:5px 0;\" \"background: #9C0013; padding:5px 0;\" \"color: #FFFFFF;background: #DB0028; padding:5px 0;\" \"background: #9C0013; padding:5px 0;\" \"color: #ff2424; background: #9C0013; padding:5px 0;\" \"color: #ff2424; background: #fff; padding:5px 0;\" \"color: #ff2424; background: #fff; padding:5px 0;\"",
+      "source": "console-api",
+      "timestamp": 1773072533756
+    },
+    {
+      "level": "INFO",
+      "message": "https://cdn.jsdelivr.net/gh/st39/sdk@main/sdk.js 1437:28 \" %c %c %c Distribute and monetize your online games and websites with GameMonetize.com %c %c %c\" \"background: #db0028\" \"background: #db0028\" \"color: #fff; background: #db0028;\" \"background: #db0028\" \"background: #db0028\" \"background: #ffffff\"",
+      "source": "console-api",
+      "timestamp": 1773072533757
+    },
+    {
+      "level": "INFO",
+      "message": "https://cdn.jsdelivr.net/gh/st39/sdk@main/sdk.js 1945:36 \"[0.026s]%c %c %c GameMonetize.com %c %c %c AD_SAFETY_TIMER \" \"background: #ff7f03\" \"background: #ff7f03\" \"color: #fff; background: #ff7f03;\" \"background: #ff7f03\" \"background: #ff7f03\" \"background: #50b432; color: #fff\" \"Invoked timer from: start()\"",
+      "source": "console-api",
+      "timestamp": 1773072533757
+    },
+    {
+      "level": "WARNING",
+      "message": "https://imasdk.googleapis.com/js/sdkloader/ima3.js 803:49 \"Handler scope is deprecated. Use arrow function or bind.\"",
+      "source": "console-api",
+      "timestamp": 1773072533794
+    },
+    {
+      "level": "WARNING",
+      "message": "https://imasdk.googleapis.com/js/sdkloader/ima3.js 803:49 \"Handler scope is deprecated. Use arrow function or bind.\"",
+      "source": "console-api",
+      "timestamp": 1773072533794
+    },
+    {
+      "level": "INFO",
+      "message": "https://cdn.jsdelivr.net/gh/st39/sdk@main/sdk.js 1945:36 \"[0.254s]%c %c %c GameMonetize.com %c %c %c AD_SDK_LOADER_READY \" \"background: #ff7f03\" \"background: #ff7f03\" \"color: #fff; background: #ff7f03;\" \"background: #ff7f03\" \"background: #ff7f03\" \"background: #50b432; color: #fff\" Object",
+      "source": "console-api",
+      "timestamp": 1773072533794
+    },
+    {
+      "level": "INFO",
+      "message": "https://cdn.jsdelivr.net/gh/st39/sdk@main/sdk.js 1945:36 \"[0.254s]%c %c %c GameMonetize.com %c %c %c AD_SAFETY_TIMER \" \"background: #ff7f03\" \"background: #ff7f03\" \"color: #fff; background: #ff7f03;\" \"background: #ff7f03\" \"background: #ff7f03\" \"background: #50b432; color: #fff\" \"Cleared timer set at: AD_SDK_LOADER_READY\"",
+      "source": "console-api",
+      "timestamp": 1773072533794
+    },
+    {
+      "level": "INFO",
+      "message": "https://cdn.jsdelivr.net/gh/st39/sdk@main/sdk.js 1945:36 \"[0.255s]%c %c %c GameMonetize.com %c %c %c SDK_READY \" \"background: #ff7f03\" \"background: #ff7f03\" \"color: #fff; background: #ff7f03;\" \"background: #ff7f03\" \"background: #ff7f03\" \"background: #50b432; color: #fff\" \"Everything is ready.\"",
+      "source": "console-api",
+      "timestamp": 1773072533796
+    }
+  ]
+}
