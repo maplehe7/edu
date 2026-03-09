@@ -699,6 +699,35 @@ def looks_like_unity_entry_html(index_html: str) -> bool:
     )
 
 
+def looks_like_custom_unity_html_bootstrap(index_html: str) -> bool:
+    lower = index_html.lower()
+    return (
+        "<html" in lower
+        and "<canvas" in lower
+        and "startunitybr" in lower
+        and ("innerloaderurl" in lower or "dataparturls" in lower or "buildurl" in lower)
+        and ".loader.js" not in lower
+        and "unityloader.instantiate" not in lower
+    )
+
+
+def looks_like_embedded_game_wrapper_html(index_html: str) -> bool:
+    lower = index_html.lower()
+    wrapper_markers = (
+        "_docs_flag_initialdata",
+        "sites-viewer-frontend",
+        "goog.script.init(",
+        'id="sandboxframe"',
+        "id='sandboxframe'",
+        "innerframegapiinitialized",
+        "updateuserhtmlframe(",
+        "googleScriptUrl=".lower(),
+        "gameXmlUrl=".lower(),
+        '"sandboxhost"',
+    )
+    return any(marker in lower for marker in wrapper_markers)
+
+
 def looks_like_split_unity_bootstrap_page(index_html: str) -> bool:
     lower = index_html.lower()
     return (
@@ -843,26 +872,47 @@ def is_ignored_embedded_url(url: str) -> bool:
 
 def extract_embedded_html_snippets(index_html: str) -> list[str]:
     snippets: list[str] = []
+    source_variants = [index_html]
+    unescaped_index_html = html.unescape(index_html)
+    if unescaped_index_html != index_html:
+        source_variants.append(unescaped_index_html)
 
-    for raw in re.findall(r"<!\[CDATA\[([\s\S]*?)\]\]>", index_html, re.IGNORECASE):
-        decoded = raw.strip()
-        if decoded:
-            snippets.append(decoded)
+    for source_html in source_variants:
+        for raw in re.findall(r"<!\[CDATA\[([\s\S]*?)\]\]>", source_html, re.IGNORECASE):
+            decoded = raw.strip()
+            if decoded:
+                snippets.append(decoded)
 
-    for raw in re.findall(r'data-code="([\s\S]*?)"', index_html, re.IGNORECASE):
-        decoded = html.unescape(raw).strip()
-        if decoded:
-            snippets.append(decoded)
+    for source_html in source_variants:
+        for raw in re.findall(r'data-code="([\s\S]*?)"', source_html, re.IGNORECASE):
+            decoded = html.unescape(raw).strip()
+            if decoded:
+                snippets.append(decoded)
 
     user_html_patterns = (
         r'userHtml\\x22:\s*\\x22([\s\S]*?)\\x22,\s*\\x22ncc\\x22',
         r'"userHtml"\s*:\s*"([\s\S]*?)"\s*,\s*"ncc"',
     )
-    for pattern in user_html_patterns:
-        for raw in re.findall(pattern, index_html, re.IGNORECASE):
-            decoded = html.unescape(decode_js_string_literal(raw)).strip()
-            if decoded:
-                snippets.append(decoded)
+    for source_html in source_variants:
+        for pattern in user_html_patterns:
+            for raw in re.findall(pattern, source_html, re.IGNORECASE):
+                decoded = html.unescape(decode_js_string_literal(raw)).strip()
+                if decoded:
+                    snippets.append(decoded)
+
+    inline_data_url_patterns = (
+        r"""data:(?:@file/xml|text/xml|application/xml|text/html|application/xhtml\+xml)[^"'&<>\s]+""",
+    )
+    for source_html in source_variants:
+        for pattern in inline_data_url_patterns:
+            for raw in re.findall(pattern, source_html, re.IGNORECASE):
+                try:
+                    decoded_bytes = decode_data_url_bytes(raw)
+                except FetchError:
+                    continue
+                decoded = decoded_bytes.decode("utf-8", errors="replace").strip()
+                if decoded:
+                    snippets.append(decoded)
 
     deduped: list[str] = []
     seen = set()
@@ -876,6 +926,8 @@ def extract_embedded_html_snippets(index_html: str) -> list[str]:
         score = 0
         if "script.google.com/macros" in lower:
             score += 100
+        if "<module>" in lower or "<content type=\"html\">" in lower or "gamexmlurl" in lower:
+            score += 90
         if "unityloader.instantiate" in lower or ".loader.js" in lower:
             score += 80
         if "createunityinstance" in lower:
@@ -891,6 +943,10 @@ def extract_embedded_html_snippets(index_html: str) -> list[str]:
 
 
 def detect_supported_entry_kind(index_html: str) -> str:
+    if looks_like_embedded_game_wrapper_html(index_html):
+        return ""
+    if looks_like_custom_unity_html_bootstrap(index_html):
+        return "html"
     if looks_like_unity_entry_html(index_html):
         return "unity"
     if looks_like_eagler_entry_html(index_html):
@@ -1215,16 +1271,19 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
 
     def inspect_html(index_url: str, index_html: str, depth: int, source: str) -> DetectedEntry | None:
         snippets = extract_embedded_html_snippets(index_html)
+        inline_html_snippets: list[str] = []
 
         for snippet in snippets:
             detected_kind = detect_supported_entry_kind(snippet)
-            if detected_kind:
+            if detected_kind in {"unity", "eaglercraft", "remote_stream"}:
                 return DetectedEntry(
                     entry_kind=detected_kind,
                     index_url=index_url,
                     index_html=snippet,
                     source_page_url=index_url,
                 )
+            if detected_kind == "html":
+                inline_html_snippets.append(snippet)
 
         gamecomets_entry_url = discover_gamecomets_entry_url(index_url)
         if gamecomets_entry_url:
@@ -1257,9 +1316,10 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
                 source_page_url=index_url,
             )
 
-        external_unity_entry = detect_unity_entry_from_external_scripts(index_html, index_url)
-        if external_unity_entry is not None:
-            return external_unity_entry
+        if detected_kind != "html":
+            external_unity_entry = detect_unity_entry_from_external_scripts(index_html, index_url)
+            if external_unity_entry is not None:
+                return external_unity_entry
 
         if depth >= 6:
             if detected_kind == "html":
@@ -1272,7 +1332,12 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
             errors.append(f"{source} -> reached embed recursion limit")
             return None
 
-        for snippet in snippets:
+        for child_url in extract_embedded_candidate_urls(index_html, index_url):
+            result = inspect_url(child_url, depth + 1, referer_url=index_url)
+            if result:
+                return result
+
+        for snippet in inline_html_snippets or snippets:
             snippet_key = snippet[:4096]
             if snippet_key in visited_snippets:
                 continue
@@ -1284,11 +1349,6 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
         if snippets:
             errors.append(f"{source} -> embedded HTML found but no supported build reference found")
             return None
-
-        for child_url in extract_embedded_candidate_urls(index_html, index_url):
-            result = inspect_url(child_url, depth + 1, referer_url=index_url)
-            if result:
-                return result
 
         if detected_kind == "html":
             return DetectedEntry(
@@ -1341,18 +1401,25 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
 
 def extract_embedded_candidate_urls(index_html: str, index_url: str) -> list[str]:
     raw_candidates: list[str] = []
+    source_variants = [index_html]
+    unescaped_index_html = html.unescape(index_html)
+    if unescaped_index_html != index_html:
+        source_variants.append(unescaped_index_html)
     patterns = (
         r"""<iframe[^>]+src=["']([^"']+)["']""",
         r"""data-url=["']([^"']+)["']""",
         r"""data-(?:iframe|embed|embed-url|game|game-url|src)=["']([^"']+)["']""",
+        r"""googleScriptUrl\s*=\s*["']([^"']+)["']""",
+        r'''googleScriptUrl"\s*:\s*"([^"]+)''',
         r"""(?:const|let|var)\s+[A-Za-z_$][A-Za-z0-9_$]*URL\s*=\s*["'](https?://[^"']+)["']""",
         r"""(?:src|href)\s*:\s*["'](https?://[^"']+)["']""",
         r"""window\.open\(\s*["'](https?://[^"']+)["']""",
         r"""location(?:\.href)?\s*=\s*["'](https?://[^"']+)["']""",
     )
 
-    for pattern in patterns:
-        raw_candidates.extend(re.findall(pattern, index_html, re.IGNORECASE))
+    for source_html in source_variants:
+        for pattern in patterns:
+            raw_candidates.extend(re.findall(pattern, source_html, re.IGNORECASE))
 
     urls: list[str] = []
     seen = set()
