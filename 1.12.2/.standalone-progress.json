@@ -1,8 +1,8 @@
 {
   "mode": "entry_auto",
   "entry_kind": "html",
-  "root_url": "https://github.com/jupitergoesbrr/Eaglercraft-1.12.2/raw/refs/heads/main/",
-  "input_url": "https://github.com/jupitergoesbrr/Eaglercraft-1.12.2/raw/refs/heads/main/Eaglercraft_1.12_Offline_Download.zip",
+  "root_url": "https://raw.githubusercontent.com/jupitergoesbrr/Eaglercraft-1.12.2/refs/heads/main/",
+  "input_url": "https://raw.githubusercontent.com/jupitergoesbrr/Eaglercraft-1.12.2/refs/heads/main/Eaglercraft_1.12_Offline_Download.zip",
   "resolved_entry_url": "https://raw.githubusercontent.com/jupitergoesbrr/Eaglercraft-1.12.2/refs/heads/main/Eaglercraft_1.12_Offline_Download.zip",
   "title": "Eaglercraft 1.12.2",
   "completed": true,
@@ -15,11 +15,12 @@
     "mode": "entry_auto",
     "entry_kind": "html",
     "title": "Eaglercraft 1.12.2",
-    "input_url": "https://github.com/jupitergoesbrr/Eaglercraft-1.12.2/raw/refs/heads/main/Eaglercraft_1.12_Offline_Download.zip",
-    "root_url": "https://github.com/jupitergoesbrr/Eaglercraft-1.12.2/raw/refs/heads/main/",
+    "input_url": "https://raw.githubusercontent.com/jupitergoesbrr/Eaglercraft-1.12.2/refs/heads/main/Eaglercraft_1.12_Offline_Download.zip",
+    "root_url": "https://raw.githubusercontent.com/jupitergoesbrr/Eaglercraft-1.12.2/refs/heads/main/",
     "resolved_entry_url": "https://raw.githubusercontent.com/jupitergoesbrr/Eaglercraft-1.12.2/refs/heads/main/Eaglercraft_1.12_Offline_Download.zip",
     "html_source_mode": "absolutized_embed_root",
     "launcher": "ocean-launcher",
+    "embed_cache_buster": "dd79591fe63a",
     "support_files": [
       "ocean-launcher.css",
       "ocean-launcher.js"

@@ -1,0 +1,53 @@
+{
+  "name": "1.8.8",
+  "mode": "fullscreen",
+  "embedVariant": "alt",
+  "url": "http://127.0.0.1:8768/1.8.8/?autostart=1&launchMode=fullscreen&cb=1773034013050&embedVariant=alt",
+  "ready": false,
+  "state": {
+    "outer": {
+      "title": "EaglercraftX 1.8",
+      "readyState": "interactive",
+      "href": "http://127.0.0.1:8768/1.8.8/?cb=1773034013050&embedVariant=alt",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Handoff progress=34% phase=frame-bootstrap",
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nHandoff progress=34% phase=frame-bootstrap\n0.0s [handoff.progress] value=0% phase=init target=iframe_embed\n0.0s [storage] hasStorageAccess() probe\n0.1s [storage] access already granted\n0.1s Preparing embedded frame: Moblie Controls\n0.2s [embed] iframe DOM attached host=127.0.0.1:8768\n0.3s [handoff.progress] value=10% phase=launch-prep target=iframe_embed\n0.6s [handoff.progress] valu"
+    },
+    "inner": {
+      "title": "",
+      "readyState": "complete",
+      "href": "about:blank",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": null,
+      "loadingClasses": null,
+      "launchPanelDisplay": null,
+      "statusText": null,
+      "canvasCount": 0,
+      "canvasWidth": null,
+      "canvasHeight": null,
+      "bodyText": ""
+    },
+    "hasFrame": true
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Eagler Mobile v3.0.5b"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.8.8_fullscreen_alt.png"
+}

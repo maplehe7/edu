@@ -24,7 +24,7 @@ function isMobile() {
     }
 }
 if(!isMobile()) {
-    alert("WARNING: This script was created for mobile, and may break functionality in non-mobile browsers!");
+    console.warn("Eagler Mobile was designed for touch devices; continuing on desktop.");
 }
 // TODO: consolidate all of these into a single object?
 window.crouchLock = false; // Used for crouch mobile control

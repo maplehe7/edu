@@ -1,0 +1,107 @@
+{
+  "name": "1.8.8",
+  "mode": "fullscreen",
+  "embedVariant": "primary",
+  "url": "http://127.0.0.1:8768/1.8.8/?autostart=1&launchMode=fullscreen&cb=1773033873048&embedVariant=primary",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "EaglercraftX 1.8",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/1.8.8/?cb=1773033873048&embedVariant=primary",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "none",
+      "loadingClasses": "is-loading is-exiting",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime handoff complete",
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": ""
+    },
+    "inner": {
+      "title": "EaglercraftX 1.8",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/1.8.8/game-root.html?v=6b27e343e94b",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": null,
+      "loadingClasses": null,
+      "launchPanelDisplay": null,
+      "statusText": null,
+      "canvasCount": 1,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": ""
+    },
+    "hasFrame": true
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "info",
+      "args": [
+        "[09:24:46+783][main/INFO][BrowserRuntime]:  - EXT_texture_filter_anisotropic"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:46+784][main/INFO][BrowserRuntime]:  - OES_texture_float_linear"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:46+785][main/INFO][BrowserRuntime]:  - WEBGL_debug_renderer_info"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:47+111][main/INFO][BrowserRuntime]: Downloading: <data: 9632213 chars>"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:49+345][main/INFO][BrowserRuntime]: Decompressing: <data: 9632213 chars>"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:50+319][main/INFO][BrowserRuntime]: Downloading: <data: 2586617 chars>"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:50+801][main/INFO][BrowserRuntime]: Decompressing: <data: 2586617 chars>"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:51+375][main/INFO][BrowserRuntime]: Loaded 4872 resources from EPKs"
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:51+455][main/INFO][BrowserRuntime]: Initializing filesystem..."
+      ]
+    },
+    {
+      "type": "info",
+      "args": [
+        "[09:24:51+482][main/INFO][BrowserRuntime]: Initializing sound engine..."
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.8.8_fullscreen_primary.png"
+}

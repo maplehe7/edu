@@ -1,9 +1,9 @@
 {
   "mode": "entry_auto",
   "entry_kind": "html",
-  "root_url": "https://driftboss.io/drift-boss-math-playground/",
-  "input_url": "https://driftboss.io/drift-boss-math-playground",
-  "resolved_entry_url": "https://gamecollections.me/game/owner/drift-boss-gm/",
+  "root_url": "https://www.crazygames.com/game/drift-boss/",
+  "input_url": "https://www.crazygames.com/game/drift-boss",
+  "resolved_entry_url": "https://drift-boss.game-files.crazygames.com/drift-boss/14/index.html",
   "title": "Drift Boss",
   "completed": true,
   "summary": {
@@ -15,12 +15,12 @@
     "mode": "entry_auto",
     "entry_kind": "html",
     "title": "Drift Boss",
-    "input_url": "https://driftboss.io/drift-boss-math-playground",
-    "root_url": "https://driftboss.io/drift-boss-math-playground/",
-    "resolved_entry_url": "https://gamecollections.me/game/owner/drift-boss-gm/",
+    "input_url": "https://www.crazygames.com/game/drift-boss",
+    "root_url": "https://www.crazygames.com/game/drift-boss/",
+    "resolved_entry_url": "https://drift-boss.game-files.crazygames.com/drift-boss/14/index.html",
     "html_source_mode": "absolutized_embed_root",
     "launcher": "ocean-launcher",
-    "embed_cache_buster": "603d21e78739",
+    "embed_cache_buster": "0813871ce135",
     "support_files": [
       "ocean-launcher.css",
       "ocean-launcher.js"
@@ -34,7 +34,7 @@
       "comment_blocks": 0
     },
     "nonessential_markup_removed": {
-      "canonical_links": 0
+      "canonical_links": 1
     },
     "html_runtime_mirror": {},
     "eagler_wrapper_patches": {
@@ -50,26 +50,25 @@
     "launch_options": "both",
     "recommended_launch_mode": "none",
     "source_external_script_urls": [
-      "https://gamecollections.me/game/owner/drift-boss-gm/game.js",
-      "https://gamecollections.me/cloak.js"
+      "https://drift-boss.game-files.crazygames.com/drift-boss/14/game.js?v1770967095"
     ],
     "source_external_stylesheet_urls": [
-      "https://gamecollections.me/game/owner/drift-boss-gm/game.css"
+      "https://drift-boss.game-files.crazygames.com/drift-boss/14/game.css?v1770967095"
     ],
     "source_external_frame_urls": [],
     "source_external_other_urls": [
-      "https://gamecollections.me/media/graphics/misc/favicon.ico"
+      "https://drift-boss.game-files.crazygames.com/media/graphics/misc/favicon.ico",
+      "https://www.crazygames.com/game/drift-boss"
     ],
     "external_script_urls": [
-      "https://gamecollections.me/game/owner/drift-boss-gm/game.js",
-      "https://gamecollections.me/cloak.js"
+      "https://drift-boss.game-files.crazygames.com/drift-boss/14/game.js?v1770967095"
     ],
     "external_stylesheet_urls": [
-      "https://gamecollections.me/game/owner/drift-boss-gm/game.css"
+      "https://drift-boss.game-files.crazygames.com/drift-boss/14/game.css?v1770967095"
     ],
     "external_frame_urls": [],
     "external_other_urls": [
-      "https://gamecollections.me/media/graphics/misc/favicon.ico"
+      "https://drift-boss.game-files.crazygames.com/media/graphics/misc/favicon.ico"
     ],
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Drift Boss\\.standalone-progress.json"
   }

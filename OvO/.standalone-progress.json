@@ -10,6 +10,7 @@
     "output_dir": "C:\\Users\\hello\\Downloads\\edu\\OvO",
     "index_html": "C:\\Users\\hello\\Downloads\\edu\\OvO\\index.html",
     "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\OvO\\game-root.html",
+    "mobile_embedded_entry_html": "",
     "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\OvO\\required-functions.json",
     "mode": "entry_auto",
     "entry_kind": "html",
@@ -19,6 +20,7 @@
     "resolved_entry_url": "https://ovo.game-files.crazygames.com/ovo/10/index.html",
     "html_source_mode": "absolutized_embed_root",
     "launcher": "ocean-launcher",
+    "embed_cache_buster": "f8502198ed13",
     "support_files": [
       "ocean-launcher.css",
       "ocean-launcher.js"
@@ -92,6 +94,18 @@
         ]
       }
     },
+    "eagler_wrapper_patches": {
+      "countdown_guarded": 0,
+      "countdown_autostart_injected": 0,
+      "mobile_autolaunch_injected": 0,
+      "device_pixel_ratio_guarded": 0,
+      "modapi_bridge_injected": 0
+    },
+    "eagler_mobile_option_enabled": false,
+    "eagler_mobile_script_file": "",
+    "eagler_mobile_script_url": "",
+    "launch_options": "both",
+    "recommended_launch_mode": "none",
     "source_external_script_urls": [
       "https://ovo.game-files.crazygames.com/ovo/10/jquery-3.4.1.min.js",
       "https://ovo.game-files.crazygames.com/ovo/10/GameAnalytics.js",

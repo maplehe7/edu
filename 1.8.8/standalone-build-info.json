@@ -12,6 +12,7 @@
   "resolved_entry_url": "file:///C:/Users/hello/Downloads/EaglercraftX_1_8_u53_Offline_Signed.html",
   "html_source_mode": "absolutized_embed_root",
   "launcher": "ocean-launcher",
+  "embed_cache_buster": "6b27e343e94b",
   "support_files": [
     "ocean-launcher.css",
     "ocean-launcher.js"

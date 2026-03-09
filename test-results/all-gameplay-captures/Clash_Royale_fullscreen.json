@@ -1,0 +1,46 @@
+{
+  "name": "Clash Royale",
+  "mode": "fullscreen",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Clash%20Royale/?autostart=1&launchMode=fullscreen&cb=1773034207103",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Unity WebGL Player | 99Days",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Clash%20Royale/?cb=1773034207103",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime handoff complete",
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n0.7s [handoff.progress] value=42% phase=frame-bootstrap target=iframe_embed\n0.8s [embed] iframe load event received\n0.8s [storage] hasStorageAccess() probe\n0.8s [storage] access already granted\n0.8s [handoff] waiting for runtime attachment\n0.9s [handoff.progress] value=50% phase=asset-warmup target=iframe_embed\n1.0s [handoff] runtime attachment confirmed\n1.0"
+    },
+    "inner": {
+      "title": "Unity WebGL Player | 99Days",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Clash%20Royale/game-root.html?v=aaac48047553",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": null,
+      "loadingClasses": null,
+      "launchPanelDisplay": null,
+      "statusText": null,
+      "canvasCount": 2,
+      "canvasWidth": 300,
+      "canvasHeight": 150,
+      "bodyText": ""
+    },
+    "hasFrame": true
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Clash_Royale_fullscreen.png"
+}

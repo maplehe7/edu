@@ -1,0 +1,69 @@
+{
+  "name": "Drift Boss",
+  "mode": "frame",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Drift%20Boss/?autostart=1&launchMode=frame&cb=1773034217402",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Drift Boss",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Drift%20Boss/?cb=1773034217402",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading is-exiting",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime handoff complete",
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n2.7s [handoff.progress] value=73% phase=asset-warmup target=iframe_embed\n3.2s [handoff.progress] value=81% phase=runtime-handoff target=iframe_embed\n3.2s [embed] iframe load event received\n3.2s [storage] hasStorageAccess() probe\n3.2s [storage] access already granted\n3.2s [handoff] waiting for runtime attachment\n3.4s [handoff] runtime attachment confirmed\n3.4"
+    },
+    "inner": {
+      "title": "Drift Boss",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Drift%20Boss/game-root.html?v=603d21e78739",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": null,
+      "loadingClasses": null,
+      "launchPanelDisplay": null,
+      "statusText": null,
+      "canvasCount": 2,
+      "canvasWidth": 300,
+      "canvasHeight": 150,
+      "bodyText": ""
+    },
+    "hasFrame": true
+  },
+  "exceptions": [],
+  "failed": [
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "http://127.0.0.1:8768/Drift%20Boss/main.min.js"
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-E87KL5Z997&gtm=45je6350h2v882072445za20g&_p=1773034221293&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1365x768&cid=1484902201.1773034141&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.160%7CChromium%3B145.0.7632.160&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&are=1&frm=1&pscdl=noapi&_eu=ABAI&_s=1&tag_exp=103116026~103200004~115938466~115938468~116024733~117477893~117484252~117625642&dl=http%3A%2F%2F127.0.0.1%2FDrift%2520Boss%2Fgame-root.html%3Fv%3D603d21e78739&dt=Drift%20Boss&sid=1773034222&sct=1&seg=0&_tu=wAQ&en=page_view&_fv=1&_ss=1&_ee=1&tfd=4391"
+    }
+  ],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "%cMjs-Gd: \"GD Plugin v1.3.4 Initialized\"",
+        "color: brown; font-weight: bold"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "dailyreward-plugin 1.1.0"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Drift_Boss_frame.png"
+}

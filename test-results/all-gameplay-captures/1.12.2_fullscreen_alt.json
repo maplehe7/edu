@@ -1,0 +1,38 @@
+{
+  "name": "1.12.2",
+  "mode": "fullscreen",
+  "embedVariant": "alt",
+  "url": "http://127.0.0.1:8768/1.12.2/?autostart=1&launchMode=fullscreen&cb=1773033721421&embedVariant=alt",
+  "ready": false,
+  "state": {
+    "outer": {
+      "title": "Eaglercraft 1.12.2",
+      "readyState": "loading",
+      "href": "http://127.0.0.1:8768/1.12.2/?autostart=1&launchMode=fullscreen&cb=1773033721421&embedVariant=alt",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "flex",
+      "loadingClasses": "",
+      "launchPanelDisplay": "flex",
+      "statusText": "Awaiting launch-mode selection",
+      "canvasCount": 2,
+      "canvasWidth": 300,
+      "canvasHeight": 150,
+      "bodyText": "OCEAN\nLAUNCHER\nLAUNCH HERE\nLAUNCH FULLSCREEN\nSaves to local storage\nAwaiting launch-mode selection"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Eagler Mobile v3.0.5b"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.12.2_fullscreen_alt.png"
+}

@@ -71,7 +71,9 @@
     "source_url_spoof_enabled": false,
     "original_folder_url": "",
     "streaming_assets_url": "25041512/StreamingAssets",
-    "asset_cache_buster": "2f26d42dadae",
+    "asset_cache_buster": "96476ed393a1",
+    "launch_options": "both",
+    "recommended_launch_mode": "none",
     "gmsoft_like_build": true,
     "page_config_keys": [
       "buildAPI",

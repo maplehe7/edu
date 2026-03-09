@@ -1,0 +1,92 @@
+{
+  "name": "Ragdoll Archers",
+  "mode": "frame",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Ragdoll%20Archers/?autostart=1&launchMode=frame&cb=1773034696573",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Ragdoll Archers",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Ragdoll%20Archers/?cb=1773034696573",
+      "oceanState": "ready",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading is-exiting",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n9.3s [unity.progress] value=51% phase=data-transfer kind=modern\n10.0s [unity.progress] value=60% phase=data-transfer kind=modern\n11.2s [unity.progress] value=70% phase=wasm-compile kind=modern\n11.9s [unity.progress] value=80% phase=wasm-compile kind=modern\n12.4s [unity.progress] value=90% phase=runtime-warmup kind=modern\n41.6s [unity.progress] value=10"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Vendor:   WebKit\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "GLES:     3\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        " EXT_clip_control EXT_color_buffer_float EXT_color_buffer_half_float EXT_conservative_depth EXT_depth_clamp EXT_disjoint_timer_query_webgl2 EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge NV_shader_noperspective_interpolation OES_draw_buffers_indexed OES_sample_variables OES_shader_multisample_interpolation OES_texture_float_linear OVR_multiview2 WEBGL_clip_cull_distance WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode WEBGL_stencil_texturing GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_depth_clamp GL_EXT_disjoint_timer_query_webgl2 GL_EXT_float_blend GL_EXT_polygon_offset_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_comp\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "ression_rgtc GL_EXT_texture_filter_anisotropic GL_EXT_texture_mirror_clamp_to_edge GL_NV_shader_noperspective_interpolation GL_OES_draw_buffers_indexed GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_texture_float_linear GL_OVR_multiview2 GL_WEBGL_clip_cull_distance GL_WEBGL_compressed_texture_astc GL_WEBGL_compressed_texture_etc GL_WEBGL_compressed_texture_etc1 GL_WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_debug_renderer_info GL_WEBGL_debug_shaders GL_WEBGL_lose_context GL_WEBGL_multi_draw GL_WEBGL_polygon_mode GL_WEBGL_stencil_texturing\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  <OpenGL ES 3.0> ; Context handle 1\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Input Manager initialize...\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "UnloadTime: 4.300000 ms\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[CrazySDK] SiteLock v1.9.0\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Ragdoll_Archers_frame.png"
+}

@@ -1,0 +1,101 @@
+{
+  "name": "OvO",
+  "mode": "frame",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/OvO/?autostart=1&launchMode=frame&cb=1773034653306",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "OvO",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/OvO/?cb=1773034653306",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime handoff complete",
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n2.1s [handoff.progress] value=81% phase=runtime-handoff target=iframe_embed\n2.8s [handoff.progress] value=90% phase=runtime-handoff target=iframe_embed\n5.1s [embed] iframe load event received\n5.1s [storage] hasStorageAccess() probe\n5.1s [storage] access already granted\n5.1s [handoff] waiting for runtime attachment\n5.2s [handoff] runtime attachment confirmed\n"
+    },
+    "inner": {
+      "title": "OvO",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/OvO/game-root.html?v=f8502198ed13",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": null,
+      "loadingClasses": null,
+      "launchPanelDisplay": null,
+      "statusText": null,
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": ""
+    },
+    "hasFrame": true
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "error",
+      "args": [
+        "Scene 'l' couldn't be loaded because it has not been added to the build settings or the AssetBundle has not been loaded.\nTo add a scene to the build settings use the menu File->Build Settings...\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "registerChildren"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Info/GameAnalytics: Info logging enabled"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Info/GameAnalytics: Set build version: 1.4.2"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Info/GameAnalytics: Starting a new session."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "try removing"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "try removing"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "try removing"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "try removing"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\OvO_frame.png"
+}

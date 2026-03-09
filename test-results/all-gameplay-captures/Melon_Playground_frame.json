@@ -1,0 +1,121 @@
+{
+  "name": "Melon Playground",
+  "mode": "frame",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Melon%20Playground/?autostart=1&launchMode=frame&cb=1773034445256",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Ragdoll Playground",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Melon%20Playground/?cb=1773034445256",
+      "oceanState": "loading",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n14.7s [unity.progress] value=50% phase=data-transfer kind=modern\n16.4s [unity.progress] value=61% phase=data-transfer kind=modern\n16.7s [unity.progress] value=70% phase=wasm-compile kind=modern\n17.4s [unity.progress] value=80% phase=wasm-compile kind=modern\n17.8s [unity.progress] value=90% phase=runtime-warmup kind=modern\n38.5s [unity.progress] value=1"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js",
+      "line": 0,
+      "column": 961,
+      "text": "Uncaught",
+      "description": "ReferenceError: config is not defined\n    at http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js:1:962"
+    },
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js",
+      "line": 0,
+      "column": 293,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:316"
+    },
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js",
+      "line": 0,
+      "column": 293,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:316"
+    },
+    {
+      "url": "blob:http://127.0.0.1:8768/55d0463f-75cb-4dfd-81ab-4e4e8b11b2aa",
+      "line": 0,
+      "column": 892038,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of null (reading 'addEventListener')\n    at blob:http://127.0.0.1:8768/55d0463f-75cb-4dfd-81ab-4e4e8b11b2aa:1:892039"
+    }
+  ],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "ERROR: Shader "
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Hidden/PostProcessing/Debug/Waveform shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "ERROR: Shader "
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Hidden/PostProcessing/Debug/Histogram shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "ERROR: Shader "
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Hidden/PostProcessing/ScreenSpaceReflections shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "ERROR: Shader "
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Hidden/PostProcessing/MultiScaleVO shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "UnloadTime: 19.000000 ms\n"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Melon_Playground_frame.png"
+}

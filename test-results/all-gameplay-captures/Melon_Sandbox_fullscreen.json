@@ -1,0 +1,121 @@
+{
+  "name": "Melon Sandbox",
+  "mode": "fullscreen",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Melon%20Sandbox/?autostart=1&launchMode=fullscreen&cb=1773034597646",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Ragdoll Playground",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Melon%20Sandbox/?cb=1773034597646",
+      "oceanState": "loading",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n16.5s [unity.progress] value=50% phase=data-transfer kind=modern\n17.3s [unity.progress] value=60% phase=data-transfer kind=modern\n18.6s [unity.progress] value=71% phase=wasm-compile kind=modern\n20.0s [unity.progress] value=80% phase=wasm-compile kind=modern\n20.4s [unity.progress] value=90% phase=runtime-warmup kind=modern\n41.9s [unity.progress] value=1"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/gmsoftsdk_v5.js",
+      "line": 0,
+      "column": 961,
+      "text": "Uncaught",
+      "description": "ReferenceError: config is not defined\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/gmsoftsdk_v5.js:1:962"
+    },
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js",
+      "line": 0,
+      "column": 293,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js:1:316"
+    },
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js",
+      "line": 0,
+      "column": 293,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js:1:316"
+    },
+    {
+      "url": "blob:http://127.0.0.1:8768/5d3a7bf1-49ca-432b-a761-aec0617392f6",
+      "line": 0,
+      "column": 892038,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of null (reading 'addEventListener')\n    at blob:http://127.0.0.1:8768/5d3a7bf1-49ca-432b-a761-aec0617392f6:1:892039"
+    }
+  ],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Hidden/PostProcessing/MultiScaleVO shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "UnloadTime: 23.000000 ms\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 6 Unused Serialized files (Serialized files now loaded: 0)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 4 unused Assets to reduce memory usage. Loaded Objects now: 24596.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Total: 71.600001 ms (FindLiveObjects: 3.500000 ms CreateObjectMapping: 3.600001 ms MarkObjects: 64.300000 ms  DeleteObjects: 0.200000 ms)\n\n"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "Exposed name does not exist: master\n"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "Exposed name does not exist: sfx\n"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "Exposed name does not exist: userInterface\n"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "Exposed name does not exist: ambience\n"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Melon_Sandbox_fullscreen.png"
+}

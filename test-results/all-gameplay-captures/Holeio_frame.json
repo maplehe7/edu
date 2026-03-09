@@ -1,0 +1,92 @@
+{
+  "name": "Holeio",
+  "mode": "frame",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Holeio/?autostart=1&launchMode=frame&cb=1773034342979",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Hayna@main",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Holeio/?cb=1773034342979",
+      "oceanState": "loading",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n5.0s [unity.progress] value=52% phase=data-transfer kind=modern\n5.8s [unity.progress] value=60% phase=data-transfer kind=modern\n6.2s [unity.progress] value=70% phase=wasm-compile kind=modern\n6.7s [unity.progress] value=80% phase=wasm-compile kind=modern\n7.6s [unity.progress] value=90% phase=runtime-warmup kind=modern\n40.7s [unity.progress] value=100% p"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "UnloadTime: 11.600000 ms\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 24 unused Assets to reduce memory usage. Loaded Objects now: 216414.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Total: 319.100000 ms (FindLiveObjects: 101.200000 ms CreateObjectMapping: 9.400000 ms MarkObjects: 206.500000 ms  DeleteObjects: 2.000000 ms)\n\n"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Holeio_frame.png"
+}

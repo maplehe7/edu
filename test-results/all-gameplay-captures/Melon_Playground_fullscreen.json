@@ -1,0 +1,121 @@
+{
+  "name": "Melon Playground",
+  "mode": "fullscreen",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Melon%20Playground/?autostart=1&launchMode=fullscreen&cb=1773034496433",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Ragdoll Playground",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Melon%20Playground/?cb=1773034496433",
+      "oceanState": "ready",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading is-exiting",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n13.2s [unity.progress] value=50% phase=data-transfer kind=modern\n14.5s [unity.progress] value=60% phase=data-transfer kind=modern\n15.4s [unity.progress] value=70% phase=wasm-compile kind=modern\n16.7s [unity.progress] value=80% phase=wasm-compile kind=modern\n17.0s [unity.progress] value=90% phase=runtime-warmup kind=modern\n36.2s [unity.progress] value=1"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js",
+      "line": 0,
+      "column": 961,
+      "text": "Uncaught",
+      "description": "ReferenceError: config is not defined\n    at http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js:1:962"
+    },
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js",
+      "line": 0,
+      "column": 293,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:316"
+    },
+    {
+      "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js",
+      "line": 0,
+      "column": 293,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:316"
+    },
+    {
+      "url": "blob:http://127.0.0.1:8768/3229b746-820b-4845-8aa1-91a7d005186a",
+      "line": 0,
+      "column": 892038,
+      "text": "Uncaught",
+      "description": "TypeError: Cannot read properties of null (reading 'addEventListener')\n    at blob:http://127.0.0.1:8768/3229b746-820b-4845-8aa1-91a7d005186a:1:892039"
+    }
+  ],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Melon_Playground_fullscreen.png"
+}

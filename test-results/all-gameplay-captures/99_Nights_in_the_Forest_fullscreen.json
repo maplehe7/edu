@@ -1,0 +1,92 @@
+{
+  "name": "99 Nights in the Forest",
+  "mode": "fullscreen",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/99%20Nights%20in%20the%20Forest/?autostart=1&launchMode=fullscreen&cb=1773034147155",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "99 Nights In The Forest",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/99%20Nights%20in%20the%20Forest/?cb=1773034147155",
+      "oceanState": "loading",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n13.3s [unity.progress] value=50% phase=data-transfer kind=modern\n14.4s [unity.progress] value=60% phase=data-transfer kind=modern\n14.7s [unity.progress] value=70% phase=wasm-compile kind=modern\n15.0s [unity.progress] value=83% phase=wasm-compile kind=modern\n15.3s [unity.progress] value=90% phase=runtime-warmup kind=modern\n34.7s [unity.progress] value=1"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[ConsumePurchasesYG] Attempt 2/4 -> calling YG2.ConsumePurchases() if available.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[ConsumePurchasesYG] Called YG2.ConsumePurchases() (direct).\n"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\99_Nights_in_the_Forest_fullscreen.png"
+}

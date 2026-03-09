@@ -1,0 +1,119 @@
+{
+  "name": "Spiral Roll",
+  "mode": "fullscreen",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Spiral%20Roll/?autostart=1&launchMode=fullscreen&cb=1773034941157",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Spiral Roll",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Spiral%20Roll/?cb=1773034941157",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "none",
+      "loadingClasses": "is-loading is-exiting",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime handoff complete",
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": ""
+    },
+    "inner": {
+      "title": "Spiral Roll",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Spiral%20Roll/game-root.html?v=5c79a0b6bced",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": null,
+      "loadingClasses": null,
+      "launchPanelDisplay": null,
+      "statusText": null,
+      "canvasCount": 2,
+      "canvasWidth": 1419,
+      "canvasHeight": 798,
+      "bodyText": ""
+    },
+    "hasFrame": true
+  },
+  "exceptions": [],
+  "failed": [
+    {
+      "errorText": "net::ERR_BLOCKED_BY_RESPONSE",
+      "url": "https://www.minijuegos.com/helpers/game/xdmbridge.php?xdm_url=https://ssl.minijuegosgratis.com/lechuck/js/easyxdm/&xdm_e=http%3A%2F%2F127.0.0.1%3A8768&xdm_c=default5153&xdm_p=1"
+    }
+  ],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "error:",
+        "TypeError: Cannot read properties of undefined (reading 'no_thanks')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "error:",
+        "TypeError: Cannot read properties of undefined (reading 'fb_invite')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "error:",
+        "TypeError: Cannot read properties of undefined (reading 'fb_share')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "error:",
+        "TypeError: Cannot read properties of undefined (reading 'tap_to_restart')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "onGamePreloadEnd",
+        3.59
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "************************************************************** "
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "*************** request banner automatically ***************** "
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "************************************************************** "
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "impression:",
+        "Banner",
+        "gamesnacks"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "********* reconnect"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Spiral_Roll_fullscreen.png"
+}

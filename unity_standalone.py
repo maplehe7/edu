@@ -8674,11 +8674,18 @@ def disable_known_html_console_muting(document_html: str) -> str:
 
 def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
     script_name = "eaglermobile.user.js"
+    script_path = output_dir / script_name
     resolved_url = download_raw_asset(
         EAGLER_MOBILE_USERSCRIPT_URL,
-        output_dir / script_name,
+        script_path,
         referer_url="https://github.com/FlamedDogo99/EaglerMobile",
     )
+    script_text = script_path.read_text(encoding="utf-8")
+    script_text = script_text.replace(
+        '    alert("WARNING: This script was created for mobile, and may break functionality in non-mobile browsers!");',
+        '    console.warn("Eagler Mobile was designed for touch devices; continuing on desktop.");',
+    )
+    script_path.write_text(script_text, encoding="utf-8")
     return {
         "name": script_name,
         "resolved_url": resolved_url,

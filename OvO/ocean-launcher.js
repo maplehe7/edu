@@ -284,13 +284,22 @@
   const startMain = typeof window.main === "function" ? window.main.bind(window) : null;
   const embedUrl =
     typeof window.OCEAN_EMBED_URL === "string" ? window.OCEAN_EMBED_URL.trim() : "";
+  const alternateEmbedUrl =
+    typeof window.OCEAN_ALT_EMBED_URL === "string" ? window.OCEAN_ALT_EMBED_URL.trim() : "";
+  const alternateEmbedLabel =
+    typeof window.OCEAN_ALT_EMBED_LABEL === "string" &&
+    window.OCEAN_ALT_EMBED_LABEL.trim()
+      ? window.OCEAN_ALT_EMBED_LABEL.trim()
+      : "Mobile controls";
+  const alternateEmbedPrompt =
+    typeof window.OCEAN_ALT_EMBED_PROMPT === "string" ? window.OCEAN_ALT_EMBED_PROMPT.trim() : "";
   const remoteUrl =
     typeof window.OCEAN_REMOTE_URL === "string" ? window.OCEAN_REMOTE_URL.trim() : "";
   const embedTitle =
     typeof window.OCEAN_EMBED_TITLE === "string" && window.OCEAN_EMBED_TITLE.trim()
       ? window.OCEAN_EMBED_TITLE.trim()
       : "Game";
-  const initialStatusText =
+  const configuredInitialStatusText =
     typeof window.OCEAN_INITIAL_STATUS === "string" && window.OCEAN_INITIAL_STATUS.trim()
       ? window.OCEAN_INITIAL_STATUS.trim()
       : "Awaiting launch-mode selection";
@@ -306,6 +315,14 @@
     window.OCEAN_LAUNCH_FULLSCREEN_LABEL.trim()
       ? window.OCEAN_LAUNCH_FULLSCREEN_LABEL.trim()
       : "LAUNCH FULLSCREEN";
+  const configuredAllowedLaunchModes =
+    typeof window.OCEAN_ALLOWED_LAUNCH_MODES === "string"
+      ? window.OCEAN_ALLOWED_LAUNCH_MODES.trim()
+      : "";
+  const configuredRecommendedLaunchMode =
+    typeof window.OCEAN_RECOMMENDED_LAUNCH_MODE === "string"
+      ? window.OCEAN_RECOMMENDED_LAUNCH_MODE.trim()
+      : "";
   const remoteLaunchOnly = Boolean(remoteUrl && !embedUrl && !startMain);
 
   if (
@@ -331,10 +348,160 @@
       loadingScreen.appendChild(element);
       return element;
     })();
+  const decisionDialog = (function () {
+    const overlay = document.createElement("div");
+    overlay.id = "oceanDecisionModal";
+    overlay.hidden = true;
+    overlay.innerHTML =
+      '<div class="oceanDecisionCard" role="dialog" aria-modal="true" aria-labelledby="oceanDecisionTitle">' +
+      '<h2 id="oceanDecisionTitle" class="oceanDecisionTitle"></h2>' +
+      '<div id="oceanDecisionBody" class="oceanDecisionBody"></div>' +
+      '<div id="oceanDecisionActions" class="oceanDecisionActions"></div>' +
+      "</div>";
+    loadingScreen.appendChild(overlay);
+    return {
+      overlay: overlay,
+      title: overlay.querySelector("#oceanDecisionTitle"),
+      body: overlay.querySelector("#oceanDecisionBody"),
+      actions: overlay.querySelector("#oceanDecisionActions"),
+    };
+  })();
+  let activeDecisionResolve = null;
+  let activeDecisionCancelValue = "";
 
-  launchFrameBtn.textContent = launchFrameLabel;
-  launchFullscreenBtn.textContent = launchFullscreenLabel;
-  if (playNote) {
+  function normalizeAllowedLaunchModes(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "frame" || normalized === "fullscreen" || normalized === "both") {
+      return normalized;
+    }
+    return "both";
+  }
+
+  function normalizeRecommendedLaunchMode(value, allowedModes) {
+    if (allowedModes === "frame" || allowedModes === "fullscreen") {
+      return allowedModes;
+    }
+    const normalized = String(value || "").trim().toLowerCase();
+    if (
+      normalized === "frame" ||
+      normalized === "fullscreen" ||
+      normalized === "none"
+    ) {
+      return normalized;
+    }
+    return "none";
+  }
+
+  const allowedLaunchModes = normalizeAllowedLaunchModes(configuredAllowedLaunchModes);
+  const recommendedLaunchMode = normalizeRecommendedLaunchMode(
+    configuredRecommendedLaunchMode,
+    allowedLaunchModes
+  );
+  const frameLaunchAllowed = allowedLaunchModes !== "fullscreen";
+  const fullscreenLaunchAllowed = allowedLaunchModes !== "frame";
+  const resolvedInitialStatusText =
+    configuredInitialStatusText !== "Awaiting launch-mode selection"
+      ? configuredInitialStatusText
+      : allowedLaunchModes === "frame"
+        ? "Frame launch selected by builder"
+        : allowedLaunchModes === "fullscreen"
+          ? "Fullscreen launch selected by builder"
+          : configuredInitialStatusText;
+
+  function labelForLaunchMode(mode) {
+    return mode === "fullscreen" ? launchFullscreenLabel : launchFrameLabel;
+  }
+
+  function hasAlternateEmbedVariant() {
+    return Boolean(alternateEmbedUrl);
+  }
+
+  function resolveEmbedVariantLabel(variant) {
+    return variant === "alt" ? "Moblie Controls" : "Desktop Controls";
+  }
+
+  function resolveVariantPromptMessage(launchMode) {
+    return "Desktop or Mobile?";
+  }
+
+  function resolveActiveEmbedUrl() {
+    return activeEmbedVariant === "alt" && hasAlternateEmbedVariant() ? alternateEmbedUrl : embedUrl;
+  }
+
+  function closeDecisionDialog(value) {
+    if (!activeDecisionResolve) {
+      return;
+    }
+    const resolve = activeDecisionResolve;
+    activeDecisionResolve = null;
+    activeDecisionCancelValue = "";
+    decisionDialog.overlay.classList.remove("is-visible");
+    decisionDialog.overlay.hidden = true;
+    decisionDialog.actions.textContent = "";
+    resolve(String(value || ""));
+  }
+
+  function showDecisionDialog(options) {
+    if (activeDecisionResolve) {
+      closeDecisionDialog(activeDecisionCancelValue);
+    }
+    const titleText =
+      typeof options.title === "string" && options.title.trim()
+        ? options.title.trim()
+        : "Choose option";
+    const bodyText = typeof options.body === "string" ? options.body.trim() : "";
+    const buttons = Array.isArray(options.buttons) && options.buttons.length
+      ? options.buttons
+      : [{ label: "Continue", value: "continue", primary: true }];
+    let firstButton = null;
+    activeDecisionCancelValue =
+      typeof options.cancelValue === "string" ? options.cancelValue : "";
+    decisionDialog.title.textContent = titleText;
+    decisionDialog.body.textContent = bodyText;
+    decisionDialog.actions.textContent = "";
+    buttons.forEach(function (buttonConfig, index) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className =
+        "oceanDecisionAction" + (buttonConfig && buttonConfig.primary ? " is-primary" : "");
+      button.textContent =
+        buttonConfig && typeof buttonConfig.label === "string" && buttonConfig.label.trim()
+          ? buttonConfig.label.trim()
+          : "Continue";
+      button.addEventListener("click", function () {
+        closeDecisionDialog(buttonConfig ? buttonConfig.value : "");
+      });
+      decisionDialog.actions.appendChild(button);
+      if (!firstButton || index === 0 || (buttonConfig && buttonConfig.primary)) {
+        firstButton = button;
+      }
+    });
+    decisionDialog.overlay.hidden = false;
+    decisionDialog.overlay.classList.add("is-visible");
+    window.setTimeout(function () {
+      if (firstButton && typeof firstButton.focus === "function") {
+        firstButton.focus();
+      }
+    }, 0);
+    return new Promise(function (resolve) {
+      activeDecisionResolve = resolve;
+    });
+  }
+
+  function isLaunchRecommendationActive() {
+    return allowedLaunchModes === "both" && recommendedLaunchMode !== "none";
+  }
+
+  function updateLaunchModeUi() {
+    launchFrameBtn.textContent = launchFrameLabel;
+    launchFullscreenBtn.textContent = launchFullscreenLabel;
+    launchFrameBtn.style.display = frameLaunchAllowed ? "" : "none";
+    launchFullscreenBtn.style.display = fullscreenLaunchAllowed ? "" : "none";
+    launchFrameBtn.disabled = !frameLaunchAllowed;
+    launchFullscreenBtn.disabled = !fullscreenLaunchAllowed;
+    if (!playNote) {
+      return;
+    }
     if (playNoteText) {
       playNote.textContent = playNoteText;
       playNote.style.display = "";
@@ -342,6 +509,8 @@
       playNote.style.display = "none";
     }
   }
+
+  updateLaunchModeUi();
 
   let started = false;
   let loadingScreenDismissed = false;
@@ -353,6 +522,15 @@
   const loaderStepEpoch = Date.now();
   let lastLoggedStep = "";
   let lastProgressBucket = -1;
+  const requestedEmbedVariant = (function () {
+    try {
+      const rawValue = new URL(window.location.href).searchParams.get("embedVariant") || "";
+      const normalized = rawValue.trim().toLowerCase();
+      return normalized === "alt" ? "alt" : normalized === "primary" ? "primary" : "";
+    } catch (err) {
+      return "";
+    }
+  })();
   const requestedLaunchMode = (function () {
     try {
       return new URL(window.location.href).searchParams.get("launchMode") || "";
@@ -360,6 +538,8 @@
       return "";
     }
   })();
+  let activeEmbedVariant =
+    requestedEmbedVariant === "alt" && alternateEmbedUrl ? "alt" : "primary";
   const forceFullscreenScrollLock = requestedLaunchMode === "fullscreen";
   const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
   const fullscreenScrollKeys = new Set([
@@ -431,9 +611,10 @@
       return "";
     }
     if (
-      cleanMessage === initialStatusText ||
       cleanMessage === "Choose how you want to launch" ||
-      cleanMessage === "Awaiting launch-mode selection"
+      cleanMessage === "Awaiting launch-mode selection" ||
+      (cleanMessage === resolvedInitialStatusText &&
+        resolvedInitialStatusText === "Awaiting launch-mode selection")
     ) {
       return "Awaiting launch-mode selection";
     }
@@ -640,7 +821,22 @@
       mobilePrompt.parentNode.removeChild(mobilePrompt);
     }
     try {
-      frameWindow.main();
+      if (typeof frameWindow.launchTick === "function") {
+        if (frameWindow.launchInterval) {
+          try {
+            frameWindow.clearInterval(frameWindow.launchInterval);
+          } catch (err) {
+          }
+          frameWindow.launchInterval = null;
+        }
+        frameWindow.launchCounter = 100;
+        frameWindow.launchTick();
+        return;
+      }
+      if (!frameWindow.__oceanEaglerMainStarted) {
+        frameWindow.__oceanEaglerMainStarted = true;
+        frameWindow.main();
+      }
     } catch (err) {
       console.warn("Embedded launch prompt bypass failed:", err);
     }
@@ -798,6 +994,11 @@
     const targetUrl = new URL(window.location.href);
     targetUrl.searchParams.set("autostart", "1");
     targetUrl.searchParams.set("launchMode", mode);
+    if (hasAlternateEmbedVariant()) {
+      targetUrl.searchParams.set("embedVariant", activeEmbedVariant || "primary");
+    } else {
+      targetUrl.searchParams.delete("embedVariant");
+    }
     return targetUrl.toString();
   }
 
@@ -823,7 +1024,7 @@
     setProgressVisibility(false);
     fakeProgressValue = 0;
     setProgress(0);
-    setStatus(initialStatusText);
+    setStatus(resolvedInitialStatusText);
   }
 
   function startFakeProgress() {
@@ -924,11 +1125,71 @@
     return shouldAutoStart;
   }
 
+  function confirmRecommendedLaunchOverride(mode) {
+    if (!isLaunchRecommendationActive() || recommendedLaunchMode === mode) {
+      return Promise.resolve(mode);
+    }
+    const selectedLabel = labelForLaunchMode(mode);
+    return showDecisionDialog({
+      title:
+        (recommendedLaunchMode === "fullscreen" ? "Fullscreen" : "Launch here") +
+        " is recommended for this game!",
+      body: "Are you sure you want to " + selectedLabel.toLowerCase() + "?",
+      buttons: [
+        { label: "Confirm", value: mode, primary: true },
+        { label: "Go Back", value: "" },
+      ],
+      cancelValue: "",
+    });
+  }
+
+  function confirmAlternateEmbedVariant(launchMode) {
+    if (!hasAlternateEmbedVariant() || requestedEmbedVariant) {
+      return Promise.resolve(true);
+    }
+    const normalizedLaunchMode =
+      launchMode === "fullscreen" || launchMode === "frame" ? launchMode : "frame";
+    return showDecisionDialog({
+      title: "What controls do you prefer?",
+      body: resolveVariantPromptMessage(normalizedLaunchMode),
+      buttons: [
+        { label: resolveEmbedVariantLabel("alt"), value: "alt", primary: true },
+        { label: resolveEmbedVariantLabel("primary"), value: "primary" },
+        { label: "Go Back", value: "" },
+      ],
+      cancelValue: "",
+    }).then(function (selectedVariant) {
+      if (!selectedVariant) {
+        return false;
+      }
+      activeEmbedVariant = selectedVariant;
+      logLoaderStep("Variant selected: " + resolveEmbedVariantLabel(activeEmbedVariant));
+      return true;
+    });
+  }
+
   function startFullscreenGame() {
-    if (remoteLaunchOnly) {
-      const popup = window.open(remoteUrl, "_blank");
+    return confirmAlternateEmbedVariant("fullscreen").then(function (shouldContinue) {
+      if (!shouldContinue) {
+        return;
+      }
+      if (remoteLaunchOnly) {
+        const popup = window.open(remoteUrl, "_blank");
+        if (!popup || popup.closed) {
+          setStatus("New tab blocked. Allow popups or use open here.");
+          return;
+        }
+        try {
+          popup.opener = null;
+        } catch (err) {
+          // Ignore opener hardening failures.
+        }
+        setStatus("Opened remote stream in a new tab");
+        return;
+      }
+      const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
       if (!popup || popup.closed) {
-        setStatus("New tab blocked. Allow popups or use open here.");
+        setStatus("New tab blocked. Allow popups or use launch here.");
         return;
       }
       try {
@@ -936,40 +1197,60 @@
       } catch (err) {
         // Ignore opener hardening failures.
       }
-      setStatus("Opened remote stream in a new tab");
+      setStatus("Opened fullscreen in a new tab");
+    });
+  }
+
+  function handleFrameLaunchClick() {
+    if (!frameLaunchAllowed) {
       return;
     }
-    const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
-    if (!popup || popup.closed) {
-      setStatus("New tab blocked. Allow popups or use launch here.");
+    confirmRecommendedLaunchOverride("frame").then(function (launchMode) {
+      if (!launchMode) {
+        return;
+      }
+      if (launchMode === "fullscreen") {
+        startFullscreenGame();
+        return;
+      }
+      startGame();
+    });
+  }
+
+  function handleFullscreenLaunchClick() {
+    if (!fullscreenLaunchAllowed) {
       return;
     }
-    try {
-      popup.opener = null;
-    } catch (err) {
-      // Ignore opener hardening failures.
-    }
-    setStatus("Opened fullscreen in a new tab");
+    confirmRecommendedLaunchOverride("fullscreen").then(function (launchMode) {
+      if (!launchMode) {
+        return;
+      }
+      if (launchMode === "frame") {
+        startGame();
+        return;
+      }
+      startFullscreenGame();
+    });
   }
 
   function startEmbeddedGame() {
-    if (!embedUrl) {
+    const selectedEmbedUrl = resolveActiveEmbedUrl();
+    if (!selectedEmbedUrl) {
       return Promise.reject(new Error("Embedded game URL is missing"));
     }
-    logLoaderStep("Preparing embedded frame");
+    logLoaderStep("Preparing embedded frame: " + resolveEmbedVariantLabel(activeEmbedVariant));
     return new Promise(function (resolve, reject) {
       let settled = false;
       const frame = document.createElement("iframe");
-      const resolvedUrl = new URL(embedUrl, window.location.href).toString();
+      const resolvedUrl = new URL(selectedEmbedUrl, window.location.href).toString();
       frame.className = "ocean-game-embed";
       frame.src = resolvedUrl;
       frame.title = embedTitle;
       frame.loading = "eager";
       frame.referrerPolicy = "strict-origin-when-cross-origin";
-      frame.setAttribute("allowfullscreen", "");
       frame.setAttribute(
         "allow",
-        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write; storage-access-by-user-activation"
+        "autoplay; fullscreen; gamepad; clipboard-read; clipboard-write"
       );
 
       function settleWith(fn, value) {
@@ -1001,68 +1282,95 @@
 
   function startGame() {
     if (started) {
-      return;
+      return Promise.resolve();
     }
-    if (!startMain && !embedUrl && !remoteUrl) {
+    if (!startMain && !resolveActiveEmbedUrl() && !remoteUrl) {
       setStatus("Game bootstrap is missing");
-      return;
+      return Promise.resolve();
     }
-    if (remoteLaunchOnly) {
-      started = true;
-      logLoaderStep("Remote stream handoff starting");
-      setStatus("Opening remote stream");
-      window.setTimeout(function () {
-        window.location.assign(remoteUrl);
-      }, 40);
-      return;
-    }
-    started = true;
-    logLoaderStep("Launch requested");
-    loadingScreen.classList.add("is-loading");
-    clearLaunchPanelHideTimer();
-    launchPanel.style.display = "";
-    launchPanel.classList.add("is-hidden");
-    launchPanelHideTimer = window.setTimeout(function () {
-      if (launchPanel.classList.contains("is-hidden")) {
-        launchPanel.style.display = "none";
+    return confirmAlternateEmbedVariant("frame").then(function (shouldContinue) {
+      if (!shouldContinue) {
+        return;
       }
-      launchPanelHideTimer = 0;
-    }, 240);
-    setProgressVisibility(true);
-    setProgress(0);
-    setStatus("Loading 0%");
-    startFakeProgress();
-
-    Promise.resolve()
-      .then(function () {
-        return ensureStorageAccess(document);
-      })
-      .then(function () {
-        if (startMain) {
-          logLoaderStep("Invoking inline bootstrap");
-          return startMain();
+      if (remoteLaunchOnly) {
+        started = true;
+        logLoaderStep("Remote stream handoff starting");
+        setStatus("Opening remote stream");
+        window.setTimeout(function () {
+          window.location.assign(remoteUrl);
+        }, 40);
+        return;
+      }
+      started = true;
+      logLoaderStep("Launch requested");
+      loadingScreen.classList.add("is-loading");
+      clearLaunchPanelHideTimer();
+      launchPanel.style.display = "";
+      launchPanel.classList.add("is-hidden");
+      launchPanelHideTimer = window.setTimeout(function () {
+        if (launchPanel.classList.contains("is-hidden")) {
+          launchPanel.style.display = "none";
         }
-        return startEmbeddedGame();
-      })
-      .then(function () {
-        waitForGameHandoff();
-      })
-      .catch(function (err) {
-        console.error(err);
-        resetLaunchState();
-        setStatus("Failed to load game");
-        alert("Game failed to load: " + err);
-      });
+        launchPanelHideTimer = 0;
+      }, 240);
+      setProgressVisibility(true);
+      setProgress(0);
+      setStatus("Loading 0%");
+      startFakeProgress();
+
+      return Promise.resolve()
+        .then(function () {
+          return ensureStorageAccess(document);
+        })
+        .then(function () {
+          if (startMain) {
+            logLoaderStep("Invoking inline bootstrap");
+            return startMain();
+          }
+          return startEmbeddedGame();
+        })
+        .then(function () {
+          waitForGameHandoff();
+        })
+        .catch(function (err) {
+          console.error(err);
+          resetLaunchState();
+          setStatus("Failed to load game");
+          showDecisionDialog({
+            title: "Load failed",
+            body: "Game failed to load.\n\n" + String(err && err.message ? err.message : err),
+            buttons: [{ label: "Back to launcher", value: "dismiss", primary: true }],
+            cancelValue: "dismiss",
+          });
+        });
+    });
   }
 
   setProgressVisibility(false);
   setProgress(0);
   logLoaderStep("Shell initialized");
-  setStatus(initialStatusText);
+  setStatus(resolvedInitialStatusText);
 
   window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
   window.addEventListener("touchmove", preventFullscreenScroll, { passive: false });
   window.addEventListener("keydown", preventFullscreenScroll, { passive: false });
+  decisionDialog.overlay.addEventListener("click", function (event) {
+    if (event.target !== decisionDialog.overlay) {
+      return;
+    }
+    closeDecisionDialog(activeDecisionCancelValue);
+  });
+  window.addEventListener(
+    "keydown",
+    function (event) {
+      if (event.key !== "Escape" || decisionDialog.overlay.hidden || !activeDecisionResolve) {
+        return;
+      }
+      event.preventDefault();
+      closeDecisionDialog(activeDecisionCancelValue);
+    },
+    { capture: true }
+  );
   window.addEventListener("scroll", enforceFullscreenScrollTop, { passive: true });
   window.addEventListener("fullscreenchange", syncFullscreenScrollLock);
   window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);
@@ -1070,8 +1378,8 @@
   window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
   syncFullscreenScrollLock();
 
-  launchFullscreenBtn.addEventListener("click", startFullscreenGame);
-  launchFrameBtn.addEventListener("click", startGame);
+  launchFullscreenBtn.addEventListener("click", handleFullscreenLaunchClick);
+  launchFrameBtn.addEventListener("click", handleFrameLaunchClick);
 
   if (consumeAutoStartFlag()) {
     startGame();

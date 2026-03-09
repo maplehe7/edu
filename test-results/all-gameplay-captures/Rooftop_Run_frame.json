@@ -1,0 +1,117 @@
+{
+  "name": "Rooftop Run",
+  "mode": "frame",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/Rooftop%20Run/?autostart=1&launchMode=frame&cb=1773034795101",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Rooftop Run Game Files - Crazy Games",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/Rooftop%20Run/?cb=1773034795101",
+      "oceanState": "loading",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n16.6s [unity.progress] value=50% phase=data-transfer kind=modern\n18.3s [unity.progress] value=60% phase=data-transfer kind=modern\n20.2s [unity.progress] value=70% phase=wasm-compile kind=modern\n21.5s [unity.progress] value=80% phase=wasm-compile kind=modern\n23.7s [unity.progress] value=90% phase=runtime-warmup kind=modern\n47.4s [unity.progress] value=1"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [],
+  "failed": [
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "blob:http://127.0.0.1:8768/90962d53-4c22-46ba-9479-d728ca12418b"
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "blob:http://127.0.0.1:8768/edac95bc-215c-4582-acaa-21561b05854d"
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "blob:http://127.0.0.1:8768/697eba75-7132-496a-90ca-5e85ee825741"
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "blob:http://127.0.0.1:8768/ab4cff89-c20c-4c82-adb2-ffe89a9feb1c"
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "blob:http://127.0.0.1:8768/ab4cff89-c20c-4c82-adb2-ffe89a9feb1c"
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "blob:http://127.0.0.1:8768/90962d53-4c22-46ba-9479-d728ca12418b"
+    }
+  ],
+  "console_tail": [
+    {
+      "type": "error",
+      "args": [
+        "warning: 2 FS.syncfs operations in flight at once, probably just doing extra work"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "warning: 3 FS.syncfs operations in flight at once, probably just doing extra work"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "Couldn't create a Convex Mesh from source mesh \"CruzeBody\" within the maximum polygons limit (256). The partial hull will be used. Consider simplifying your mesh.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "UnloadTime: 2.300001 ms\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 6 unused Assets to reduce memory usage. Loaded Objects now: 7691.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Total: 140.500000 ms (FindLiveObjects: 4.200001 ms CreateObjectMapping: 36.900000 ms MarkObjects: 98.699999 ms  DeleteObjects: 0.700000 ms)\n\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "0\n"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "warning: 4 FS.syncfs operations in flight at once, probably just doing extra work"
+      ]
+    },
+    {
+      "type": "error",
+      "args": [
+        "warning: 4 FS.syncfs operations in flight at once, probably just doing extra work"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Rooftop_Run_frame.png"
+}

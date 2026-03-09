@@ -1,0 +1,2774 @@
+[
+  {
+    "name": "1.12.2",
+    "mode": "frame",
+    "embedVariant": "primary",
+    "url": "http://127.0.0.1:8768/1.12.2/?autostart=1&launchMode=frame&cb=1773033552738&embedVariant=primary",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Eaglercraft 1.12.2",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.12.2/?cb=1773033552738&embedVariant=primary",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n4.9s [handoff.progress] value=64% phase=asset-warmup target=iframe_embed\n5.2s [handoff.progress] value=73% phase=asset-warmup target=iframe_embed\n6.4s [embed] iframe load event received\n6.4s [storage] hasStorageAccess() probe\n6.4s [storage] access already granted\n6.4s [handoff] waiting for runtime attachment\n9.1s [handoff] runtime attachment confirmed\n9.1s R"
+      },
+      "inner": {
+        "title": "Eaglercraft 1.12.2",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.12.2/game-root.html?v=dd79591fe63a",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 1,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "info",
+        "args": [
+          "[09:19:23+454][main/INFO][BrowserRuntime]: Loading keyboard layout data"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:23+750][main/INFO][BrowserRuntime]: Creating WebGL context"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:29+258][main/INFO][BrowserRuntime]: OpenGL Version: WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:29+398][main/INFO][BrowserRuntime]: OpenGL Renderer: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:29+401][main/INFO][BrowserRuntime]: Unlocked the following OpenGL ES extensions:"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:29+405][main/INFO][BrowserRuntime]:  - EXT_color_buffer_float"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:29+405][main/INFO][BrowserRuntime]:  - EXT_texture_filter_anisotropic"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:29+406][main/INFO][BrowserRuntime]:  - OES_texture_float_linear"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:29+420][main/INFO][BrowserRuntime]:  - WEBGL_debug_renderer_info"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:31+102][main/INFO][BrowserRuntime]: Downloading: <data: 19421841 chars>"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.12.2_frame_primary.png"
+  },
+  {
+    "name": "1.12.2",
+    "mode": "fullscreen",
+    "embedVariant": "primary",
+    "url": "http://127.0.0.1:8768/1.12.2/?autostart=1&launchMode=fullscreen&cb=1773033571988&embedVariant=primary",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Eaglercraft 1.12.2",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.12.2/?cb=1773033571988&embedVariant=primary",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "none",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "inner": {
+        "title": "Eaglercraft 1.12.2",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.12.2/game-root.html?v=dd79591fe63a",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 1,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "info",
+        "args": [
+          "[09:19:47+403][main/INFO][BrowserRuntime]: Unlocked the following OpenGL ES extensions:"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:47+414][main/INFO][BrowserRuntime]:  - EXT_color_buffer_float"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:47+417][main/INFO][BrowserRuntime]:  - EXT_texture_filter_anisotropic"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:47+418][main/INFO][BrowserRuntime]:  - OES_texture_float_linear"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:47+421][main/INFO][BrowserRuntime]:  - WEBGL_debug_renderer_info"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:48+560][main/INFO][BrowserRuntime]: Downloading: <data: 19421841 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:53+334][main/INFO][BrowserRuntime]: Decompressing: <data: 19421841 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:55+156][main/INFO][BrowserRuntime]: Loaded 5791 resources from EPKs"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:55+269][main/INFO][BrowserRuntime]: Initializing filesystem..."
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:19:55+525][main/INFO][BrowserRuntime]: Initializing sound engine..."
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.12.2_fullscreen_primary.png"
+  },
+  {
+    "name": "1.12.2",
+    "mode": "frame",
+    "embedVariant": "alt",
+    "url": "http://127.0.0.1:8768/1.12.2/?autostart=1&launchMode=frame&cb=1773033639012&embedVariant=alt",
+    "ready": false,
+    "state": null,
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Eagler Mobile v3.0.5b"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.12.2_frame_alt.png"
+  },
+  {
+    "name": "1.12.2",
+    "mode": "fullscreen",
+    "embedVariant": "alt",
+    "url": "http://127.0.0.1:8768/1.12.2/?autostart=1&launchMode=fullscreen&cb=1773033721421&embedVariant=alt",
+    "ready": false,
+    "state": {
+      "outer": {
+        "title": "Eaglercraft 1.12.2",
+        "readyState": "loading",
+        "href": "http://127.0.0.1:8768/1.12.2/?autostart=1&launchMode=fullscreen&cb=1773033721421&embedVariant=alt",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "",
+        "launchPanelDisplay": "flex",
+        "statusText": "Awaiting launch-mode selection",
+        "canvasCount": 2,
+        "canvasWidth": 300,
+        "canvasHeight": 150,
+        "bodyText": "OCEAN\nLAUNCHER\nLAUNCH HERE\nLAUNCH FULLSCREEN\nSaves to local storage\nAwaiting launch-mode selection"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Eagler Mobile v3.0.5b"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.12.2_fullscreen_alt.png"
+  },
+  {
+    "name": "1.8.8",
+    "mode": "frame",
+    "embedVariant": "primary",
+    "url": "http://127.0.0.1:8768/1.8.8/?autostart=1&launchMode=frame&cb=1773033803546&embedVariant=primary",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "EaglercraftX 1.8",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.8.8/?cb=1773033803546&embedVariant=primary",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "none",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "inner": {
+        "title": "EaglercraftX 1.8",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.8.8/game-root.html?v=6b27e343e94b",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 1,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "info",
+        "args": [
+          "[09:23:45+207][main/INFO][BrowserRuntime]:  - EXT_texture_filter_anisotropic"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:45+214][main/INFO][BrowserRuntime]:  - OES_texture_float_linear"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:45+215][main/INFO][BrowserRuntime]:  - WEBGL_debug_renderer_info"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:45+724][main/INFO][BrowserRuntime]: Downloading: <data: 9632213 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:48+853][main/INFO][BrowserRuntime]: Decompressing: <data: 9632213 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:50+499][main/INFO][BrowserRuntime]: Downloading: <data: 2586617 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:50+990][main/INFO][BrowserRuntime]: Decompressing: <data: 2586617 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:51+724][main/INFO][BrowserRuntime]: Loaded 4872 resources from EPKs"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:51+817][main/INFO][BrowserRuntime]: Initializing filesystem..."
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:23:51+853][main/INFO][BrowserRuntime]: Initializing sound engine..."
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.8.8_frame_primary.png"
+  },
+  {
+    "name": "1.8.8",
+    "mode": "fullscreen",
+    "embedVariant": "primary",
+    "url": "http://127.0.0.1:8768/1.8.8/?autostart=1&launchMode=fullscreen&cb=1773033873048&embedVariant=primary",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "EaglercraftX 1.8",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.8.8/?cb=1773033873048&embedVariant=primary",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "none",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "inner": {
+        "title": "EaglercraftX 1.8",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/1.8.8/game-root.html?v=6b27e343e94b",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 1,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "info",
+        "args": [
+          "[09:24:46+783][main/INFO][BrowserRuntime]:  - EXT_texture_filter_anisotropic"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:46+784][main/INFO][BrowserRuntime]:  - OES_texture_float_linear"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:46+785][main/INFO][BrowserRuntime]:  - WEBGL_debug_renderer_info"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:47+111][main/INFO][BrowserRuntime]: Downloading: <data: 9632213 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:49+345][main/INFO][BrowserRuntime]: Decompressing: <data: 9632213 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:50+319][main/INFO][BrowserRuntime]: Downloading: <data: 2586617 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:50+801][main/INFO][BrowserRuntime]: Decompressing: <data: 2586617 chars>"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:51+375][main/INFO][BrowserRuntime]: Loaded 4872 resources from EPKs"
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:51+455][main/INFO][BrowserRuntime]: Initializing filesystem..."
+        ]
+      },
+      {
+        "type": "info",
+        "args": [
+          "[09:24:51+482][main/INFO][BrowserRuntime]: Initializing sound engine..."
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.8.8_fullscreen_primary.png"
+  },
+  {
+    "name": "1.8.8",
+    "mode": "frame",
+    "embedVariant": "alt",
+    "url": "http://127.0.0.1:8768/1.8.8/?autostart=1&launchMode=frame&cb=1773033930538&embedVariant=alt",
+    "ready": false,
+    "state": null,
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Eagler Mobile v3.0.5b"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.8.8_frame_alt.png"
+  },
+  {
+    "name": "1.8.8",
+    "mode": "fullscreen",
+    "embedVariant": "alt",
+    "url": "http://127.0.0.1:8768/1.8.8/?autostart=1&launchMode=fullscreen&cb=1773034013050&embedVariant=alt",
+    "ready": false,
+    "state": {
+      "outer": {
+        "title": "EaglercraftX 1.8",
+        "readyState": "interactive",
+        "href": "http://127.0.0.1:8768/1.8.8/?cb=1773034013050&embedVariant=alt",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Handoff progress=34% phase=frame-bootstrap",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nHandoff progress=34% phase=frame-bootstrap\n0.0s [handoff.progress] value=0% phase=init target=iframe_embed\n0.0s [storage] hasStorageAccess() probe\n0.1s [storage] access already granted\n0.1s Preparing embedded frame: Moblie Controls\n0.2s [embed] iframe DOM attached host=127.0.0.1:8768\n0.3s [handoff.progress] value=10% phase=launch-prep target=iframe_embed\n0.6s [handoff.progress] valu"
+      },
+      "inner": {
+        "title": "",
+        "readyState": "complete",
+        "href": "about:blank",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 0,
+        "canvasWidth": null,
+        "canvasHeight": null,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Eagler Mobile v3.0.5b"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.8.8_fullscreen_alt.png"
+  },
+  {
+    "name": "99 Nights in the Forest",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/99%20Nights%20in%20the%20Forest/?autostart=1&launchMode=frame&cb=1773034095573",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "99 Nights In The Forest",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/99%20Nights%20in%20the%20Forest/?cb=1773034095573",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n17.4s [unity.progress] value=50% phase=data-transfer kind=modern\n20.1s [unity.progress] value=62% phase=data-transfer kind=modern\n20.2s [unity.progress] value=71% phase=wasm-compile kind=modern\n20.3s [unity.progress] value=83% phase=wasm-compile kind=modern\n20.7s [unity.progress] value=90% phase=runtime-warmup kind=modern\n39.3s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-F32JC4N3VY&gtm=45je6341v9127665816za20g&_p=1773034141225&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1365x768&cid=1484902201.1773034141&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.160%7CChromium%3B145.0.7632.160&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAI&_s=1&tag_exp=103116026~103200004~115616985~115938465~115938468~116024733~117484252~117625637&dl=http%3A%2F%2F127.0.0.1%2F99%2520Nights%2520in%2520the%2520Forest%2F%3Fcb%3D1773034095573&dt=99%20Nights%20In%20The%20Forest&sid=1773034142&sct=1&seg=0&_tu=wAQ&en=page_view&_fv=1&_ss=1&_ee=1&tfd=46658"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[ConsumePurchasesYG] Attempt 1/4 -> calling YG2.ConsumePurchases() if available.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[ConsumePurchasesYG] Called YG2.ConsumePurchases() (direct).\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\99_Nights_in_the_Forest_frame.png"
+  },
+  {
+    "name": "99 Nights in the Forest",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/99%20Nights%20in%20the%20Forest/?autostart=1&launchMode=fullscreen&cb=1773034147155",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "99 Nights In The Forest",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/99%20Nights%20in%20the%20Forest/?cb=1773034147155",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n13.3s [unity.progress] value=50% phase=data-transfer kind=modern\n14.4s [unity.progress] value=60% phase=data-transfer kind=modern\n14.7s [unity.progress] value=70% phase=wasm-compile kind=modern\n15.0s [unity.progress] value=83% phase=wasm-compile kind=modern\n15.3s [unity.progress] value=90% phase=runtime-warmup kind=modern\n34.7s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[ConsumePurchasesYG] Attempt 2/4 -> calling YG2.ConsumePurchases() if available.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[ConsumePurchasesYG] Called YG2.ConsumePurchases() (direct).\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\99_Nights_in_the_Forest_fullscreen.png"
+  },
+  {
+    "name": "Clash Royale",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Clash%20Royale/?autostart=1&launchMode=frame&cb=1773034193451",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Unity WebGL Player | 99Days",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Clash%20Royale/?cb=1773034193451",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n0.7s [handoff.progress] value=42% phase=frame-bootstrap target=iframe_embed\n0.9s [handoff.progress] value=50% phase=asset-warmup target=iframe_embed\n0.9s [embed] iframe load event received\n0.9s [storage] hasStorageAccess() probe\n0.9s [storage] access already granted\n0.9s [handoff] waiting for runtime attachment\n1.0s [handoff] runtime attachment confirmed\n1.0"
+      },
+      "inner": {
+        "title": "Unity WebGL Player | 99Days",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Clash%20Royale/game-root.html?v=aaac48047553",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 300,
+        "canvasHeight": 150,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-F32JC4N3VY&gtm=45je6341v9127665816za20g&_p=1773034187527&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1365x768&cid=1484902201.1773034141&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.160%7CChromium%3B145.0.7632.160&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAAQ&_s=1&tag_exp=103116026~103200004~115938465~115938469~116024733~117484252~117625641&dl=http%3A%2F%2F127.0.0.1%2F99%2520Nights%2520in%2520the%2520Forest%2F%3Fcb%3D1773034147155&dt=99%20Nights%20In%20The%20Forest&sid=1773034142&sct=1&seg=1&_tu=wAQ&en=page_view&_ee=1&tfd=45264"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "NullReferenceException: Object reference not set to an instance of an object.\n\n\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[ConsumePurchasesYG] Attempt 4/4 -> calling YG2.ConsumePurchases() if available.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[ConsumePurchasesYG] Called YG2.ConsumePurchases() (direct).\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Clash_Royale_frame.png"
+  },
+  {
+    "name": "Clash Royale",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Clash%20Royale/?autostart=1&launchMode=fullscreen&cb=1773034207103",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Unity WebGL Player | 99Days",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Clash%20Royale/?cb=1773034207103",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n0.7s [handoff.progress] value=42% phase=frame-bootstrap target=iframe_embed\n0.8s [embed] iframe load event received\n0.8s [storage] hasStorageAccess() probe\n0.8s [storage] access already granted\n0.8s [handoff] waiting for runtime attachment\n0.9s [handoff.progress] value=50% phase=asset-warmup target=iframe_embed\n1.0s [handoff] runtime attachment confirmed\n1.0"
+      },
+      "inner": {
+        "title": "Unity WebGL Player | 99Days",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Clash%20Royale/game-root.html?v=aaac48047553",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 300,
+        "canvasHeight": 150,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Clash_Royale_fullscreen.png"
+  },
+  {
+    "name": "Drift Boss",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Drift%20Boss/?autostart=1&launchMode=frame&cb=1773034217402",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Drift Boss",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Drift%20Boss/?cb=1773034217402",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n2.7s [handoff.progress] value=73% phase=asset-warmup target=iframe_embed\n3.2s [handoff.progress] value=81% phase=runtime-handoff target=iframe_embed\n3.2s [embed] iframe load event received\n3.2s [storage] hasStorageAccess() probe\n3.2s [storage] access already granted\n3.2s [handoff] waiting for runtime attachment\n3.4s [handoff] runtime attachment confirmed\n3.4"
+      },
+      "inner": {
+        "title": "Drift Boss",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Drift%20Boss/game-root.html?v=603d21e78739",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 300,
+        "canvasHeight": 150,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:8768/Drift%20Boss/main.min.js"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-E87KL5Z997&gtm=45je6350h2v882072445za20g&_p=1773034221293&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1365x768&cid=1484902201.1773034141&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.160%7CChromium%3B145.0.7632.160&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&are=1&frm=1&pscdl=noapi&_eu=ABAI&_s=1&tag_exp=103116026~103200004~115938466~115938468~116024733~117477893~117484252~117625642&dl=http%3A%2F%2F127.0.0.1%2FDrift%2520Boss%2Fgame-root.html%3Fv%3D603d21e78739&dt=Drift%20Boss&sid=1773034222&sct=1&seg=0&_tu=wAQ&en=page_view&_fv=1&_ss=1&_ee=1&tfd=4391"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "%cMjs-Gd: \"GD Plugin v1.3.4 Initialized\"",
+          "color: brown; font-weight: bold"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "dailyreward-plugin 1.1.0"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Drift_Boss_frame.png"
+  },
+  {
+    "name": "Drift Boss",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Drift%20Boss/?autostart=1&launchMode=fullscreen&cb=1773034230528",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Drift Boss",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Drift%20Boss/?cb=1773034230528",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n2.0s [handoff.progress] value=81% phase=runtime-handoff target=iframe_embed\n2.8s [handoff.progress] value=90% phase=runtime-handoff target=iframe_embed\n3.1s [embed] iframe load event received\n3.1s [storage] hasStorageAccess() probe\n3.1s [storage] access already granted\n3.1s [handoff] waiting for runtime attachment\n3.3s [handoff] runtime attachment confirmed\n"
+      },
+      "inner": {
+        "title": "Drift Boss",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Drift%20Boss/game-root.html?v=603d21e78739",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 300,
+        "canvasHeight": 150,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:8768/Drift%20Boss/main.min.js"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-E87KL5Z997&gtm=45je6341v882072445za20g&_p=1773034234113&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1365x768&cid=1484902201.1773034141&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.160%7CChromium%3B145.0.7632.160&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&are=1&frm=1&pscdl=noapi&_eu=ABAIAAQ&_s=1&tag_exp=103116026~103200004~115938465~115938468~116024733~117484252&dl=http%3A%2F%2F127.0.0.1%2FDrift%2520Boss%2Fgame-root.html%3Fv%3D603d21e78739&dt=Drift%20Boss&sid=1773034222&sct=1&seg=1&_tu=wAQ&en=page_view&_ee=1&tfd=8729"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "%cMjs-Gd: \"GD Plugin v1.3.4 Initialized\"",
+          "color: brown; font-weight: bold"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "dailyreward-plugin 1.1.0"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Drift_Boss_fullscreen.png"
+  },
+  {
+    "name": "GD Lite",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/GD%20Lite/?autostart=1&launchMode=frame&cb=1773034243637",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Geometry Dash Lite",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/GD%20Lite/?cb=1773034243637",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n12.4s [unity.progress] value=50% phase=data-transfer kind=modern\n13.2s [unity.progress] value=62% phase=data-transfer kind=modern\n13.3s [unity.progress] value=70% phase=wasm-compile kind=modern\n13.5s [unity.progress] value=83% phase=wasm-compile kind=modern\n13.6s [unity.progress] value=90% phase=runtime-warmup kind=modern\n38.7s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/StayInsideMe.mp3' successfully downloaded and stored in the indexedDB cache"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "The referenced script on this Behaviour (Game Object 'Admob') is missing!\n"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "The referenced script on this Behaviour (Game Object 'Firebase') is missing!\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[PhysX] Initialized SinglethreadedTaskDispatcher.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 25.700000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 3 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 23 unused Assets to reduce memory usage. Loaded Objects now: 2691.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Total: 13.700000 ms (FindLiveObjects: 1.900001 ms CreateObjectMapping: 0.400001 ms MarkObjects: 10.899999 ms  DeleteObjects: 0.400000 ms)\n\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[UnityCache] 'http://127.0.0.1:8768/GD%20Lite/Build/geometry-dash-lite.data?v=a35352bd50b6' successfully downloaded and stored in the indexedDB cache"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\GD_Lite_frame.png"
+  },
+  {
+    "name": "GD Lite",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/GD%20Lite/?autostart=1&launchMode=fullscreen&cb=1773034293301",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Geometry Dash Lite",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/GD%20Lite/?cb=1773034293301",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n6.3s [unity.progress] value=50% phase=data-transfer kind=modern\n6.5s [unity.progress] value=60% phase=data-transfer kind=modern\n6.6s [unity.progress] value=70% phase=wasm-compile kind=modern\n6.9s [unity.progress] value=80% phase=wasm-compile kind=modern\n7.1s [unity.progress] value=90% phase=runtime-warmup kind=modern\n39.0s [unity.progress] value=100% p"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "https://slope3.com/gamep/geometry-dash-lite/game.txt"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:8768/setting.txt"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/explode.mp3' served from the indexedDB cache without revalidation"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/menuLoop.mp3' served from the indexedDB cache without revalidation"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/StayInsideMe.mp3' served from the indexedDB cache without revalidation"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "The referenced script on this Behaviour (Game Object 'Admob') is missing!\n"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "The referenced script on this Behaviour (Game Object 'Firebase') is missing!\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[PhysX] Initialized SinglethreadedTaskDispatcher.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 2.900000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 3 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 23 unused Assets to reduce memory usage. Loaded Objects now: 2691.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Total: 8.099999 ms (FindLiveObjects: 0.500000 ms CreateObjectMapping: 0.199999 ms MarkObjects: 7.000000 ms  DeleteObjects: 0.400000 ms)\n\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\GD_Lite_fullscreen.png"
+  },
+  {
+    "name": "Holeio",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Holeio/?autostart=1&launchMode=frame&cb=1773034342979",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Hayna@main",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Holeio/?cb=1773034342979",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n5.0s [unity.progress] value=52% phase=data-transfer kind=modern\n5.8s [unity.progress] value=60% phase=data-transfer kind=modern\n6.2s [unity.progress] value=70% phase=wasm-compile kind=modern\n6.7s [unity.progress] value=80% phase=wasm-compile kind=modern\n7.6s [unity.progress] value=90% phase=runtime-warmup kind=modern\n40.7s [unity.progress] value=100% p"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 11.600000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 24 unused Assets to reduce memory usage. Loaded Objects now: 216414.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Total: 319.100000 ms (FindLiveObjects: 101.200000 ms CreateObjectMapping: 9.400000 ms MarkObjects: 206.500000 ms  DeleteObjects: 2.000000 ms)\n\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Holeio_frame.png"
+  },
+  {
+    "name": "Holeio",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Holeio/?autostart=1&launchMode=fullscreen&cb=1773034397145",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Hayna@main",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Holeio/?cb=1773034397145",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n4.2s [unity.progress] value=51% phase=data-transfer kind=modern\n4.3s [unity.progress] value=60% phase=data-transfer kind=modern\n4.3s [unity.progress] value=73% phase=wasm-compile kind=modern\n4.4s [unity.progress] value=80% phase=wasm-compile kind=modern\n4.7s [unity.progress] value=90% phase=runtime-warmup kind=modern\n37.4s [unity.progress] value=100% p"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 8.500000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 24 unused Assets to reduce memory usage. Loaded Objects now: 216414.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Total: 215.800000 ms (FindLiveObjects: 46.400000 ms CreateObjectMapping: 6.300000 ms MarkObjects: 162.300000 ms  DeleteObjects: 0.700000 ms)\n\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[MockAds] Rewarded Ads Available"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Holeio_fullscreen.png"
+  },
+  {
+    "name": "Melon Playground",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Melon%20Playground/?autostart=1&launchMode=frame&cb=1773034445256",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Ragdoll Playground",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Melon%20Playground/?cb=1773034445256",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n14.7s [unity.progress] value=50% phase=data-transfer kind=modern\n16.4s [unity.progress] value=61% phase=data-transfer kind=modern\n16.7s [unity.progress] value=70% phase=wasm-compile kind=modern\n17.4s [unity.progress] value=80% phase=wasm-compile kind=modern\n17.8s [unity.progress] value=90% phase=runtime-warmup kind=modern\n38.5s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js",
+        "line": 0,
+        "column": 961,
+        "text": "Uncaught",
+        "description": "ReferenceError: config is not defined\n    at http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js:1:962"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:316"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:316"
+      },
+      {
+        "url": "blob:http://127.0.0.1:8768/55d0463f-75cb-4dfd-81ab-4e4e8b11b2aa",
+        "line": 0,
+        "column": 892038,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of null (reading 'addEventListener')\n    at blob:http://127.0.0.1:8768/55d0463f-75cb-4dfd-81ab-4e4e8b11b2aa:1:892039"
+      }
+    ],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "ERROR: Shader "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/Debug/Waveform shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "ERROR: Shader "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/Debug/Histogram shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "ERROR: Shader "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/ScreenSpaceReflections shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "ERROR: Shader "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/MultiScaleVO shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 19.000000 ms\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Melon_Playground_frame.png"
+  },
+  {
+    "name": "Melon Playground",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Melon%20Playground/?autostart=1&launchMode=fullscreen&cb=1773034496433",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Ragdoll Playground",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Melon%20Playground/?cb=1773034496433",
+        "oceanState": "ready",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n13.2s [unity.progress] value=50% phase=data-transfer kind=modern\n14.5s [unity.progress] value=60% phase=data-transfer kind=modern\n15.4s [unity.progress] value=70% phase=wasm-compile kind=modern\n16.7s [unity.progress] value=80% phase=wasm-compile kind=modern\n17.0s [unity.progress] value=90% phase=runtime-warmup kind=modern\n36.2s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js",
+        "line": 0,
+        "column": 961,
+        "text": "Uncaught",
+        "description": "ReferenceError: config is not defined\n    at http://127.0.0.1:8768/Melon%20Playground/support/gmsoftsdk_v5.js:1:962"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-auth-compat.js:1:316"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Playground/support/firebase-analytics-compat.js:1:316"
+      },
+      {
+        "url": "blob:http://127.0.0.1:8768/3229b746-820b-4845-8aa1-91a7d005186a",
+        "line": 0,
+        "column": 892038,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of null (reading 'addEventListener')\n    at blob:http://127.0.0.1:8768/3229b746-820b-4845-8aa1-91a7d005186a:1:892039"
+      }
+    ],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Melon_Playground_fullscreen.png"
+  },
+  {
+    "name": "Melon Sandbox",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Melon%20Sandbox/?autostart=1&launchMode=frame&cb=1773034546365",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Ragdoll Playground",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Melon%20Sandbox/?cb=1773034546365",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n16.8s [unity.progress] value=50% phase=data-transfer kind=modern\n18.4s [unity.progress] value=61% phase=data-transfer kind=modern\n19.2s [unity.progress] value=70% phase=wasm-compile kind=modern\n19.4s [unity.progress] value=80% phase=wasm-compile kind=modern\n19.7s [unity.progress] value=90% phase=runtime-warmup kind=modern\n39.9s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/gmsoftsdk_v5.js",
+        "line": 0,
+        "column": 961,
+        "text": "Uncaught",
+        "description": "ReferenceError: config is not defined\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/gmsoftsdk_v5.js:1:962"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js:1:316"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js:1:316"
+      },
+      {
+        "url": "blob:http://127.0.0.1:8768/e8f32798-b919-4440-9f63-6acd66d640a9",
+        "line": 0,
+        "column": 892038,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of null (reading 'addEventListener')\n    at blob:http://127.0.0.1:8768/e8f32798-b919-4440-9f63-6acd66d640a9:1:892039"
+      }
+    ],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "ERROR: Shader "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/Debug/Histogram shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "ERROR: Shader "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/ScreenSpaceReflections shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "ERROR: Shader "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/MultiScaleVO shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 2.600000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 6 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 4 unused Assets to reduce memory usage. Loaded Objects now: 24596.\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Melon_Sandbox_frame.png"
+  },
+  {
+    "name": "Melon Sandbox",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Melon%20Sandbox/?autostart=1&launchMode=fullscreen&cb=1773034597646",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Ragdoll Playground",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Melon%20Sandbox/?cb=1773034597646",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n16.5s [unity.progress] value=50% phase=data-transfer kind=modern\n17.3s [unity.progress] value=60% phase=data-transfer kind=modern\n18.6s [unity.progress] value=71% phase=wasm-compile kind=modern\n20.0s [unity.progress] value=80% phase=wasm-compile kind=modern\n20.4s [unity.progress] value=90% phase=runtime-warmup kind=modern\n41.9s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/gmsoftsdk_v5.js",
+        "line": 0,
+        "column": 961,
+        "text": "Uncaught",
+        "description": "ReferenceError: config is not defined\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/gmsoftsdk_v5.js:1:962"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-auth-compat.js:1:316"
+      },
+      {
+        "url": "http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js",
+        "line": 0,
+        "column": 293,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of undefined (reading 'INTERNAL')\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js:1:294\n    at http://127.0.0.1:8768/Melon%20Sandbox/support/firebase-analytics-compat.js:1:316"
+      },
+      {
+        "url": "blob:http://127.0.0.1:8768/5d3a7bf1-49ca-432b-a761-aec0617392f6",
+        "line": 0,
+        "column": 892038,
+        "text": "Uncaught",
+        "description": "TypeError: Cannot read properties of null (reading 'addEventListener')\n    at blob:http://127.0.0.1:8768/5d3a7bf1-49ca-432b-a761-aec0617392f6:1:892039"
+      }
+    ],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Hidden/PostProcessing/MultiScaleVO shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[Physics::Module] Initialized SinglethreadedJobDispatcher.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 23.000000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 6 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 4 unused Assets to reduce memory usage. Loaded Objects now: 24596.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Total: 71.600001 ms (FindLiveObjects: 3.500000 ms CreateObjectMapping: 3.600001 ms MarkObjects: 64.300000 ms  DeleteObjects: 0.200000 ms)\n\n"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "Exposed name does not exist: master\n"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "Exposed name does not exist: sfx\n"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "Exposed name does not exist: userInterface\n"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "Exposed name does not exist: ambience\n"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Melon_Sandbox_fullscreen.png"
+  },
+  {
+    "name": "OvO",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/OvO/?autostart=1&launchMode=frame&cb=1773034653306",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "OvO",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/OvO/?cb=1773034653306",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n2.1s [handoff.progress] value=81% phase=runtime-handoff target=iframe_embed\n2.8s [handoff.progress] value=90% phase=runtime-handoff target=iframe_embed\n5.1s [embed] iframe load event received\n5.1s [storage] hasStorageAccess() probe\n5.1s [storage] access already granted\n5.1s [handoff] waiting for runtime attachment\n5.2s [handoff] runtime attachment confirmed\n"
+      },
+      "inner": {
+        "title": "OvO",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/OvO/game-root.html?v=f8502198ed13",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "error",
+        "args": [
+          "Scene 'l' couldn't be loaded because it has not been added to the build settings or the AssetBundle has not been loaded.\nTo add a scene to the build settings use the menu File->Build Settings...\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "registerChildren"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Info/GameAnalytics: Info logging enabled"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Info/GameAnalytics: Set build version: 1.4.2"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Info/GameAnalytics: Starting a new session."
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "try removing"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "try removing"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "try removing"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "try removing"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\OvO_frame.png"
+  },
+  {
+    "name": "OvO",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/OvO/?autostart=1&launchMode=fullscreen&cb=1773034675742",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "OvO",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/OvO/?cb=1773034675742",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n1.6s [handoff.progress] value=73% phase=asset-warmup target=iframe_embed\n2.0s [handoff.progress] value=81% phase=runtime-handoff target=iframe_embed\n2.1s [embed] iframe load event received\n2.1s [storage] hasStorageAccess() probe\n2.1s [storage] access already granted\n2.1s [handoff] waiting for runtime attachment\n2.3s [handoff] runtime attachment confirmed\n2.3"
+      },
+      "inner": {
+        "title": "OvO",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/OvO/game-root.html?v=f8502198ed13",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "key already exists"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "try removing"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "try removing"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\OvO_fullscreen.png"
+  },
+  {
+    "name": "Ragdoll Archers",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Ragdoll%20Archers/?autostart=1&launchMode=frame&cb=1773034696573",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Ragdoll Archers",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Ragdoll%20Archers/?cb=1773034696573",
+        "oceanState": "ready",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n9.3s [unity.progress] value=51% phase=data-transfer kind=modern\n10.0s [unity.progress] value=60% phase=data-transfer kind=modern\n11.2s [unity.progress] value=70% phase=wasm-compile kind=modern\n11.9s [unity.progress] value=80% phase=wasm-compile kind=modern\n12.4s [unity.progress] value=90% phase=runtime-warmup kind=modern\n41.6s [unity.progress] value=10"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Vendor:   WebKit\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "GLES:     3\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          " EXT_clip_control EXT_color_buffer_float EXT_color_buffer_half_float EXT_conservative_depth EXT_depth_clamp EXT_disjoint_timer_query_webgl2 EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge NV_shader_noperspective_interpolation OES_draw_buffers_indexed OES_sample_variables OES_shader_multisample_interpolation OES_texture_float_linear OVR_multiview2 WEBGL_clip_cull_distance WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode WEBGL_stencil_texturing GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_depth_clamp GL_EXT_disjoint_timer_query_webgl2 GL_EXT_float_blend GL_EXT_polygon_offset_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_comp\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "ression_rgtc GL_EXT_texture_filter_anisotropic GL_EXT_texture_mirror_clamp_to_edge GL_NV_shader_noperspective_interpolation GL_OES_draw_buffers_indexed GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_texture_float_linear GL_OVR_multiview2 GL_WEBGL_clip_cull_distance GL_WEBGL_compressed_texture_astc GL_WEBGL_compressed_texture_etc GL_WEBGL_compressed_texture_etc1 GL_WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_debug_renderer_info GL_WEBGL_debug_shaders GL_WEBGL_lose_context GL_WEBGL_multi_draw GL_WEBGL_polygon_mode GL_WEBGL_stencil_texturing\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  <OpenGL ES 3.0> ; Context handle 1\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Input Manager initialize...\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 4.300000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[CrazySDK] SiteLock v1.9.0\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Ragdoll_Archers_frame.png"
+  },
+  {
+    "name": "Ragdoll Archers",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Ragdoll%20Archers/?autostart=1&launchMode=fullscreen&cb=1773034754460",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Ragdoll Archers",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Ragdoll%20Archers/?cb=1773034754460",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n5.2s [unity.progress] value=30% phase=loader-eval kind=modern\n5.2s [unity.progress] value=44% phase=loader-eval kind=modern\n5.3s [unity.progress] value=58% phase=data-transfer kind=modern\n5.3s [unity.progress] value=65% phase=data-transfer kind=modern\n5.4s [unity.progress] value=90% phase=runtime-warmup kind=modern\n29.0s [unity.progress] value=100% pha"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:8768/Ragdoll%20Archers/Build/b78e2f19aeeb36e72ad0c25ba1389c0c.data.br?v=ff252961a078"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "Vendor:   WebKit\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "GLES:     3\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          " EXT_clip_control EXT_color_buffer_float EXT_color_buffer_half_float EXT_conservative_depth EXT_depth_clamp EXT_disjoint_timer_query_webgl2 EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge NV_shader_noperspective_interpolation OES_draw_buffers_indexed OES_sample_variables OES_shader_multisample_interpolation OES_texture_float_linear OVR_multiview2 WEBGL_clip_cull_distance WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode WEBGL_stencil_texturing GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_depth_clamp GL_EXT_disjoint_timer_query_webgl2 GL_EXT_float_blend GL_EXT_polygon_offset_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_comp\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "ression_rgtc GL_EXT_texture_filter_anisotropic GL_EXT_texture_mirror_clamp_to_edge GL_NV_shader_noperspective_interpolation GL_OES_draw_buffers_indexed GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_texture_float_linear GL_OVR_multiview2 GL_WEBGL_clip_cull_distance GL_WEBGL_compressed_texture_astc GL_WEBGL_compressed_texture_etc GL_WEBGL_compressed_texture_etc1 GL_WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_debug_renderer_info GL_WEBGL_debug_shaders GL_WEBGL_lose_context GL_WEBGL_multi_draw GL_WEBGL_polygon_mode GL_WEBGL_stencil_texturing\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  <OpenGL ES 3.0> ; Context handle 1\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Input Manager initialize...\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 4.900001 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "[CrazySDK] SiteLock v1.9.0\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Trying to get length of sound which is not loaded."
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Ragdoll_Archers_fullscreen.png"
+  },
+  {
+    "name": "Rooftop Run",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Rooftop%20Run/?autostart=1&launchMode=frame&cb=1773034795101",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Rooftop Run Game Files - Crazy Games",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Rooftop%20Run/?cb=1773034795101",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n16.6s [unity.progress] value=50% phase=data-transfer kind=modern\n18.3s [unity.progress] value=60% phase=data-transfer kind=modern\n20.2s [unity.progress] value=70% phase=wasm-compile kind=modern\n21.5s [unity.progress] value=80% phase=wasm-compile kind=modern\n23.7s [unity.progress] value=90% phase=runtime-warmup kind=modern\n47.4s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/90962d53-4c22-46ba-9479-d728ca12418b"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/edac95bc-215c-4582-acaa-21561b05854d"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/697eba75-7132-496a-90ca-5e85ee825741"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/ab4cff89-c20c-4c82-adb2-ffe89a9feb1c"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/ab4cff89-c20c-4c82-adb2-ffe89a9feb1c"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/90962d53-4c22-46ba-9479-d728ca12418b"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "error",
+        "args": [
+          "warning: 2 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "warning: 3 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "Couldn't create a Convex Mesh from source mesh \"CruzeBody\" within the maximum polygons limit (256). The partial hull will be used. Consider simplifying your mesh.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 2.300001 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 6 unused Assets to reduce memory usage. Loaded Objects now: 7691.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Total: 140.500000 ms (FindLiveObjects: 4.200001 ms CreateObjectMapping: 36.900000 ms MarkObjects: 98.699999 ms  DeleteObjects: 0.700000 ms)\n\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "0\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "warning: 4 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "warning: 4 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Rooftop_Run_frame.png"
+  },
+  {
+    "name": "Rooftop Run",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Rooftop%20Run/?autostart=1&launchMode=fullscreen&cb=1773034855585",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Rooftop Run Game Files - Crazy Games",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Rooftop%20Run/?cb=1773034855585",
+        "oceanState": "loading",
+        "unityInstance": true,
+        "createUnityInstanceType": "function",
+        "loadingDisplay": "flex",
+        "loadingClasses": "is-loading",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime ready; canvas attached",
+        "canvasCount": 3,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n14.0s [unity.progress] value=50% phase=data-transfer kind=modern\n15.3s [unity.progress] value=60% phase=data-transfer kind=modern\n16.0s [unity.progress] value=70% phase=wasm-compile kind=modern\n16.8s [unity.progress] value=80% phase=wasm-compile kind=modern\n17.7s [unity.progress] value=90% phase=runtime-warmup kind=modern\n39.3s [unity.progress] value=1"
+      },
+      "inner": null,
+      "hasFrame": false
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/9c114270-aff9-4eba-86cf-83072a634c6a"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/1b0f5623-d0e5-42d4-8196-0a8eb9bbd74f"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/52f65228-c281-499a-9025-846acf12b0d4"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/52f65228-c281-499a-9025-846acf12b0d4"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/0e796ce7-4941-456b-9947-48d3eefff58e"
+      },
+      {
+        "errorText": "net::ERR_ABORTED",
+        "url": "blob:http://127.0.0.1:8768/1b0f5623-d0e5-42d4-8196-0a8eb9bbd74f"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "error",
+        "args": [
+          "warning: 2 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "warning: 3 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "warning: 2 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      },
+      {
+        "type": "warning",
+        "args": [
+          "Couldn't create a Convex Mesh from source mesh \"CruzeBody\" within the maximum polygons limit (256). The partial hull will be used. Consider simplifying your mesh.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "UnloadTime: 0.800000 ms\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Unloading 6 unused Assets to reduce memory usage. Loaded Objects now: 7691.\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "Total: 56.600000 ms (FindLiveObjects: 0.699999 ms CreateObjectMapping: 0.500000 ms MarkObjects: 54.899999 ms  DeleteObjects: 0.400001 ms)\n\n"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "0\n"
+        ]
+      },
+      {
+        "type": "error",
+        "args": [
+          "warning: 2 FS.syncfs operations in flight at once, probably just doing extra work"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Rooftop_Run_fullscreen.png"
+  },
+  {
+    "name": "Spiral Roll",
+    "mode": "frame",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Spiral%20Roll/?autostart=1&launchMode=frame&cb=1773034909842",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Spiral Roll",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Spiral%20Roll/?cb=1773034909842",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "none",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "inner": {
+        "title": "Spiral Roll",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Spiral%20Roll/game-root.html?v=5c79a0b6bced",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 1419,
+        "canvasHeight": 798,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_BLOCKED_BY_RESPONSE",
+        "url": "https://www.minijuegos.com/helpers/game/xdmbridge.php?xdm_url=https://ssl.minijuegosgratis.com/lechuck/js/easyxdm/&xdm_e=http%3A%2F%2F127.0.0.1%3A8768&xdm_c=default1026&xdm_p=1"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'no_thanks')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'fb_invite')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'fb_share')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'tap_to_restart')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "onGamePreloadEnd",
+          1.8900000000000001
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "************************************************************** "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "*************** request banner automatically ***************** "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "************************************************************** "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "impression:",
+          "Banner",
+          "gamesnacks"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "********* reconnect"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Spiral_Roll_frame.png"
+  },
+  {
+    "name": "Spiral Roll",
+    "mode": "fullscreen",
+    "embedVariant": null,
+    "url": "http://127.0.0.1:8768/Spiral%20Roll/?autostart=1&launchMode=fullscreen&cb=1773034941157",
+    "ready": true,
+    "state": {
+      "outer": {
+        "title": "Spiral Roll",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Spiral%20Roll/?cb=1773034941157",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": "none",
+        "loadingClasses": "is-loading is-exiting",
+        "launchPanelDisplay": "none",
+        "statusText": "Runtime handoff complete",
+        "canvasCount": 2,
+        "canvasWidth": 1365,
+        "canvasHeight": 768,
+        "bodyText": ""
+      },
+      "inner": {
+        "title": "Spiral Roll",
+        "readyState": "complete",
+        "href": "http://127.0.0.1:8768/Spiral%20Roll/game-root.html?v=5c79a0b6bced",
+        "oceanState": null,
+        "unityInstance": false,
+        "createUnityInstanceType": "undefined",
+        "loadingDisplay": null,
+        "loadingClasses": null,
+        "launchPanelDisplay": null,
+        "statusText": null,
+        "canvasCount": 2,
+        "canvasWidth": 1419,
+        "canvasHeight": 798,
+        "bodyText": ""
+      },
+      "hasFrame": true
+    },
+    "exceptions": [],
+    "failed": [
+      {
+        "errorText": "net::ERR_BLOCKED_BY_RESPONSE",
+        "url": "https://www.minijuegos.com/helpers/game/xdmbridge.php?xdm_url=https://ssl.minijuegosgratis.com/lechuck/js/easyxdm/&xdm_e=http%3A%2F%2F127.0.0.1%3A8768&xdm_c=default5153&xdm_p=1"
+      }
+    ],
+    "console_tail": [
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'no_thanks')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'fb_invite')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'fb_share')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "error:",
+          "TypeError: Cannot read properties of undefined (reading 'tap_to_restart')\n    at p.value (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2977:57)\n    at p.<anonymous> (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:3043:92)\n    at c (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8957:44)\n    at Generator._invoke (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8939:49)\n    at Generator.next (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:8990:49)\n    at i (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2874:41)\n    at a (https://cdn.jsdelivr.net/gh/my-files-schoolum/spi@main/lib/VOODOO-H5SDK.snacks.js:2890:37)"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "onGamePreloadEnd",
+          3.59
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "************************************************************** "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "*************** request banner automatically ***************** "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "************************************************************** "
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "impression:",
+          "Banner",
+          "gamesnacks"
+        ]
+      },
+      {
+        "type": "log",
+        "args": [
+          "********* reconnect"
+        ]
+      }
+    ],
+    "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\Spiral_Roll_fullscreen.png"
+  }
+]

@@ -262,6 +262,82 @@ html[data-ocean-fullscreen-lock="1"] #loadingScreen {
   line-height: 1.35;
 }
 
+#oceanDecisionModal {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 8, 18, 0.58);
+  backdrop-filter: blur(10px);
+}
+
+#oceanDecisionModal.is-visible {
+  display: flex;
+}
+
+.oceanDecisionCard {
+  width: min(92vw, 420px);
+  padding: 22px 22px 18px;
+  border: 1px solid rgba(120, 196, 255, 0.28);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(8, 14, 28, 0.96), rgba(8, 16, 34, 0.98));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.oceanDecisionTitle {
+  margin: 0 0 10px;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.oceanDecisionBody {
+  color: rgba(235, 246, 255, 0.78);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.oceanDecisionActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.oceanDecisionAction {
+  width: 100%;
+  padding: 13px 18px;
+  border: 1px solid rgba(120, 196, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(14, 22, 44, 0.72);
+  color: rgba(244, 251, 255, 0.96);
+  font: 800 13px/1.1 "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.oceanDecisionAction:hover,
+.oceanDecisionAction:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(88, 200, 255, 0.55);
+  background: rgba(16, 30, 60, 0.92);
+  outline: none;
+}
+
+.oceanDecisionAction.is-primary {
+  background: linear-gradient(180deg, rgba(16, 30, 60, 0.95), rgba(12, 24, 52, 0.98));
+  border-color: rgba(88, 200, 255, 0.45);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28), 0 0 22px rgba(59, 130, 246, 0.16);
+}
+
 #status {
   color: rgba(255, 255, 255, 0.9);
   font-size: 15px;

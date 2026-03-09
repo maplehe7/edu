@@ -1,0 +1,107 @@
+{
+  "name": "OvO",
+  "mode": "fullscreen",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/OvO/?autostart=1&launchMode=fullscreen&cb=1773034675742",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "OvO",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/OvO/?cb=1773034675742",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading is-exiting",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime handoff complete",
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime handoff complete\n1.6s [handoff.progress] value=73% phase=asset-warmup target=iframe_embed\n2.0s [handoff.progress] value=81% phase=runtime-handoff target=iframe_embed\n2.1s [embed] iframe load event received\n2.1s [storage] hasStorageAccess() probe\n2.1s [storage] access already granted\n2.1s [handoff] waiting for runtime attachment\n2.3s [handoff] runtime attachment confirmed\n2.3"
+    },
+    "inner": {
+      "title": "OvO",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/OvO/game-root.html?v=f8502198ed13",
+      "oceanState": null,
+      "unityInstance": false,
+      "createUnityInstanceType": "undefined",
+      "loadingDisplay": null,
+      "loadingClasses": null,
+      "launchPanelDisplay": null,
+      "statusText": null,
+      "canvasCount": 2,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": ""
+    },
+    "hasFrame": true
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "key already exists"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "try removing"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "try removing"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\OvO_fullscreen.png"
+}

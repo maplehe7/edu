@@ -1,0 +1,101 @@
+{
+  "name": "GD Lite",
+  "mode": "fullscreen",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/GD%20Lite/?autostart=1&launchMode=fullscreen&cb=1773034293301",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Geometry Dash Lite",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/GD%20Lite/?cb=1773034293301",
+      "oceanState": "loading",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n6.3s [unity.progress] value=50% phase=data-transfer kind=modern\n6.5s [unity.progress] value=60% phase=data-transfer kind=modern\n6.6s [unity.progress] value=70% phase=wasm-compile kind=modern\n6.9s [unity.progress] value=80% phase=wasm-compile kind=modern\n7.1s [unity.progress] value=90% phase=runtime-warmup kind=modern\n39.0s [unity.progress] value=100% p"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [],
+  "failed": [
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "https://slope3.com/gamep/geometry-dash-lite/game.txt"
+    },
+    {
+      "errorText": "net::ERR_ABORTED",
+      "url": "http://127.0.0.1:8768/setting.txt"
+    }
+  ],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/explode.mp3' served from the indexedDB cache without revalidation"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/menuLoop.mp3' served from the indexedDB cache without revalidation"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/StayInsideMe.mp3' served from the indexedDB cache without revalidation"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "The referenced script on this Behaviour (Game Object 'Admob') is missing!\n"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "The referenced script on this Behaviour (Game Object 'Firebase') is missing!\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[PhysX] Initialized SinglethreadedTaskDispatcher.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "UnloadTime: 2.900000 ms\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 3 Unused Serialized files (Serialized files now loaded: 0)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 23 unused Assets to reduce memory usage. Loaded Objects now: 2691.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Total: 8.099999 ms (FindLiveObjects: 0.500000 ms CreateObjectMapping: 0.199999 ms MarkObjects: 7.000000 ms  DeleteObjects: 0.400000 ms)\n\n"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\GD_Lite_fullscreen.png"
+}

@@ -1,0 +1,92 @@
+{
+  "name": "GD Lite",
+  "mode": "frame",
+  "embedVariant": null,
+  "url": "http://127.0.0.1:8768/GD%20Lite/?autostart=1&launchMode=frame&cb=1773034243637",
+  "ready": true,
+  "state": {
+    "outer": {
+      "title": "Geometry Dash Lite",
+      "readyState": "complete",
+      "href": "http://127.0.0.1:8768/GD%20Lite/?cb=1773034243637",
+      "oceanState": "loading",
+      "unityInstance": true,
+      "createUnityInstanceType": "function",
+      "loadingDisplay": "flex",
+      "loadingClasses": "is-loading",
+      "launchPanelDisplay": "none",
+      "statusText": "Runtime ready; canvas attached",
+      "canvasCount": 3,
+      "canvasWidth": 1365,
+      "canvasHeight": 768,
+      "bodyText": "OCEAN\nLAUNCHER\nRuntime ready; canvas attached\n12.4s [unity.progress] value=50% phase=data-transfer kind=modern\n13.2s [unity.progress] value=62% phase=data-transfer kind=modern\n13.3s [unity.progress] value=70% phase=wasm-compile kind=modern\n13.5s [unity.progress] value=83% phase=wasm-compile kind=modern\n13.6s [unity.progress] value=90% phase=runtime-warmup kind=modern\n38.7s [unity.progress] value=1"
+    },
+    "inner": null,
+    "hasFrame": false
+  },
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Trying to get length of sound which is not loaded."
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[UnityCache] 'https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/audios/StayInsideMe.mp3' successfully downloaded and stored in the indexedDB cache"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "The referenced script on this Behaviour (Game Object 'Admob') is missing!\n"
+      ]
+    },
+    {
+      "type": "warning",
+      "args": [
+        "The referenced script on this Behaviour (Game Object 'Firebase') is missing!\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[PhysX] Initialized SinglethreadedTaskDispatcher.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "UnloadTime: 25.700000 ms\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 3 Unused Serialized files (Serialized files now loaded: 0)\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Unloading 23 unused Assets to reduce memory usage. Loaded Objects now: 2691.\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "Total: 13.700000 ms (FindLiveObjects: 1.900001 ms CreateObjectMapping: 0.400001 ms MarkObjects: 10.899999 ms  DeleteObjects: 0.400000 ms)\n\n"
+      ]
+    },
+    {
+      "type": "log",
+      "args": [
+        "[UnityCache] 'http://127.0.0.1:8768/GD%20Lite/Build/geometry-dash-lite.data?v=a35352bd50b6' successfully downloaded and stored in the indexedDB cache"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\GD_Lite_frame.png"
+}

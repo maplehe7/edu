@@ -68,7 +68,9 @@
     "source_url_spoof_enabled": true,
     "original_folder_url": "https://slope3.com/gamep/geometry-dash-lite",
     "streaming_assets_url": "https://slope3.com/gamep/geometry-dash-lite/StreamingAssets",
-    "asset_cache_buster": "84258bdb7123",
+    "asset_cache_buster": "a35352bd50b6",
+    "launch_options": "both",
+    "recommended_launch_mode": "none",
     "gmsoft_like_build": false,
     "page_config_keys": [
       "companyName",

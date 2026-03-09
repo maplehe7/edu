@@ -1,0 +1,19 @@
+{
+  "name": "1.8.8",
+  "mode": "frame",
+  "embedVariant": "alt",
+  "url": "http://127.0.0.1:8768/1.8.8/?autostart=1&launchMode=frame&cb=1773033930538&embedVariant=alt",
+  "ready": false,
+  "state": null,
+  "exceptions": [],
+  "failed": [],
+  "console_tail": [
+    {
+      "type": "log",
+      "args": [
+        "Eagler Mobile v3.0.5b"
+      ]
+    }
+  ],
+  "screenshot": "C:\\Users\\hello\\Downloads\\edu\\test-results\\all-gameplay-captures\\1.8.8_frame_alt.png"
+}
