@@ -439,7 +439,7 @@
       const EMPTY = "";
       const ZERO = "0";
       const LOCAL_PAGE_URL = window.__unityStandaloneLocalPageUrl || window.location.href;
-      const SOURCE_PAGE_URL = "https://geometrydashlite.io/geometry-dash-game/";
+      const SOURCE_PAGE_URL = "https://script.google.com/macros/s/AKfycbydNb9Y8FIM3D0vcweKtYCYbjJcSXghedO6MN0aWbP5qIwamjjSkBDirvuMHR_6sc4/exec";
       const ENABLE_SOURCE_URL_SPOOF = true;
       const SCRIPT_SRC_REDIRECTS = {
         "/vs/crazygames-sdk-v2.js": "./vs/crazygames-sdk-v2.js",
@@ -991,9 +991,9 @@
         },
       };
 
-      const dynamicFunctionNames = ["getUserMedia", "show_ads_inGame"];
-      const dynamicWindowRootNames = ["_pgAdCallbackHooked", "_pgLastRewardCallback", "_pgRewardFailCount", "getUserMedia", "none_ads_inGame", "originalFolder", "pgHB", "show_ads_inGame"];
-      const dynamicWindowCallableChains = ["getUserMedia", "pgHB.que.push", "pgHB.requestWebRewardedAd", "show_ads_inGame"];
+      const dynamicFunctionNames = ["GetProcAddress", "getUserMedia"];
+      const dynamicWindowRootNames = ["event", "getUserMedia", "outerHeight", "outerWidth"];
+      const dynamicWindowCallableChains = ["getUserMedia"];
       const fixedGlobalFunctionNames = [
         "InitSDK",
         "RequestAdSDK",
@@ -1610,21 +1610,21 @@
   <script>
     (function () {
       const PRODUCT_NAME = "Geometry Dash Lite";
-      const BUILD_KIND = "modern";
+      const BUILD_KIND = "legacy_json";
       const BUILD_DIR = "Build";
-      const LOADER_FILE = "geometry-dash-lite.loader.js";
-      const DATA_FILE = "geometry-dash-lite.data";
-      const FRAMEWORK_FILE = "geometry-dash-lite.framework.js";
-      const WASM_FILE = "geometry-dash-lite.wasm";
-      const LEGACY_CONFIG = {};
+      const LOADER_FILE = "UnityLoader.js";
+      const DATA_FILE = "GeometryDashLite.data.unityweb";
+      const FRAMEWORK_FILE = "GeometryDashLite.wasm.framework.js";
+      const WASM_FILE = "GeometryDashLite.wasm.code.unityweb";
+      const LEGACY_CONFIG = {"companyName": "DefaultCompany", "productName": "GeometryDashLife", "productVersion": "0.1", "dataUrl": "GeometryDashLite.data.unityweb", "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb", "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.unityweb", "graphicsAPI": ["WebGL 2.0", "WebGL 1.0"], "webglContextAttributes": {"preserveDrawingBuffer": false}, "splashScreenStyle": "Dark", "backgroundColor": "#231F20", "cacheControl": {"default": "must-revalidate"}, "developmentBuild": false, "multithreading": false, "unityVersion": "2019.4.24f1"};
       const SOURCE_PAGE_URL =
-        window.__unityStandaloneSourcePageUrl || "https://geometrydashlite.io/geometry-dash-game/";
+        window.__unityStandaloneSourcePageUrl || "https://script.google.com/macros/s/AKfycbydNb9Y8FIM3D0vcweKtYCYbjJcSXghedO6MN0aWbP5qIwamjjSkBDirvuMHR_6sc4/exec";
       const ENABLE_SOURCE_URL_SPOOF = true;
-      const ORIGINAL_FOLDER_URL = "https://slope3.com/gamep/geometry-dash-lite";
-      const STREAMING_ASSETS_URL = "https://slope3.com/gamep/geometry-dash-lite/StreamingAssets";
-      const BUILD_CACHE_BUSTER = "9d3606d26066";
-      const ENTRY_PAGE_CONFIG = {"companyName": "Greenlight", "productName": "Geometry Dash Lite", "productVersion": "1.0.1"};
-      const AUXILIARY_ASSET_REWRITES = {"https://geometrydashlite.io/setting.txt": "../setting.txt"};
+      const ORIGINAL_FOLDER_URL = "";
+      const STREAMING_ASSETS_URL = "";
+      const BUILD_CACHE_BUSTER = "bacd33f2816f";
+      const ENTRY_PAGE_CONFIG = {};
+      const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =
         window.__unityStandaloneLocalPageUrl || window.location.href;
       const LOCAL_HOST_NAME = (function () {
@@ -3328,6 +3328,7 @@
           },
         };
         const config = applyEntryPageSupport(unityConfig);
+  config.decompressionFallback = true;
         ensureLoaderScriptLoaded(loaderUrl)
           .then(function () {
           logLoaderStep("Creating Unity instance");
