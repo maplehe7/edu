@@ -284,13 +284,22 @@
   const startMain = typeof window.main === "function" ? window.main.bind(window) : null;
   const embedUrl =
     typeof window.OCEAN_EMBED_URL === "string" ? window.OCEAN_EMBED_URL.trim() : "";
+  const alternateEmbedUrl =
+    typeof window.OCEAN_ALT_EMBED_URL === "string" ? window.OCEAN_ALT_EMBED_URL.trim() : "";
+  const alternateEmbedLabel =
+    typeof window.OCEAN_ALT_EMBED_LABEL === "string" &&
+    window.OCEAN_ALT_EMBED_LABEL.trim()
+      ? window.OCEAN_ALT_EMBED_LABEL.trim()
+      : "Mobile controls";
+  const alternateEmbedPrompt =
+    typeof window.OCEAN_ALT_EMBED_PROMPT === "string" ? window.OCEAN_ALT_EMBED_PROMPT.trim() : "";
   const remoteUrl =
     typeof window.OCEAN_REMOTE_URL === "string" ? window.OCEAN_REMOTE_URL.trim() : "";
   const embedTitle =
     typeof window.OCEAN_EMBED_TITLE === "string" && window.OCEAN_EMBED_TITLE.trim()
       ? window.OCEAN_EMBED_TITLE.trim()
       : "Game";
-  const initialStatusText =
+  const configuredInitialStatusText =
     typeof window.OCEAN_INITIAL_STATUS === "string" && window.OCEAN_INITIAL_STATUS.trim()
       ? window.OCEAN_INITIAL_STATUS.trim()
       : "Awaiting launch-mode selection";
@@ -306,6 +315,14 @@
     window.OCEAN_LAUNCH_FULLSCREEN_LABEL.trim()
       ? window.OCEAN_LAUNCH_FULLSCREEN_LABEL.trim()
       : "LAUNCH FULLSCREEN";
+  const configuredAllowedLaunchModes =
+    typeof window.OCEAN_ALLOWED_LAUNCH_MODES === "string"
+      ? window.OCEAN_ALLOWED_LAUNCH_MODES.trim()
+      : "";
+  const configuredRecommendedLaunchMode =
+    typeof window.OCEAN_RECOMMENDED_LAUNCH_MODE === "string"
+      ? window.OCEAN_RECOMMENDED_LAUNCH_MODE.trim()
+      : "";
   const remoteLaunchOnly = Boolean(remoteUrl && !embedUrl && !startMain);
 
   if (
@@ -332,16 +349,115 @@
       return element;
     })();
 
-  launchFrameBtn.textContent = launchFrameLabel;
-  launchFullscreenBtn.textContent = launchFullscreenLabel;
-  if (playNote) {
+  function normalizeAllowedLaunchModes(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "frame" || normalized === "fullscreen" || normalized === "both") {
+      return normalized;
+    }
+    return "both";
+  }
+
+  function normalizeRecommendedLaunchMode(value, allowedModes) {
+    if (allowedModes === "frame" || allowedModes === "fullscreen") {
+      return allowedModes;
+    }
+    const normalized = String(value || "").trim().toLowerCase();
+    if (
+      normalized === "frame" ||
+      normalized === "fullscreen" ||
+      normalized === "none"
+    ) {
+      return normalized;
+    }
+    return "frame";
+  }
+
+  const allowedLaunchModes = normalizeAllowedLaunchModes(configuredAllowedLaunchModes);
+  const recommendedLaunchMode = normalizeRecommendedLaunchMode(
+    configuredRecommendedLaunchMode,
+    allowedLaunchModes
+  );
+  const frameLaunchAllowed = allowedLaunchModes !== "fullscreen";
+  const fullscreenLaunchAllowed = allowedLaunchModes !== "frame";
+  const resolvedInitialStatusText =
+    configuredInitialStatusText !== "Awaiting launch-mode selection"
+      ? configuredInitialStatusText
+      : allowedLaunchModes === "frame"
+        ? "Frame launch selected by builder"
+        : allowedLaunchModes === "fullscreen"
+          ? "Fullscreen launch selected by builder"
+          : configuredInitialStatusText;
+
+  function labelForLaunchMode(mode) {
+    return mode === "fullscreen" ? launchFullscreenLabel : launchFrameLabel;
+  }
+
+  function hasAlternateEmbedVariant() {
+    return Boolean(alternateEmbedUrl);
+  }
+
+  function resolveEmbedVariantLabel(variant) {
+    return variant === "alt" ? alternateEmbedLabel : "Standard version";
+  }
+
+  function resolveVariantPromptMessage() {
+    if (alternateEmbedPrompt) {
+      return alternateEmbedPrompt;
+    }
+    return (
+      "Use the " +
+      resolveEmbedVariantLabel("alt") +
+      " for this build?\n\nOK = " +
+      resolveEmbedVariantLabel("alt") +
+      "\nCancel = Standard version"
+    );
+  }
+
+  function resolveActiveEmbedUrl() {
+    return activeEmbedVariant === "alt" && hasAlternateEmbedVariant() ? alternateEmbedUrl : embedUrl;
+  }
+
+  function isLaunchRecommendationActive() {
+    return allowedLaunchModes === "both" && recommendedLaunchMode !== "none";
+  }
+
+  function updateLaunchModeUi() {
+    launchFrameBtn.textContent =
+      launchFrameLabel +
+      (isLaunchRecommendationActive() && recommendedLaunchMode === "frame"
+        ? " (RECOMMENDED)"
+        : "");
+    launchFullscreenBtn.textContent =
+      launchFullscreenLabel +
+      (isLaunchRecommendationActive() && recommendedLaunchMode === "fullscreen"
+        ? " (RECOMMENDED)"
+        : "");
+    launchFrameBtn.style.display = frameLaunchAllowed ? "" : "none";
+    launchFullscreenBtn.style.display = fullscreenLaunchAllowed ? "" : "none";
+    launchFrameBtn.disabled = !frameLaunchAllowed;
+    launchFullscreenBtn.disabled = !fullscreenLaunchAllowed;
+    if (!playNote) {
+      return;
+    }
+    const noteParts = [];
     if (playNoteText) {
-      playNote.textContent = playNoteText;
+      noteParts.push(playNoteText);
+    }
+    if (hasAlternateEmbedVariant()) {
+      noteParts.push("Variant: Standard or " + resolveEmbedVariantLabel("alt"));
+    }
+    if (isLaunchRecommendationActive()) {
+      noteParts.push("Recommended: " + labelForLaunchMode(recommendedLaunchMode));
+    }
+    if (noteParts.length) {
+      playNote.textContent = noteParts.join("  ");
       playNote.style.display = "";
     } else {
       playNote.style.display = "none";
     }
   }
+
+  updateLaunchModeUi();
 
   let started = false;
   let loadingScreenDismissed = false;
@@ -353,6 +469,15 @@
   const loaderStepEpoch = Date.now();
   let lastLoggedStep = "";
   let lastProgressBucket = -1;
+  const requestedEmbedVariant = (function () {
+    try {
+      const rawValue = new URL(window.location.href).searchParams.get("embedVariant") || "";
+      const normalized = rawValue.trim().toLowerCase();
+      return normalized === "alt" ? "alt" : normalized === "primary" ? "primary" : "";
+    } catch (err) {
+      return "";
+    }
+  })();
   const requestedLaunchMode = (function () {
     try {
       return new URL(window.location.href).searchParams.get("launchMode") || "";
@@ -360,6 +485,8 @@
       return "";
     }
   })();
+  let activeEmbedVariant =
+    requestedEmbedVariant === "alt" && alternateEmbedUrl ? "alt" : "primary";
   const forceFullscreenScrollLock = requestedLaunchMode === "fullscreen";
   const FULLSCREEN_SCROLL_LOCK_ATTR = "data-ocean-fullscreen-lock";
   const fullscreenScrollKeys = new Set([
@@ -431,9 +558,10 @@
       return "";
     }
     if (
-      cleanMessage === initialStatusText ||
       cleanMessage === "Choose how you want to launch" ||
-      cleanMessage === "Awaiting launch-mode selection"
+      cleanMessage === "Awaiting launch-mode selection" ||
+      (cleanMessage === resolvedInitialStatusText &&
+        resolvedInitialStatusText === "Awaiting launch-mode selection")
     ) {
       return "Awaiting launch-mode selection";
     }
@@ -798,6 +926,11 @@
     const targetUrl = new URL(window.location.href);
     targetUrl.searchParams.set("autostart", "1");
     targetUrl.searchParams.set("launchMode", mode);
+    if (hasAlternateEmbedVariant()) {
+      targetUrl.searchParams.set("embedVariant", activeEmbedVariant || "primary");
+    } else {
+      targetUrl.searchParams.delete("embedVariant");
+    }
     return targetUrl.toString();
   }
 
@@ -823,7 +956,7 @@
     setProgressVisibility(false);
     fakeProgressValue = 0;
     setProgress(0);
-    setStatus(initialStatusText);
+    setStatus(resolvedInitialStatusText);
   }
 
   function startFakeProgress() {
@@ -924,7 +1057,39 @@
     return shouldAutoStart;
   }
 
+  function confirmRecommendedLaunchOverride(mode) {
+    if (!isLaunchRecommendationActive() || recommendedLaunchMode === mode) {
+      return true;
+    }
+    const recommendedLabel = labelForLaunchMode(recommendedLaunchMode);
+    const selectedLabel = labelForLaunchMode(mode);
+    const shouldContinue = window.confirm(
+      recommendedLabel +
+        " is recommended for this build.\n\nContinue with " +
+        selectedLabel +
+        "?"
+    );
+    if (!shouldContinue) {
+      setStatus(recommendedLabel + " is recommended");
+      return false;
+    }
+    return true;
+  }
+
+  function confirmAlternateEmbedVariant() {
+    if (!hasAlternateEmbedVariant() || requestedEmbedVariant) {
+      return true;
+    }
+    const useAlternateEmbed = window.confirm(resolveVariantPromptMessage());
+    activeEmbedVariant = useAlternateEmbed ? "alt" : "primary";
+    logLoaderStep("Variant selected: " + resolveEmbedVariantLabel(activeEmbedVariant));
+    return true;
+  }
+
   function startFullscreenGame() {
+    if (!confirmAlternateEmbedVariant()) {
+      return;
+    }
     if (remoteLaunchOnly) {
       const popup = window.open(remoteUrl, "_blank");
       if (!popup || popup.closed) {
@@ -952,15 +1117,36 @@
     setStatus("Opened fullscreen in a new tab");
   }
 
+  function handleFrameLaunchClick() {
+    if (!frameLaunchAllowed) {
+      return;
+    }
+    if (!confirmRecommendedLaunchOverride("frame")) {
+      return;
+    }
+    startGame();
+  }
+
+  function handleFullscreenLaunchClick() {
+    if (!fullscreenLaunchAllowed) {
+      return;
+    }
+    if (!confirmRecommendedLaunchOverride("fullscreen")) {
+      return;
+    }
+    startFullscreenGame();
+  }
+
   function startEmbeddedGame() {
-    if (!embedUrl) {
+    const selectedEmbedUrl = resolveActiveEmbedUrl();
+    if (!selectedEmbedUrl) {
       return Promise.reject(new Error("Embedded game URL is missing"));
     }
-    logLoaderStep("Preparing embedded frame");
+    logLoaderStep("Preparing embedded frame: " + resolveEmbedVariantLabel(activeEmbedVariant));
     return new Promise(function (resolve, reject) {
       let settled = false;
       const frame = document.createElement("iframe");
-      const resolvedUrl = new URL(embedUrl, window.location.href).toString();
+      const resolvedUrl = new URL(selectedEmbedUrl, window.location.href).toString();
       frame.className = "ocean-game-embed";
       frame.src = resolvedUrl;
       frame.title = embedTitle;
@@ -1002,9 +1188,12 @@
     if (started) {
       return;
     }
-    if (!startMain && !embedUrl && !remoteUrl) {
+    if (!startMain && !resolveActiveEmbedUrl() && !remoteUrl) {
       setStatus("Game bootstrap is missing");
       return;
+    }
+    if (!remoteLaunchOnly) {
+      confirmAlternateEmbedVariant();
     }
     if (remoteLaunchOnly) {
       started = true;
@@ -1057,7 +1246,7 @@
   setProgressVisibility(false);
   setProgress(0);
   logLoaderStep("Shell initialized");
-  setStatus(initialStatusText);
+  setStatus(resolvedInitialStatusText);
 
   window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
   window.addEventListener("touchmove", preventFullscreenScroll, { passive: false });
@@ -1069,8 +1258,8 @@
   window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
   syncFullscreenScrollLock();
 
-  launchFullscreenBtn.addEventListener("click", startFullscreenGame);
-  launchFrameBtn.addEventListener("click", startGame);
+  launchFullscreenBtn.addEventListener("click", handleFullscreenLaunchClick);
+  launchFrameBtn.addEventListener("click", handleFrameLaunchClick);
 
   if (consumeAutoStartFlag()) {
     startGame();
