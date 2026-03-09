@@ -8137,6 +8137,19 @@ def copy_eagler_support_files(output_dir: Path) -> list[str]:
     return copied
 
 
+def compute_launcher_support_cache_buster(output_dir: Path) -> str:
+    digest = hashlib.sha256()
+    has_content = False
+    for name in ("ocean-launcher.css", "ocean-launcher.js"):
+        path = output_dir / name
+        if not path.exists():
+            continue
+        digest.update(name.encode("utf-8"))
+        digest.update(path.read_bytes())
+        has_content = True
+    return digest.hexdigest()[:12] if has_content else ""
+
+
 def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
     script_name = "eaglermobile.user.js"
     resolved_url = download_raw_asset(
@@ -8287,6 +8300,7 @@ def generate_html_launcher_index_html(
     initial_status: str = "Awaiting launch-mode selection",
     allowed_launch_modes: str = "both",
     recommended_launch_mode: str = "frame",
+    launcher_cache_buster: str = "",
 ) -> str:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
         allowed_launch_modes,
@@ -8310,6 +8324,7 @@ def generate_html_launcher_index_html(
     initial_status_js = json.dumps(initial_status or "Awaiting launch-mode selection", ensure_ascii=False)
     allowed_launch_modes_js = json.dumps(allowed_launch_modes, ensure_ascii=False)
     recommended_launch_mode_js = json.dumps(recommended_launch_mode, ensure_ascii=False)
+    launcher_cache_suffix = f"?v={launcher_cache_buster}" if launcher_cache_buster else ""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8317,7 +8332,7 @@ def generate_html_launcher_index_html(
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
 <title>{html.escape(title)}</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="./ocean-launcher.css" />
+<link rel="stylesheet" href="./ocean-launcher.css{launcher_cache_suffix}" />
 </head>
 <body>
 <div id="game_frame"></div>
@@ -8361,7 +8376,7 @@ window.OCEAN_INITIAL_STATUS = {initial_status_js};
 window.OCEAN_ALLOWED_LAUNCH_MODES = {allowed_launch_modes_js};
 window.OCEAN_RECOMMENDED_LAUNCH_MODE = {recommended_launch_mode_js};
 </script>
-<script src="./ocean-launcher.js"></script>
+<script src="./ocean-launcher.js{launcher_cache_suffix}"></script>
 </body>
 </html>
 """
@@ -8456,6 +8471,7 @@ def export_html_entry(
         else "",
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
+        launcher_cache_buster=compute_launcher_support_cache_buster(output_dir),
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -8572,6 +8588,7 @@ def export_remote_stream_entry(
         initial_status="Remote stream detected; choose handoff mode",
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
+        launcher_cache_buster=compute_launcher_support_cache_buster(output_dir),
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -8892,6 +8909,7 @@ def export_eagler_entry(
         ),
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
+        launcher_cache_buster=compute_launcher_support_cache_buster(output_dir),
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
