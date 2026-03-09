@@ -4342,7 +4342,7 @@ def generate_index_html(
     page_config: Mapping[str, Any] | None = None,
     auxiliary_asset_rewrites: dict[str, str] | None = None,
     allowed_launch_modes: str = "both",
-    recommended_launch_mode: str = "frame",
+    recommended_launch_mode: str = "none",
 ) -> str:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
         allowed_launch_modes,
@@ -6072,7 +6072,7 @@ def generate_index_html(
         if (normalized === "frame" || normalized === "fullscreen" || normalized === "none") {{
           return normalized;
         }}
-        return "frame";
+        return "none";
       }}
       const allowedLaunchModes = normalizeAllowedLaunchModes(ALLOWED_LAUNCH_MODES);
       const recommendedLaunchMode = normalizeRecommendedLaunchMode(
@@ -8006,7 +8006,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--recommended-launch",
-        default="frame",
+        default="none",
         choices=("frame", "fullscreen", "none"),
         help="Recommended launch option when both frame and fullscreen are enabled",
     )
@@ -8026,7 +8026,7 @@ def normalize_launch_preferences(
 
     normalized_recommended = str(recommended_launch_mode or "").strip().lower()
     if normalized_recommended not in {"frame", "fullscreen", "none"}:
-        normalized_recommended = "frame"
+        normalized_recommended = "none"
     return normalized_allowed, normalized_recommended
 
 
@@ -8383,7 +8383,7 @@ def generate_html_launcher_index_html(
     launch_fullscreen_label: str = "LAUNCH FULLSCREEN",
     initial_status: str = "Awaiting launch-mode selection",
     allowed_launch_modes: str = "both",
-    recommended_launch_mode: str = "frame",
+    recommended_launch_mode: str = "none",
     launcher_cache_buster: str = "",
 ) -> str:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
@@ -8473,7 +8473,7 @@ def export_html_entry(
     input_url: str,
     root_url: str,
     allowed_launch_modes: str = "both",
-    recommended_launch_mode: str = "frame",
+    recommended_launch_mode: str = "none",
 ) -> dict[str, Any]:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
         allowed_launch_modes,
@@ -8630,7 +8630,7 @@ def export_remote_stream_entry(
     input_url: str,
     root_url: str,
     allowed_launch_modes: str = "both",
-    recommended_launch_mode: str = "frame",
+    recommended_launch_mode: str = "none",
 ) -> dict[str, Any]:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
         allowed_launch_modes,
@@ -8875,7 +8875,7 @@ def export_eagler_entry(
     input_url: str,
     root_url: str,
     allowed_launch_modes: str = "both",
-    recommended_launch_mode: str = "frame",
+    recommended_launch_mode: str = "none",
 ) -> dict[str, Any]:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
         allowed_launch_modes,

@@ -54,7 +54,7 @@ class UnityStandaloneGui(tk.Tk):
         self.data_url_var = tk.StringVar()
         self.wasm_url_var = tk.StringVar()
         self.launch_options_var = tk.StringVar(value="Both")
-        self.recommended_launch_var = tk.StringVar(value="Frame")
+        self.recommended_launch_var = tk.StringVar(value="None")
         self.overwrite_var = tk.BooleanVar(value=True)
         self.status_var = tk.StringVar(value="Idle")
 
@@ -466,7 +466,7 @@ class UnityStandaloneGui(tk.Tk):
         )
         recommended_launch_value = GUI_RECOMMENDED_LAUNCH_LABEL_TO_VALUE.get(
             self.recommended_launch_var.get(),
-            "frame",
+            "none",
         )
         command.extend(["--launch-options", launch_options_value])
         command.extend(["--recommended-launch", recommended_launch_value])
