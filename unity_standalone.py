@@ -475,9 +475,22 @@ def normalize_url(url: str) -> str:
     url = url.strip()
     if not url:
         raise FetchError("Empty URL.")
+    expanded = os.path.expandvars(os.path.expanduser(url.strip('"')))
+    if "://" not in url:
+        local_candidate = Path(expanded)
+        if local_candidate.exists():
+            return local_candidate.resolve().as_uri()
     if "://" not in url:
         url = "https://" + url
     parsed = urllib.parse.urlparse(url)
+    if parsed.scheme == "file":
+        local_path_text = urllib.request.url2pathname(parsed.path or "")
+        if parsed.netloc and parsed.netloc.lower() != "localhost":
+            local_path_text = f"\\\\{parsed.netloc}{local_path_text}"
+        local_candidate = Path(local_path_text)
+        if local_candidate.exists():
+            return local_candidate.resolve().as_uri()
+        raise FetchError(f"Local file does not exist: {local_candidate}")
     if parsed.scheme not in {"http", "https"}:
         raise FetchError(f"Unsupported URL scheme: {parsed.scheme}")
     path = urllib.parse.quote(urllib.parse.unquote(parsed.path), safe="/:@%+")
@@ -714,7 +727,14 @@ def looks_like_inline_eagler_payload_html(index_html: str) -> bool:
     has_external_scripts = re.search(r"""<script[^>]+\bsrc=["'][^"']+["']""", index_html, re.IGNORECASE)
     has_inline_runtime = "var main;(function(){" in lower or "$rt_seed" in lower
     has_data_assets = "assetsuri" in lower and "data:application/octet-stream;base64," in lower
-    return not has_external_scripts and (has_inline_runtime or has_data_assets)
+    has_signed_inline_bundle = (
+        "eaglercraftxclientbundle" in lower
+        or "eaglercraftxclientsignature" in lower
+        or "eaglercraftxoptshints" in lower
+    )
+    return not has_external_scripts and (
+        has_inline_runtime or has_data_assets or has_signed_inline_bundle
+    )
 
 
 def looks_like_html_game_entry_html(index_html: str) -> bool:

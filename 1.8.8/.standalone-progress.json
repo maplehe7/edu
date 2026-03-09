@@ -1,9 +1,9 @@
 {
   "mode": "entry_auto",
   "entry_kind": "html",
-  "root_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/",
-  "input_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/eaglercraft.1.8.8.html",
-  "resolved_entry_url": "https://raw.githubusercontent.com/srzmnx/eaglerforge-compiled/main/EaglercraftX_1.8_Offline_International.html",
+  "root_url": "file:///C:/Users/hello/Downloads/",
+  "input_url": "file:///C:/Users/hello/Downloads/EaglercraftX_1_8_u53_Offline_Signed.html",
+  "resolved_entry_url": "file:///C:/Users/hello/Downloads/EaglercraftX_1_8_u53_Offline_Signed.html",
   "title": "EaglercraftX 1.8",
   "completed": true,
   "summary": {
@@ -15,9 +15,9 @@
     "mode": "entry_auto",
     "entry_kind": "html",
     "title": "EaglercraftX 1.8",
-    "input_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/eaglercraft.1.8.8.html",
-    "root_url": "https://raw.githubusercontent.com/vidio-boy/Eaglercraft1.8.8/main/",
-    "resolved_entry_url": "https://raw.githubusercontent.com/srzmnx/eaglerforge-compiled/main/EaglercraftX_1.8_Offline_International.html",
+    "input_url": "file:///C:/Users/hello/Downloads/EaglercraftX_1_8_u53_Offline_Signed.html",
+    "root_url": "file:///C:/Users/hello/Downloads/",
+    "resolved_entry_url": "file:///C:/Users/hello/Downloads/EaglercraftX_1_8_u53_Offline_Signed.html",
     "html_source_mode": "absolutized_embed_root",
     "launcher": "ocean-launcher",
     "support_files": [
@@ -37,10 +37,10 @@
     },
     "html_runtime_mirror": {},
     "eagler_wrapper_patches": {
-      "countdown_guarded": 1,
+      "countdown_guarded": 0,
       "countdown_autostart_injected": 1,
       "mobile_autolaunch_injected": 0,
-      "device_pixel_ratio_guarded": 5,
+      "device_pixel_ratio_guarded": 0,
       "modapi_bridge_injected": 1
     },
     "eagler_mobile_option_enabled": true,
