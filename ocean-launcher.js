@@ -916,6 +916,55 @@
     handoffPollTimer = 0;
   }
 
+  function showLaunchPanel() {
+    clearLaunchPanelHideTimer();
+    launchPanel.style.display = "";
+    launchPanel.classList.remove("is-hidden");
+  }
+
+  function hideLaunchPanel() {
+    clearLaunchPanelHideTimer();
+    launchPanel.style.display = "";
+    launchPanel.classList.add("is-hidden");
+    launchPanelHideTimer = window.setTimeout(function () {
+      if (launchPanel.classList.contains("is-hidden")) {
+        launchPanel.style.display = "none";
+      }
+      launchPanelHideTimer = 0;
+    }, 240);
+  }
+
+  function withLaunchTimeout(task, timeoutMs, label) {
+    return new Promise(function (resolve, reject) {
+      let settled = false;
+      const timer = window.setTimeout(function () {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        reject(new Error(label + " timed out after " + timeoutMs + "ms"));
+      }, timeoutMs);
+      Promise.resolve()
+        .then(task)
+        .then(function (value) {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          window.clearTimeout(timer);
+          resolve(value);
+        })
+        .catch(function (err) {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          window.clearTimeout(timer);
+          reject(err);
+        });
+    });
+  }
+
   function clearGameFrame() {
     while (gameFrame.firstChild) {
       gameFrame.removeChild(gameFrame.firstChild);
@@ -1019,8 +1068,7 @@
     clearFakeProgressTimer();
     clearHandoffPollTimer();
     loadingScreen.classList.remove("is-loading");
-    launchPanel.style.display = "";
-    launchPanel.classList.remove("is-hidden");
+    showLaunchPanel();
     setProgressVisibility(false);
     fakeProgressValue = 0;
     setProgress(0);
@@ -1304,18 +1352,9 @@
       started = true;
       logLoaderStep("Launch requested");
       loadingScreen.classList.add("is-loading");
-      clearLaunchPanelHideTimer();
-      launchPanel.style.display = "";
-      launchPanel.classList.add("is-hidden");
-      launchPanelHideTimer = window.setTimeout(function () {
-        if (launchPanel.classList.contains("is-hidden")) {
-          launchPanel.style.display = "none";
-        }
-        launchPanelHideTimer = 0;
-      }, 240);
       setProgressVisibility(true);
       setProgress(0);
-      setStatus("Loading 0%");
+      setStatus("Preparing launch");
       startFakeProgress();
 
       return Promise.resolve()
@@ -1323,11 +1362,26 @@
           return ensureStorageAccess(document);
         })
         .then(function () {
+          hideLaunchPanel();
           if (startMain) {
             logLoaderStep("Invoking inline bootstrap");
-            return startMain();
+            setStatus("Loading 0%");
+            return withLaunchTimeout(
+              function () {
+                return startMain();
+              },
+              45000,
+              "Inline game bootstrap"
+            );
           }
-          return startEmbeddedGame();
+          setStatus("Loading 0%");
+          return withLaunchTimeout(
+            function () {
+              return startEmbeddedGame();
+            },
+            20000,
+            "Embedded game bootstrap"
+          );
         })
         .then(function () {
           waitForGameHandoff();
