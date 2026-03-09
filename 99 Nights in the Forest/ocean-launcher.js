@@ -389,7 +389,7 @@
     ) {
       return normalized;
     }
-    return "frame";
+    return "none";
   }
 
   const allowedLaunchModes = normalizeAllowedLaunchModes(configuredAllowedLaunchModes);

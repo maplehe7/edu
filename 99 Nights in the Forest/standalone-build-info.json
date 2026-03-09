@@ -12,6 +12,7 @@
   "resolved_entry_url": "https://script.google.com/macros/s/AKfycbw4urIQgR3zAfmFsn3NWFC6kpsGYSWafyi6AWtyVNSyBkySH9O46LVnhej6fW7beFME/exec",
   "html_source_mode": "absolutized_embed_root",
   "launcher": "ocean-launcher",
+  "embed_cache_buster": "e61716f5015d",
   "support_files": [
     "ocean-launcher.css",
     "ocean-launcher.js"

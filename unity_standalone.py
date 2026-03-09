@@ -679,31 +679,139 @@ def decode_html_body(raw: bytes) -> str:
 
 
 def decode_js_string_literal(raw_value: str) -> str:
-    decoded = raw_value
-    for _ in range(3):
-        cleaned = decoded.replace("\\/", "/")
-        try:
-            next_decoded = bytes(cleaned, encoding="utf-8").decode("unicode_escape")
-        except UnicodeDecodeError:
-            next_decoded = cleaned
-        next_decoded = (
-            next_decoded.replace('\\"', '"')
-            .replace("\\'", "'")
-            .replace("\\/", "/")
+    cleaned = raw_value.replace("\\/", "/")
+    try:
+        decoded = bytes(cleaned, encoding="utf-8").decode("unicode_escape")
+    except UnicodeDecodeError:
+        decoded = cleaned
+    return (
+        decoded.replace('\\"', '"')
+        .replace("\\'", "'")
+        .replace("\\/", "/")
+    )
+
+
+def decode_embedded_html_payload(raw_value: str) -> str:
+    decoded = html.unescape(decode_js_string_literal(raw_value))
+    parts = re.split(r"(<script\b[^>]*>[\s\S]*?</script>)", decoded, flags=re.IGNORECASE)
+    normalized_parts: list[str] = []
+    for part in parts:
+        if re.match(r"<script\b", part, re.IGNORECASE):
+            tag_end = part.find(">")
+            close_start = part.lower().rfind("</script>")
+            if tag_end != -1 and close_start != -1 and close_start >= tag_end:
+                script_head = part[: tag_end + 1]
+                script_body = part[tag_end + 1 : close_start]
+                script_tail = part[close_start:]
+                normalized_parts.append(
+                    script_head
+                    + normalize_embedded_script_source(script_body)
+                    + script_tail
+                )
+            else:
+                normalized_parts.append(part)
+            continue
+        normalized_parts.append(
+            part.replace("\\r\\n", "\n")
+            .replace("\\n", "\n")
+            .replace("\\r", "\n")
+            .replace("\\t", "\t")
         )
-        if next_decoded == decoded:
-            break
-        decoded = next_decoded
-        lowered = decoded.lower()
-        if (
-            "\\n" not in decoded
-            and "\\r" not in decoded
-            and "\\t" not in decoded
-            and "\\x" not in lowered
-            and "\\u00" not in lowered
-        ):
-            break
-    return decoded
+    return "".join(normalized_parts)
+
+
+def normalize_embedded_script_source(script_source: str) -> str:
+    output: list[str] = []
+    index = 0
+    length = len(script_source)
+    state = "default"
+    escape_active = False
+
+    while index < length:
+        char = script_source[index]
+        next_char = script_source[index + 1] if index + 1 < length else ""
+
+        if state == "default":
+            if char == "/" and next_char == "/":
+                output.append("//")
+                index += 2
+                state = "line_comment"
+                continue
+            if char == "/" and next_char == "*":
+                output.append("/*")
+                index += 2
+                state = "block_comment"
+                continue
+            if char == "'":
+                output.append(char)
+                index += 1
+                state = "single"
+                escape_active = False
+                continue
+            if char == '"':
+                output.append(char)
+                index += 1
+                state = "double"
+                escape_active = False
+                continue
+            if char == "`":
+                output.append(char)
+                index += 1
+                state = "template"
+                escape_active = False
+                continue
+            if char == "\\" and next_char in ("n", "r", "t"):
+                output.append("\t" if next_char == "t" else "\n")
+                index += 2
+                continue
+            output.append(char)
+            index += 1
+            continue
+
+        if state == "line_comment":
+            if char == "\\" and next_char in ("n", "r"):
+                output.append("\n")
+                index += 2
+                state = "default"
+                continue
+            output.append(char)
+            index += 1
+            if char == "\n":
+                state = "default"
+            continue
+
+        if state == "block_comment":
+            if char == "\\" and next_char in ("n", "r", "t"):
+                output.append("\t" if next_char == "t" else "\n")
+                index += 2
+                continue
+            output.append(char)
+            index += 1
+            if char == "*" and next_char == "/":
+                output.append("/")
+                index += 1
+                state = "default"
+            continue
+
+        output.append(char)
+        index += 1
+        if escape_active:
+            escape_active = False
+            continue
+        if char == "\\":
+            escape_active = True
+            continue
+        if state == "single" and char == "'":
+            state = "default"
+            continue
+        if state == "double" and char == '"':
+            state = "default"
+            continue
+        if state == "template" and char == "`":
+            state = "default"
+            continue
+
+    return "".join(output)
 
 
 def looks_like_unity_entry_html(index_html: str) -> bool:
@@ -911,7 +1019,7 @@ def extract_embedded_html_snippets(index_html: str) -> list[str]:
     for source_html in source_variants:
         for pattern in user_html_patterns:
             for raw in re.findall(pattern, source_html, re.IGNORECASE):
-                decoded = html.unescape(decode_js_string_literal(raw)).strip()
+                decoded = decode_embedded_html_payload(raw).strip()
                 if decoded:
                     snippets.append(decoded)
 
@@ -8234,6 +8342,30 @@ def compute_launcher_support_cache_buster(output_dir: Path) -> str:
     return digest.hexdigest()[:12] if has_content else ""
 
 
+def compute_output_file_cache_buster(output_dir: Path, filenames: Sequence[str]) -> str:
+    digest = hashlib.sha256()
+    has_content = False
+    for name in filenames:
+        if not str(name).strip():
+            continue
+        path = output_dir / name
+        if not path.exists():
+            continue
+        digest.update(name.encode("utf-8"))
+        digest.update(path.read_bytes())
+        has_content = True
+    return digest.hexdigest()[:12] if has_content else ""
+
+
+def suppress_known_html_alert_calls(document_html: str) -> str:
+    return re.sub(
+        r"""\b(?:window\.)?alert\(\s*(["'])Error loading game\1\s*\)\s*;?""",
+        'console.error("Error loading game");',
+        document_html,
+        flags=re.IGNORECASE,
+    )
+
+
 def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
     script_name = "eaglermobile.user.js"
     resolved_url = download_raw_asset(
@@ -8248,7 +8380,7 @@ def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
 
 
 def generate_html_entry_index_html(title: str, source_html: str) -> str:
-    document = source_html.lstrip("\ufeff").strip()
+    document = suppress_known_html_alert_calls(source_html.lstrip("\ufeff").strip())
     document = re.sub(r"(?im)^[ \t]*/body>\s*$", "", document)
     document = re.sub(r"(?im)^[ \t]*body>\s*$", "", document)
     if not document:
@@ -8259,6 +8391,20 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
         '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />'
     )
     charset_tag = '<meta charset="utf-8" />'
+    cache_meta_tags = (
+        '<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />\n'
+        '<meta http-equiv="Pragma" content="no-cache" />\n'
+        '<meta http-equiv="Expires" content="0" />'
+    )
+    alert_shim_tag = (
+        "<script>(function(){"
+        "window.__oceanNativeAlert=window.alert;"
+        "window.alert=function(message){"
+        "try{console.error('[alert]',message);}catch(_e){}"
+        "try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'ocean-alert',message:String(message||'')},'*');}catch(_e){}"
+        "};"
+        "})();</script>"
+    )
     preserved_base_tag = ""
 
     def strip_base_tag(match: re.Match[str]) -> str:
@@ -8278,10 +8424,12 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
         injections.append(charset_tag)
     if not re.search(r"<meta\b[^>]*name\s*=\s*['\"]viewport['\"]", document, re.IGNORECASE):
         injections.append(viewport_tag)
+    injections.append(cache_meta_tags)
     if preserved_base_tag:
         injections.append(preserved_base_tag)
     if title and not re.search(r"<title\b", document, re.IGNORECASE):
         injections.append(title_tag)
+    injections.append(alert_shim_tag)
 
     injection = "\n".join(injections)
     if re.search(r"<head\b[^>]*>", document, re.IGNORECASE):
@@ -8313,8 +8461,10 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
             "<head>\n"
             f"{charset_tag}\n"
             f"{viewport_tag}\n"
+            f"{cache_meta_tags}\n"
             + (f"{preserved_base_tag}\n" if preserved_base_tag else "")
             + (f"{title_tag}\n" if title else "")
+            + f"{alert_shim_tag}\n"
             + "</head>\n"
             "<body>\n"
             f"{body}\n"
@@ -8385,14 +8535,19 @@ def generate_html_launcher_index_html(
     allowed_launch_modes: str = "both",
     recommended_launch_mode: str = "none",
     launcher_cache_buster: str = "",
+    embed_cache_buster: str = "",
 ) -> str:
     allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
         allowed_launch_modes,
         recommended_launch_mode,
     )
-    embed_url_js = json.dumps(f"./{embed_filename}" if embed_filename else "", ensure_ascii=False)
+    embed_cache_suffix = f"?v={embed_cache_buster}" if embed_cache_buster else ""
+    embed_url_js = json.dumps(
+        f"./{embed_filename}{embed_cache_suffix}" if embed_filename else "",
+        ensure_ascii=False,
+    )
     alternate_embed_url_js = json.dumps(
-        f"./{alternate_embed_filename}" if alternate_embed_filename else "",
+        f"./{alternate_embed_filename}{embed_cache_suffix}" if alternate_embed_filename else "",
         ensure_ascii=False,
     )
     alternate_embed_label_js = json.dumps(alternate_embed_label or "", ensure_ascii=False)
@@ -8414,6 +8569,9 @@ def generate_html_launcher_index_html(
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>{html.escape(title)}</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="./ocean-launcher.css{launcher_cache_suffix}" />
@@ -8542,6 +8700,10 @@ def export_html_entry(
             mobile_embedded_entry_content,
             encoding="utf-8",
         )
+    embed_cache_buster = compute_output_file_cache_buster(
+        output_dir,
+        [embedded_entry_name, mobile_embedded_entry_name],
+    )
 
     index_content = generate_html_launcher_index_html(
         title=title,
@@ -8556,6 +8718,7 @@ def export_html_entry(
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
         launcher_cache_buster=compute_launcher_support_cache_buster(output_dir),
+        embed_cache_buster=embed_cache_buster,
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -8588,6 +8751,7 @@ def export_html_entry(
         "resolved_entry_url": detected_entry.index_url,
         "html_source_mode": "absolutized_embed_root",
         "launcher": "ocean-launcher",
+        "embed_cache_buster": embed_cache_buster,
         "support_files": support_files,
         "embedded_ad_blocks_removed": ad_removal_counts,
         "nonessential_markup_removed": nonessential_markup_removed,
@@ -8983,6 +9147,10 @@ def export_eagler_entry(
         mobile_embedded_entry_content,
         encoding="utf-8",
     )
+    embed_cache_buster = compute_output_file_cache_buster(
+        output_dir,
+        [embedded_entry_name, mobile_embedded_entry_name],
+    )
     index_content = generate_html_launcher_index_html(
         title=detected_entry.title,
         embed_filename=embedded_entry_name,
@@ -8994,6 +9162,7 @@ def export_eagler_entry(
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
         launcher_cache_buster=compute_launcher_support_cache_buster(output_dir),
+        embed_cache_buster=embed_cache_buster,
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -9033,6 +9202,7 @@ def export_eagler_entry(
         "eagler_mobile_option_enabled": True,
         "eagler_mobile_script_file": eagler_mobile_script["name"],
         "eagler_mobile_script_url": eagler_mobile_script["resolved_url"],
+        "embed_cache_buster": embed_cache_buster,
         "launch_options": allowed_launch_modes,
         "recommended_launch_mode": recommended_launch_mode,
         "support_files": support_files,
