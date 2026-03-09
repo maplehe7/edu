@@ -44,6 +44,10 @@ REQUEST_HEADERS = {
     "Accept": "*/*",
     "Accept-Language": "en-US,en;q=0.9",
 }
+EAGLER_MOBILE_USERSCRIPT_URL = (
+    "https://raw.githubusercontent.com/FlamedDogo99/EaglerMobile/main/eaglermobile.user.js"
+)
+
 @dataclass
 class DownloadedAssets:
     loader_name: str
@@ -3935,8 +3939,7 @@ def mirror_construct2_entry_assets(
         relative_path = relative_asset_path_under_root(candidate_url, source_root_url)
         if not relative_path:
             continue
-        if index == 1 or index == total_candidates or index % 25 == 0:
-            log(f"Mirroring HTML runtime assets: {index}/{total_candidates} -> {relative_path}")
+        log(f"Mirroring HTML runtime assets: {index}/{total_candidates} -> {relative_path}")
         destination = output_dir / Path(relative_path.replace("/", os.sep))
         destination.parent.mkdir(parents=True, exist_ok=True)
         resolved_url, raw, _, _ = fetch_url(candidate_url, referer_url=source_url)
@@ -4189,7 +4192,13 @@ def generate_index_html(
     asset_cache_buster: str = "",
     page_config: Mapping[str, Any] | None = None,
     auxiliary_asset_rewrites: dict[str, str] | None = None,
+    allowed_launch_modes: str = "both",
+    recommended_launch_mode: str = "frame",
 ) -> str:
+    allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
+        allowed_launch_modes,
+        recommended_launch_mode,
+    )
     fn_list_js = json.dumps(list(required_functions), ensure_ascii=False)
     window_roots_js = json.dumps(list(window_roots), ensure_ascii=False)
     window_callable_chains_js = json.dumps(list(window_callable_chains), ensure_ascii=False)
@@ -4206,6 +4215,8 @@ def generate_index_html(
     streaming_assets_url_js = json.dumps(streaming_assets_url, ensure_ascii=False)
     asset_cache_buster_js = json.dumps(asset_cache_buster, ensure_ascii=False)
     page_config_js = json.dumps(page_config or {}, ensure_ascii=False)
+    allowed_launch_modes_js = json.dumps(allowed_launch_modes, ensure_ascii=False)
+    recommended_launch_mode_js = json.dumps(recommended_launch_mode, ensure_ascii=False)
     auxiliary_asset_rewrites_js = json.dumps(
         auxiliary_asset_rewrites or {},
         ensure_ascii=False,
@@ -5864,8 +5875,14 @@ def generate_index_html(
       const launchPanel = document.getElementById("launchPanel");
       const launchFullscreenBtn = document.getElementById("launchFullscreenBtn");
       const launchFrameBtn = document.getElementById("launchFrameBtn");
+      const playNote = document.getElementById("playNote");
+      const playNoteText = playNote ? playNote.textContent.trim() : "";
       const status = document.getElementById("status");
       const stepLog = document.getElementById("stepLog");
+      const ALLOWED_LAUNCH_MODES = {allowed_launch_modes_js};
+      const RECOMMENDED_LAUNCH_MODE = {recommended_launch_mode_js};
+      const launchFrameLabel = "LAUNCH HERE";
+      const launchFullscreenLabel = "LAUNCH FULLSCREEN";
 
       let started = false;
       let loadingScreenDismissed = false;
@@ -5891,6 +5908,36 @@ def generate_index_html(
           return "";
         }}
       }})();
+      function normalizeAllowedLaunchModes(value) {{
+        const normalized = String(value || "").trim().toLowerCase();
+        if (normalized === "frame" || normalized === "fullscreen" || normalized === "both") {{
+          return normalized;
+        }}
+        return "both";
+      }}
+      function normalizeRecommendedLaunchMode(value, allowedModes) {{
+        if (allowedModes === "frame" || allowedModes === "fullscreen") {{
+          return allowedModes;
+        }}
+        const normalized = String(value || "").trim().toLowerCase();
+        if (normalized === "frame" || normalized === "fullscreen" || normalized === "none") {{
+          return normalized;
+        }}
+        return "frame";
+      }}
+      const allowedLaunchModes = normalizeAllowedLaunchModes(ALLOWED_LAUNCH_MODES);
+      const recommendedLaunchMode = normalizeRecommendedLaunchMode(
+        RECOMMENDED_LAUNCH_MODE,
+        allowedLaunchModes
+      );
+      const frameLaunchAllowed = allowedLaunchModes !== "fullscreen";
+      const fullscreenLaunchAllowed = allowedLaunchModes !== "frame";
+      const initialStatusText =
+        allowedLaunchModes === "frame"
+          ? "Frame launch selected by builder"
+          : allowedLaunchModes === "fullscreen"
+            ? "Fullscreen launch selected by builder"
+            : "Awaiting launch-mode selection";
       const isEmbeddedFrame = (function () {{
         try {{
           return Boolean(window.top && window.top !== window);
@@ -5944,6 +5991,66 @@ def generate_index_html(
 
       function buildLaunchModeLabel() {{
         return requestedLaunchMode || (isEmbeddedFrame ? "embed" : "page");
+      }}
+
+      function labelForLaunchMode(mode) {{
+        return mode === "fullscreen" ? launchFullscreenLabel : launchFrameLabel;
+      }}
+
+      function isLaunchRecommendationActive() {{
+        return allowedLaunchModes === "both" && recommendedLaunchMode !== "none";
+      }}
+
+      function updateLaunchModeUi() {{
+        launchFrameBtn.textContent =
+          launchFrameLabel +
+          (isLaunchRecommendationActive() && recommendedLaunchMode === "frame"
+            ? " (RECOMMENDED)"
+            : "");
+        launchFullscreenBtn.textContent =
+          launchFullscreenLabel +
+          (isLaunchRecommendationActive() && recommendedLaunchMode === "fullscreen"
+            ? " (RECOMMENDED)"
+            : "");
+        launchFrameBtn.style.display = frameLaunchAllowed ? "" : "none";
+        launchFullscreenBtn.style.display = fullscreenLaunchAllowed ? "" : "none";
+        launchFrameBtn.disabled = !frameLaunchAllowed;
+        launchFullscreenBtn.disabled = !fullscreenLaunchAllowed;
+        if (!playNote) {{
+          return;
+        }}
+        const noteParts = [];
+        if (playNoteText) {{
+          noteParts.push(playNoteText);
+        }}
+        if (isLaunchRecommendationActive()) {{
+          noteParts.push("Recommended: " + labelForLaunchMode(recommendedLaunchMode));
+        }}
+        if (noteParts.length) {{
+          playNote.textContent = noteParts.join("  ");
+          playNote.style.display = "";
+        }} else {{
+          playNote.style.display = "none";
+        }}
+      }}
+
+      function confirmRecommendedLaunchOverride(mode) {{
+        if (!isLaunchRecommendationActive() || recommendedLaunchMode === mode) {{
+          return true;
+        }}
+        const recommendedLabel = labelForLaunchMode(recommendedLaunchMode);
+        const selectedLabel = labelForLaunchMode(mode);
+        const shouldContinue = window.confirm(
+          recommendedLabel +
+            " is recommended for this build.\n\nContinue with " +
+            selectedLabel +
+            "?"
+        );
+        if (!shouldContinue) {{
+          setStatus(recommendedLabel + " is recommended");
+          return false;
+        }}
+        return true;
       }}
 
       function unityProgressPhase(percent) {{
@@ -6717,6 +6824,7 @@ def generate_index_html(
         setProgressVisibility(false);
         setProgress(0);
         setLoadState("idle");
+        setStatus(initialStatusText);
       }}
 
       function requestFullscreenMode() {{
@@ -6790,6 +6898,26 @@ def generate_index_html(
           // Ignore opener hardening failures.
         }}
         setStatus("Opened fullscreen in a new tab");
+      }}
+
+      function handleFrameLaunchClick() {{
+        if (!frameLaunchAllowed) {{
+          return;
+        }}
+        if (!confirmRecommendedLaunchOverride("frame")) {{
+          return;
+        }}
+        startGame();
+      }}
+
+      function handleFullscreenLaunchClick() {{
+        if (!fullscreenLaunchAllowed) {{
+          return;
+        }}
+        if (!confirmRecommendedLaunchOverride("fullscreen")) {{
+          return;
+        }}
+        startFullscreenGame();
       }}
 
       function ensureStorageAccess() {{
@@ -7444,7 +7572,8 @@ def generate_index_html(
       setProgress(0);
       setLoadState("idle");
       logLoaderStep("Shell initialized");
-      setStatus("Awaiting launch-mode selection");
+      updateLaunchModeUi();
+      setStatus(initialStatusText);
 
       window.addEventListener("wheel", preventFullscreenScroll, {{ passive: false }});
       window.addEventListener("touchmove", preventFullscreenScroll, {{ passive: false }});
@@ -7456,8 +7585,8 @@ def generate_index_html(
       window.addEventListener("MSFullscreenChange", syncFullscreenScrollLock);
       syncFullscreenScrollLock();
 
-      launchFullscreenBtn.addEventListener("click", startFullscreenGame);
-      launchFrameBtn.addEventListener("click", startGame);
+      launchFullscreenBtn.addEventListener("click", handleFullscreenLaunchClick);
+      launchFrameBtn.addEventListener("click", handleFrameLaunchClick);
 
       if (typeof window.requestIdleCallback === "function") {{
         window.requestIdleCallback(warmUnityBuild, {{ timeout: 1200 }});
@@ -7720,7 +7849,36 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         action="store_true",
         help="Overwrite existing output directory if it exists",
     )
+    parser.add_argument(
+        "--launch-options",
+        default="both",
+        choices=("frame", "fullscreen", "both"),
+        help="Which launch options the generated launcher should expose",
+    )
+    parser.add_argument(
+        "--recommended-launch",
+        default="frame",
+        choices=("frame", "fullscreen", "none"),
+        help="Recommended launch option when both frame and fullscreen are enabled",
+    )
     return parser.parse_args(argv)
+
+
+def normalize_launch_preferences(
+    allowed_launch_modes: str,
+    recommended_launch_mode: str,
+) -> tuple[str, str]:
+    normalized_allowed = str(allowed_launch_modes or "").strip().lower()
+    if normalized_allowed not in {"frame", "fullscreen", "both"}:
+        normalized_allowed = "both"
+
+    if normalized_allowed in {"frame", "fullscreen"}:
+        return normalized_allowed, normalized_allowed
+
+    normalized_recommended = str(recommended_launch_mode or "").strip().lower()
+    if normalized_recommended not in {"frame", "fullscreen", "none"}:
+        normalized_recommended = "frame"
+    return normalized_allowed, normalized_recommended
 
 
 def infer_output_name_from_url(root_url: str, loader_url: str) -> str:
@@ -7914,6 +8072,19 @@ def copy_eagler_support_files(output_dir: Path) -> list[str]:
     return copied
 
 
+def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
+    script_name = "eaglermobile.user.js"
+    resolved_url = download_raw_asset(
+        EAGLER_MOBILE_USERSCRIPT_URL,
+        output_dir / script_name,
+        referer_url="https://github.com/FlamedDogo99/EaglerMobile",
+    )
+    return {
+        "name": script_name,
+        "resolved_url": resolved_url,
+    }
+
+
 def generate_html_entry_index_html(title: str, source_html: str) -> str:
     document = source_html.lstrip("\ufeff").strip()
     document = re.sub(r"(?im)^[ \t]*/body>\s*$", "", document)
@@ -8011,16 +8182,58 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
     return document
 
 
+def inject_head_script_tags(document_html: str, script_filenames: Sequence[str]) -> str:
+    script_tags = "\n".join(
+        f'<script type="text/javascript" src="./{html.escape(filename)}"></script>'
+        for filename in script_filenames
+        if str(filename).strip()
+    )
+    if not script_tags:
+        return document_html
+    if re.search(r"<head\b[^>]*>", document_html, re.IGNORECASE):
+        return re.sub(
+            r"(<head\b[^>]*>)",
+            r"\1\n" + script_tags + "\n",
+            document_html,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    if re.search(r"<body\b[^>]*>", document_html, re.IGNORECASE):
+        return re.sub(
+            r"(<body\b[^>]*>)",
+            r"\1\n" + script_tags + "\n",
+            document_html,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    return script_tags + "\n" + document_html
+
+
 def generate_html_launcher_index_html(
     title: str,
     embed_filename: str = "",
+    alternate_embed_filename: str = "",
+    alternate_embed_label: str = "",
+    alternate_embed_prompt: str = "",
     remote_url: str = "",
     play_note: str = "Saves to local storage",
     launch_here_label: str = "LAUNCH HERE",
     launch_fullscreen_label: str = "LAUNCH FULLSCREEN",
     initial_status: str = "Awaiting launch-mode selection",
+    allowed_launch_modes: str = "both",
+    recommended_launch_mode: str = "frame",
 ) -> str:
+    allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
+        allowed_launch_modes,
+        recommended_launch_mode,
+    )
     embed_url_js = json.dumps(f"./{embed_filename}" if embed_filename else "", ensure_ascii=False)
+    alternate_embed_url_js = json.dumps(
+        f"./{alternate_embed_filename}" if alternate_embed_filename else "",
+        ensure_ascii=False,
+    )
+    alternate_embed_label_js = json.dumps(alternate_embed_label or "", ensure_ascii=False)
+    alternate_embed_prompt_js = json.dumps(alternate_embed_prompt or "", ensure_ascii=False)
     embed_title_js = json.dumps(title or "Game", ensure_ascii=False)
     remote_url_js = json.dumps(remote_url or "", ensure_ascii=False)
     play_note_js = json.dumps(play_note or "", ensure_ascii=False)
@@ -8030,6 +8243,8 @@ def generate_html_launcher_index_html(
         ensure_ascii=False,
     )
     initial_status_js = json.dumps(initial_status or "Awaiting launch-mode selection", ensure_ascii=False)
+    allowed_launch_modes_js = json.dumps(allowed_launch_modes, ensure_ascii=False)
+    recommended_launch_mode_js = json.dumps(recommended_launch_mode, ensure_ascii=False)
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8069,12 +8284,17 @@ def generate_html_launcher_index_html(
 </div>
 <script>
 window.OCEAN_EMBED_URL = {embed_url_js};
+window.OCEAN_ALT_EMBED_URL = {alternate_embed_url_js};
+window.OCEAN_ALT_EMBED_LABEL = {alternate_embed_label_js};
+window.OCEAN_ALT_EMBED_PROMPT = {alternate_embed_prompt_js};
 window.OCEAN_EMBED_TITLE = {embed_title_js};
 window.OCEAN_REMOTE_URL = {remote_url_js};
 window.OCEAN_PLAY_NOTE = {play_note_js};
 window.OCEAN_LAUNCH_FRAME_LABEL = {launch_here_label_js};
 window.OCEAN_LAUNCH_FULLSCREEN_LABEL = {launch_fullscreen_label_js};
 window.OCEAN_INITIAL_STATUS = {initial_status_js};
+window.OCEAN_ALLOWED_LAUNCH_MODES = {allowed_launch_modes_js};
+window.OCEAN_RECOMMENDED_LAUNCH_MODE = {recommended_launch_mode_js};
 </script>
 <script src="./ocean-launcher.js"></script>
 </body>
@@ -8088,7 +8308,13 @@ def export_html_entry(
     detected_entry: DetectedEntry,
     input_url: str,
     root_url: str,
+    allowed_launch_modes: str = "both",
+    recommended_launch_mode: str = "frame",
 ) -> dict[str, Any]:
+    allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
+        allowed_launch_modes,
+        recommended_launch_mode,
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     title = infer_display_title(
@@ -8138,10 +8364,34 @@ def export_html_entry(
         source_html=localized_source_html,
     )
     (output_dir / embedded_entry_name).write_text(embedded_entry_content, encoding="utf-8")
+    eagler_mobile_option_enabled = any(eagler_wrapper_patches.values()) or "eagler" in title.lower()
+    eagler_mobile_script: dict[str, str] | None = None
+    mobile_embedded_entry_name = ""
+    if eagler_mobile_option_enabled:
+        eagler_mobile_script = download_eagler_mobile_script(output_dir)
+        mobile_embedded_entry_name = "game-root-mobile.html"
+        mobile_embedded_entry_content = inject_head_script_tags(
+            embedded_entry_content,
+            [eagler_mobile_script["name"]],
+        )
+        (output_dir / mobile_embedded_entry_name).write_text(
+            mobile_embedded_entry_content,
+            encoding="utf-8",
+        )
 
     index_content = generate_html_launcher_index_html(
         title=title,
         embed_filename=embedded_entry_name,
+        alternate_embed_filename=mobile_embedded_entry_name,
+        alternate_embed_label="Mobile controls",
+        alternate_embed_prompt=(
+            "Use the Eagler Mobile controls version for this build?\n\n"
+            "OK = Mobile version\nCancel = Standard version"
+        )
+        if eagler_mobile_option_enabled
+        else "",
+        allowed_launch_modes=allowed_launch_modes,
+        recommended_launch_mode=recommended_launch_mode,
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -8162,6 +8412,9 @@ def export_html_entry(
         "output_dir": str(output_dir),
         "index_html": str(output_dir / "index.html"),
         "embedded_entry_html": str(output_dir / embedded_entry_name),
+        "mobile_embedded_entry_html": str(output_dir / mobile_embedded_entry_name)
+        if mobile_embedded_entry_name
+        else "",
         "required_functions_file": str(output_dir / "required-functions.json"),
         "mode": "entry_auto",
         "entry_kind": "html",
@@ -8176,6 +8429,13 @@ def export_html_entry(
         "nonessential_markup_removed": nonessential_markup_removed,
         "html_runtime_mirror": mirrored_html_summary,
         "eagler_wrapper_patches": eagler_wrapper_patches,
+        "eagler_mobile_option_enabled": eagler_mobile_option_enabled,
+        "eagler_mobile_script_file": eagler_mobile_script["name"] if eagler_mobile_script else "",
+        "eagler_mobile_script_url": (
+            eagler_mobile_script["resolved_url"] if eagler_mobile_script else ""
+        ),
+        "launch_options": allowed_launch_modes,
+        "recommended_launch_mode": recommended_launch_mode,
         "source_external_script_urls": original_external_links["scripts"],
         "source_external_stylesheet_urls": original_external_links["stylesheets"],
         "source_external_frame_urls": original_external_links["frames"],
@@ -8205,7 +8465,13 @@ def export_remote_stream_entry(
     detected_entry: DetectedEntry,
     input_url: str,
     root_url: str,
+    allowed_launch_modes: str = "both",
+    recommended_launch_mode: str = "frame",
 ) -> dict[str, Any]:
+    allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
+        allowed_launch_modes,
+        recommended_launch_mode,
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     title = infer_display_title(
@@ -8240,6 +8506,8 @@ def export_remote_stream_entry(
         launch_here_label="OPEN NOW.GG",
         launch_fullscreen_label="OPEN IN NEW TAB",
         initial_status="Remote stream detected; choose handoff mode",
+        allowed_launch_modes=allowed_launch_modes,
+        recommended_launch_mode=recommended_launch_mode,
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -8272,6 +8540,8 @@ def export_remote_stream_entry(
         "remote_stream_reason": detected_entry.metadata.get("remote_stream_reason", ""),
         "launcher": "ocean-launcher",
         "asset_strategy": "not_mirrored_remote_stream",
+        "launch_options": allowed_launch_modes,
+        "recommended_launch_mode": recommended_launch_mode,
         "support_files": support_files,
         "metadata": detected_entry.metadata,
         "progress_file": str(progress_file),
@@ -8289,16 +8559,22 @@ def export_remote_stream_entry(
     return summary
 
 
-def generate_eagler_index_html(
+def generate_eagler_runtime_html(
     title: str,
     bootstrap_script: str,
     script_filenames: Sequence[str],
     assets_filename: str,
     locales_url: str,
+    mobile_script_filename: str = "",
 ) -> str:
     bootstrap_script_js = json.dumps(bootstrap_script, ensure_ascii=False)
     assets_path_js = json.dumps(f"./{assets_filename}", ensure_ascii=False)
     locales_url_js = json.dumps(locales_url, ensure_ascii=False)
+    mobile_script_tag = (
+        f'<script type="text/javascript" src="./{html.escape(mobile_script_filename)}"></script>\n'
+        if mobile_script_filename
+        else ""
+    )
     entry_script_tags = "\n".join(
         f'<script type="text/javascript" src="./{html.escape(filename)}"></script>'
         for filename in script_filenames
@@ -8314,37 +8590,23 @@ def generate_eagler_index_html(
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
 <title>{html.escape(title)}</title>
-<link rel="stylesheet" href="./ocean-launcher.css" />
+<style>
+html, body {{
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}}
+#game_frame {{
+  width: 100%;
+  height: 100%;
+}}
+</style>
 </head>
 <body>
 <div id="game_frame"></div>
-<div id="loadingScreen">
-<div id="loadingBackdrop" aria-hidden="true">
-<canvas id="star-canvas"></canvas>
-<canvas id="wave-canvas"></canvas>
-<div class="nebula"></div>
-<div class="overlay"></div>
-<div class="grain"></div>
-</div>
-<div id="loadingCenter">
-<div id="loadingTitleGroup">
-<h1 id="loadingTitle">Ocean</h1>
-<div id="loadingSubtitle">LAUNCHER</div>
-</div>
-<div id="launchPanel">
-<div id="launchMenu">
-<button id="launchFrameBtn" class="launchOption" type="button">LAUNCH HERE</button>
-<button id="launchFullscreenBtn" class="launchOption" type="button">LAUNCH FULLSCREEN</button>
-</div>
-<div id="playNote">Saves to local storage</div>
-</div>
-<div id="progressTrack" aria-hidden="true">
-<div id="progressFill"></div>
-</div>
-<div id="status">Awaiting launch-mode selection</div>
-</div>
-</div>
-{entry_script_tags}
+{mobile_script_tag}{entry_script_tags}
 <script type="text/javascript">
 "use strict";
 (function () {{
@@ -8409,9 +8671,11 @@ def generate_eagler_index_html(
 
   window.eaglercraftXOpts.container = "game_frame";
   window.eaglercraftXOpts.assetsURI = {assets_path_js};
-{locales_override}}})();
+{locales_override}  if (typeof window.main === "function") {{
+    window.main();
+  }}
+}})();
 </script>
-<script src="./ocean-launcher.js"></script>
 </body>
 </html>
 """
@@ -8423,7 +8687,13 @@ def export_eagler_entry(
     detected_entry: DetectedEaglerEntry,
     input_url: str,
     root_url: str,
+    allowed_launch_modes: str = "both",
+    recommended_launch_mode: str = "frame",
 ) -> dict[str, Any]:
+    allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
+        allowed_launch_modes,
+        recommended_launch_mode,
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     used_entry_script_names: set[str] = set()
@@ -8502,13 +8772,41 @@ def export_eagler_entry(
         output_dir / assets_name,
         referer_url=detected_entry.index_url,
     )
-
-    index_content = generate_eagler_index_html(
+    eagler_mobile_script = download_eagler_mobile_script(output_dir)
+    support_files.append(eagler_mobile_script["name"])
+    embedded_entry_name = "game-root.html"
+    mobile_embedded_entry_name = "game-root-mobile.html"
+    embedded_entry_content = generate_eagler_runtime_html(
         title=detected_entry.title,
         bootstrap_script=detected_entry.bootstrap_script,
         script_filenames=[item["name"] for item in downloaded_entry_scripts],
         assets_filename=assets_name,
         locales_url=detected_entry.locales_url,
+    )
+    (output_dir / embedded_entry_name).write_text(embedded_entry_content, encoding="utf-8")
+    mobile_embedded_entry_content = generate_eagler_runtime_html(
+        title=detected_entry.title,
+        bootstrap_script=detected_entry.bootstrap_script,
+        script_filenames=[item["name"] for item in downloaded_entry_scripts],
+        assets_filename=assets_name,
+        locales_url=detected_entry.locales_url,
+        mobile_script_filename=eagler_mobile_script["name"],
+    )
+    (output_dir / mobile_embedded_entry_name).write_text(
+        mobile_embedded_entry_content,
+        encoding="utf-8",
+    )
+    index_content = generate_html_launcher_index_html(
+        title=detected_entry.title,
+        embed_filename=embedded_entry_name,
+        alternate_embed_filename=mobile_embedded_entry_name,
+        alternate_embed_label="Mobile controls",
+        alternate_embed_prompt=(
+            "Use the Eagler Mobile controls version for this build?\n\n"
+            "OK = Mobile version\nCancel = Standard version"
+        ),
+        allowed_launch_modes=allowed_launch_modes,
+        recommended_launch_mode=recommended_launch_mode,
     )
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
 
@@ -8528,6 +8826,8 @@ def export_eagler_entry(
     summary = {
         "output_dir": str(output_dir),
         "index_html": str(output_dir / "index.html"),
+        "embedded_entry_html": str(output_dir / embedded_entry_name),
+        "mobile_embedded_entry_html": str(output_dir / mobile_embedded_entry_name),
         "required_functions_file": str(output_dir / "required-functions.json"),
         "mode": "entry_auto",
         "entry_kind": "eaglercraft",
@@ -8543,6 +8843,11 @@ def export_eagler_entry(
         "assets_file": assets_name,
         "assets_url": assets_resolved_url,
         "locales_url": detected_entry.locales_url,
+        "eagler_mobile_option_enabled": True,
+        "eagler_mobile_script_file": eagler_mobile_script["name"],
+        "eagler_mobile_script_url": eagler_mobile_script["resolved_url"],
+        "launch_options": allowed_launch_modes,
+        "recommended_launch_mode": recommended_launch_mode,
         "support_files": support_files,
         "progress_file": str(progress_file),
     }
@@ -8561,6 +8866,10 @@ def export_eagler_entry(
 
 def main(argv: Sequence[str]) -> int:
     args = parse_args(argv)
+    allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
+        args.launch_options,
+        args.recommended_launch,
+    )
 
     direct_values = [
         args.loader_url.strip(),
@@ -8717,6 +9026,8 @@ def main(argv: Sequence[str]) -> int:
             detected_entry=detected_eagler_entry,
             input_url=input_url,
             root_url=root_url,
+            allowed_launch_modes=allowed_launch_modes,
+            recommended_launch_mode=recommended_launch_mode,
         )
         log("Done.")
         log(json.dumps(summary, indent=2))
@@ -8729,6 +9040,8 @@ def main(argv: Sequence[str]) -> int:
             detected_entry=detected_html_entry,
             input_url=input_url,
             root_url=root_url,
+            allowed_launch_modes=allowed_launch_modes,
+            recommended_launch_mode=recommended_launch_mode,
         )
         log("Done.")
         log(json.dumps(summary, indent=2))
@@ -8741,6 +9054,8 @@ def main(argv: Sequence[str]) -> int:
             detected_entry=detected_remote_entry,
             input_url=input_url,
             root_url=root_url,
+            allowed_launch_modes=allowed_launch_modes,
+            recommended_launch_mode=recommended_launch_mode,
         )
         log("Done.")
         log(json.dumps(summary, indent=2))
@@ -8764,6 +9079,8 @@ def main(argv: Sequence[str]) -> int:
             "build_kind": build_kind,
             "root_url": root_url,
             "loader_url": loader_url,
+            "launch_options": allowed_launch_modes,
+            "recommended_launch_mode": recommended_launch_mode,
             "completed": False,
         }
     )
@@ -8902,6 +9219,8 @@ def main(argv: Sequence[str]) -> int:
         asset_cache_buster=asset_cache_buster,
         page_config=page_config,
         auxiliary_asset_rewrites=auxiliary_asset_rewrites,
+        allowed_launch_modes=allowed_launch_modes,
+        recommended_launch_mode=recommended_launch_mode,
     )
     validate_required_function_coverage(index_content, required_functions)
     (output_dir / "index.html").write_text(index_content, encoding="utf-8")
@@ -8945,6 +9264,8 @@ def main(argv: Sequence[str]) -> int:
         "original_folder_url": original_folder_url,
         "streaming_assets_url": streaming_assets_url,
         "asset_cache_buster": asset_cache_buster,
+        "launch_options": allowed_launch_modes,
+        "recommended_launch_mode": recommended_launch_mode,
         "gmsoft_like_build": gmsoft_like_build,
         "page_config_keys": sorted(page_config.keys()),
         "auxiliary_asset_rewrites": auxiliary_asset_rewrites,

@@ -19,15 +19,29 @@ SCRIPT_PATH = BASE_DIR / "unity_standalone.py"
 FINDER_SCRIPT_PATH = BASE_DIR / "unity_standalone_finder.py"
 OUTPUT_DIR_PATTERN = re.compile(r'"output_dir"\s*:\s*"([^"]+)"')
 FINDER_RESULT_PREFIX = "[finder-result] "
-DEFAULT_SIZE = "980x760"
+DEFAULT_WINDOW_WIDTH = 1360
+DEFAULT_WINDOW_HEIGHT = 720
+MIN_WINDOW_WIDTH = 1120
+MIN_WINDOW_HEIGHT = 560
+WINDOW_MARGIN_X = 64
+WINDOW_MARGIN_Y = 96
+FORM_PANEL_WIDTH = 700
+GUI_LAUNCH_OPTION_LABEL_TO_VALUE = {
+    "Both": "both",
+    "Frame only": "frame",
+    "Fullscreen only": "fullscreen",
+}
+GUI_RECOMMENDED_LAUNCH_LABEL_TO_VALUE = {
+    "Frame": "frame",
+    "Fullscreen": "fullscreen",
+    "None": "none",
+}
 
 
 class UnityStandaloneGui(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("Unity Standalone Builder")
-        self.geometry(DEFAULT_SIZE)
-        self.minsize(860, 620)
 
         self.mode_var = tk.StringVar(value="entry")
         self.game_name_var = tk.StringVar()
@@ -39,6 +53,8 @@ class UnityStandaloneGui(tk.Tk):
         self.framework_url_var = tk.StringVar()
         self.data_url_var = tk.StringVar()
         self.wasm_url_var = tk.StringVar()
+        self.launch_options_var = tk.StringVar(value="Both")
+        self.recommended_launch_var = tk.StringVar(value="Frame")
         self.overwrite_var = tk.BooleanVar(value=True)
         self.status_var = tk.StringVar(value="Idle")
 
@@ -52,31 +68,56 @@ class UnityStandaloneGui(tk.Tk):
         self.locked_widgets: list[tk.Widget] = []
 
         self._build_ui()
+        self._apply_initial_geometry()
         self._sync_candidate_controls()
         self._sync_mode()
+        self._sync_launch_preferences()
         self.protocol("WM_DELETE_WINDOW", self._handle_close)
         self.after(100, self._poll_events)
 
+    def _apply_initial_geometry(self) -> None:
+        screen_width = max(self.winfo_screenwidth(), MIN_WINDOW_WIDTH)
+        screen_height = max(self.winfo_screenheight(), MIN_WINDOW_HEIGHT)
+        max_width = max(MIN_WINDOW_WIDTH, screen_width - WINDOW_MARGIN_X)
+        max_height = max(MIN_WINDOW_HEIGHT, screen_height - WINDOW_MARGIN_Y)
+        width = min(DEFAULT_WINDOW_WIDTH, max_width)
+        height = min(DEFAULT_WINDOW_HEIGHT, max_height)
+        min_width = min(MIN_WINDOW_WIDTH, max_width)
+        min_height = min(MIN_WINDOW_HEIGHT, max_height)
+        x = max((screen_width - width) // 2, 0)
+        y = max((screen_height - height) // 8, 0)
+        self.minsize(min_width, min_height)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
     def _build_ui(self) -> None:
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)
+        self.columnconfigure(0, weight=0, minsize=FORM_PANEL_WIDTH + 32)
+        self.columnconfigure(1, weight=1, minsize=420)
+        self.rowconfigure(0, weight=1)
 
-        header = ttk.Frame(self, padding=(16, 16, 16, 8))
-        header.grid(row=0, column=0, sticky="ew")
-        header.columnconfigure(0, weight=1)
+        self.form_shell = ttk.Frame(self, padding=(16, 12, 8, 16), width=FORM_PANEL_WIDTH)
+        self.form_shell.grid(row=0, column=0, sticky="nsew")
+        self.form_shell.grid_propagate(False)
+        self.form_shell.columnconfigure(0, weight=1)
+        self.form_shell.rowconfigure(0, weight=1)
 
-        ttk.Label(
-            header,
-            text="Unity Standalone Builder",
-            font=("Segoe UI", 17, "bold"),
-        ).grid(row=0, column=0, sticky="w")
-        ttk.Label(
-            header,
-            text="Search by game name, entry URL, or direct Unity asset URLs.",
-        ).grid(row=1, column=0, sticky="w", pady=(4, 0))
+        self.form_canvas = tk.Canvas(
+            self.form_shell,
+            highlightthickness=0,
+            borderwidth=0,
+        )
+        self.form_canvas.grid(row=0, column=0, sticky="nsew")
+        self.form_scrollbar = ttk.Scrollbar(
+            self.form_shell,
+            orient="vertical",
+            command=self.form_canvas.yview,
+        )
+        self.form_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.form_canvas.configure(yscrollcommand=self.form_scrollbar.set)
 
-        form = ttk.Frame(self, padding=(16, 0, 16, 8))
-        form.grid(row=1, column=0, sticky="nsew")
+        form = ttk.Frame(self.form_canvas)
+        self.form_window_id = self.form_canvas.create_window((0, 0), window=form, anchor="nw")
+        form.bind("<Configure>", self._sync_form_scrollregion)
+        self.form_canvas.bind("<Configure>", self._sync_form_canvas_width)
         form.columnconfigure(0, weight=1)
 
         mode_frame = ttk.LabelFrame(form, text="Mode", padding=12)
@@ -123,6 +164,8 @@ class UnityStandaloneGui(tk.Tk):
         ttk.Label(
             self.entry_frame,
             text="Search the web and pick the best supported source for the builder.",
+            wraplength=FORM_PANEL_WIDTH - 160,
+            justify="left",
         ).grid(row=1, column=1, columnspan=2, sticky="w", pady=(0, 6))
         ttk.Separator(self.entry_frame, orient="horizontal").grid(
             row=2,
@@ -144,7 +187,7 @@ class UnityStandaloneGui(tk.Tk):
         ttk.Label(
             candidate_frame,
             textvariable=self.candidate_summary_var,
-            wraplength=760,
+            wraplength=FORM_PANEL_WIDTH - 70,
             justify="left",
         ).grid(row=1, column=0, columnspan=4, sticky="w", pady=(6, 8))
         self.prev_candidate_button = ttk.Button(
@@ -219,12 +262,57 @@ class UnityStandaloneGui(tk.Tk):
             example="Optional. Leave blank to infer from the game.",
         )
 
+        ttk.Label(options_frame, text="Launch options").grid(
+            row=2,
+            column=0,
+            sticky="w",
+            padx=(0, 10),
+            pady=4,
+        )
+        self.launch_options_combo = ttk.Combobox(
+            options_frame,
+            textvariable=self.launch_options_var,
+            values=list(GUI_LAUNCH_OPTION_LABEL_TO_VALUE.keys()),
+            state="readonly",
+        )
+        self.launch_options_combo.grid(row=2, column=1, sticky="ew", pady=4)
+        self.launch_options_combo.bind("<<ComboboxSelected>>", lambda _event: self._sync_launch_preferences())
+        ttk.Label(
+            options_frame,
+            text="Choose frame only, fullscreen only, or expose both launch paths.",
+            wraplength=FORM_PANEL_WIDTH - 160,
+            justify="left",
+        ).grid(row=3, column=1, sticky="w", pady=(0, 4))
+        self.locked_widgets.append(self.launch_options_combo)
+
+        ttk.Label(options_frame, text="Recommended").grid(
+            row=4,
+            column=0,
+            sticky="w",
+            padx=(0, 10),
+            pady=4,
+        )
+        self.recommended_launch_combo = ttk.Combobox(
+            options_frame,
+            textvariable=self.recommended_launch_var,
+            values=list(GUI_RECOMMENDED_LAUNCH_LABEL_TO_VALUE.keys()),
+            state="readonly",
+        )
+        self.recommended_launch_combo.grid(row=4, column=1, sticky="ew", pady=4)
+        ttk.Label(
+            options_frame,
+            text="Used when both launch buttons are shown; choose None to avoid highlighting either option.",
+            wraplength=FORM_PANEL_WIDTH - 160,
+            justify="left",
+        ).grid(row=5, column=1, sticky="w", pady=(0, 4))
+        self.locked_widgets.append(self.recommended_launch_combo)
+
         overwrite_check = ttk.Checkbutton(
             options_frame,
             text="Overwrite existing output folder",
             variable=self.overwrite_var,
         )
-        overwrite_check.grid(row=2, column=1, sticky="w", pady=(8, 0))
+        overwrite_check.grid(row=6, column=1, sticky="w", pady=(8, 0))
         self.locked_widgets.append(overwrite_check)
 
         actions = ttk.Frame(form, padding=(0, 12, 0, 0))
@@ -246,7 +334,7 @@ class UnityStandaloneGui(tk.Tk):
         ttk.Label(actions, textvariable=self.status_var).grid(row=0, column=5, sticky="e")
 
         log_frame = ttk.LabelFrame(self, text="Build Log", padding=(12, 10, 12, 12))
-        log_frame.grid(row=2, column=0, sticky="nsew", padx=16, pady=(0, 16))
+        log_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 16), pady=16)
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
 
@@ -260,6 +348,12 @@ class UnityStandaloneGui(tk.Tk):
         self.log_text.grid(row=0, column=0, sticky="nsew")
 
         self.locked_widgets.extend([self.build_button])
+
+    def _sync_form_scrollregion(self, _event: tk.Event[tk.Misc] | None = None) -> None:
+        self.form_canvas.configure(scrollregion=self.form_canvas.bbox("all"))
+
+    def _sync_form_canvas_width(self, event: tk.Event[tk.Misc]) -> None:
+        self.form_canvas.itemconfigure(self.form_window_id, width=event.width)
 
     def _add_labeled_entry(
         self,
@@ -284,12 +378,22 @@ class UnityStandaloneGui(tk.Tk):
             self.entry_frame.grid_remove()
             self.direct_frame.grid()
 
+    def _sync_launch_preferences(self) -> None:
+        allowed_mode = GUI_LAUNCH_OPTION_LABEL_TO_VALUE.get(self.launch_options_var.get(), "both")
+        if allowed_mode == "both":
+            desired_state = "readonly" if self.process is None else "disabled"
+            self.recommended_launch_combo.configure(state=desired_state)
+            return
+        self.recommended_launch_var.set("Frame" if allowed_mode == "frame" else "Fullscreen")
+        self.recommended_launch_combo.configure(state="disabled")
+
     def _set_running_state(self, is_running: bool) -> None:
         for widget in self.locked_widgets:
             try:
                 widget.configure(state="disabled" if is_running else "normal")
             except tk.TclError:
                 continue
+        self.launch_options_combo.configure(state="disabled" if is_running else "readonly")
         self.build_button.configure(state="disabled" if is_running else "normal")
         self.stop_button.configure(state="normal" if is_running else "disabled")
         if is_running:
@@ -302,6 +406,7 @@ class UnityStandaloneGui(tk.Tk):
                 button.configure(state="disabled")
         else:
             self._sync_candidate_controls()
+            self._sync_launch_preferences()
 
     def append_log(self, text: str) -> None:
         self.log_text.configure(state="normal")
@@ -354,6 +459,17 @@ class UnityStandaloneGui(tk.Tk):
 
         if self.overwrite_var.get():
             command.append("--overwrite")
+
+        launch_options_value = GUI_LAUNCH_OPTION_LABEL_TO_VALUE.get(
+            self.launch_options_var.get(),
+            "both",
+        )
+        recommended_launch_value = GUI_RECOMMENDED_LAUNCH_LABEL_TO_VALUE.get(
+            self.recommended_launch_var.get(),
+            "frame",
+        )
+        command.extend(["--launch-options", launch_options_value])
+        command.extend(["--recommended-launch", recommended_launch_value])
 
         return command
 

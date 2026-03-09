@@ -1,0 +1,50 @@
+{
+  "count": 36,
+  "functions": [
+    "ActivityRTB1",
+    "ActivityRTB2",
+    "BuyPayments",
+    "CallInterstitialAdsJs",
+    "CallInterstitialAdsPauseJs",
+    "CallRewardedAdsJs",
+    "ConsumePurchase",
+    "ConsumePurchases",
+    "ExecuteCodeRTB1",
+    "ExecuteCodeRTB2",
+    "FullAdShow",
+    "GameReadyAPI",
+    "GetLeaderboardScores",
+    "GetPayments",
+    "InitGame",
+    "InitLeaderboard",
+    "InitSDKJs",
+    "LanguageRequest",
+    "LoadCloud",
+    "LoadRewardedAdsJs",
+    "OpenAuthDialog",
+    "PaintRBT",
+    "PromptShow",
+    "RecalculateRTB1",
+    "RecalculateRTB2",
+    "RequestingEnvironmentData",
+    "Review",
+    "RewardedShow",
+    "SaveCloud",
+    "SetLeaderboardScores",
+    "StaticRBTDeactivate",
+    "StickyAdActivity",
+    "getUserMedia",
+    "showNextAd",
+    "showReward",
+    "ym"
+  ],
+  "window_root_count": 2,
+  "window_roots": [
+    "getUserMedia",
+    "yandexMetricaCounterId"
+  ],
+  "window_callable_chain_count": 1,
+  "window_callable_chains": [
+    "getUserMedia"
+  ]
+}
