@@ -396,9 +396,25 @@
         animation: none !important;
       }
     }
+    body[data-ocean-embedded="1"],
+    body[data-ocean-embedded="1"] #container,
+    body[data-ocean-embedded="1"] #unity-canvas,
+    body[data-ocean-embedded="1"] #unity-legacy-container {
+      background: transparent;
+    }
+    body[data-ocean-embedded="1"] #loadingScreen {
+      background: transparent;
+      padding: 0;
+      pointer-events: none;
+    }
+    body[data-ocean-embedded="1"] #loadingBackdrop,
+    body[data-ocean-embedded="1"] #loadingCenter,
+    body[data-ocean-embedded="1"] #stepLog {
+      display: none !important;
+    }
   </style>
 </head>
-<body>
+<body data-ocean-embedded="1">
   <div id="container">
     <canvas id="unity-canvas"></canvas>
     <div id="unity-legacy-container"></div>
@@ -1622,7 +1638,7 @@
       const ENABLE_SOURCE_URL_SPOOF = true;
       const ORIGINAL_FOLDER_URL = "";
       const STREAMING_ASSETS_URL = "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/41/StreamingAssets";
-      const BUILD_CACHE_BUSTER = "72011be8caac";
+      const BUILD_CACHE_BUSTER = "d2da3b3b6fbc";
       const ENTRY_PAGE_CONFIG = {"streamingAssetsUrl": "StreamingAssets", "companyName": "Ericetto", "productName": "Ragdoll Archers", "productVersion": "0.1"};
       const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =
@@ -2146,12 +2162,17 @@
         if (loadingScreenDismissed || !loadingScreen) {
           return;
         }
-        setLoadState("ready");
         loadingScreenDismissed = true;
         loadingScreen.classList.add("is-exiting");
-        window.setTimeout(function () {
+        const finalizeDismissal = function () {
           loadingScreen.style.display = "none";
-        }, 880);
+          setLoadState("ready");
+        };
+        if (EMBEDDED_MODE) {
+          finalizeDismissal();
+          return;
+        }
+        window.setTimeout(finalizeDismissal, 880);
       }
 
       function clearLaunchPanelHideTimer() {

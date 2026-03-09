@@ -396,9 +396,25 @@
         animation: none !important;
       }
     }
+    body[data-ocean-embedded="1"],
+    body[data-ocean-embedded="1"] #container,
+    body[data-ocean-embedded="1"] #unity-canvas,
+    body[data-ocean-embedded="1"] #unity-legacy-container {
+      background: transparent;
+    }
+    body[data-ocean-embedded="1"] #loadingScreen {
+      background: transparent;
+      padding: 0;
+      pointer-events: none;
+    }
+    body[data-ocean-embedded="1"] #loadingBackdrop,
+    body[data-ocean-embedded="1"] #loadingCenter,
+    body[data-ocean-embedded="1"] #stepLog {
+      display: none !important;
+    }
   </style>
 </head>
-<body>
+<body data-ocean-embedded="1">
   <div id="container">
     <canvas id="unity-canvas"></canvas>
     <div id="unity-legacy-container"></div>
@@ -1622,7 +1638,7 @@
       const ENABLE_SOURCE_URL_SPOOF = false;
       const ORIGINAL_FOLDER_URL = "https://cdn.jsdelivr.net/gh/geadfut/convert@ffb792062bc34eb0ff245a32612d038194f949af/lib";
       const STREAMING_ASSETS_URL = "https://cdn.jsdelivr.net";
-      const BUILD_CACHE_BUSTER = "89c3adfa25ed";
+      const BUILD_CACHE_BUSTER = "dac97b521582";
       const ENTRY_PAGE_CONFIG = {};
       const AUXILIARY_ASSET_REWRITES = {};
       const LOCAL_PAGE_URL =
@@ -1679,7 +1695,7 @@
         };
       })();
       const ALLOWED_LAUNCH_MODES = "both";
-      const RECOMMENDED_LAUNCH_MODE = "fullscreen";
+      const RECOMMENDED_LAUNCH_MODE = "none";
       const EMBEDDED_MODE = true;
       const launchFrameLabel = "LAUNCH HERE";
       const launchFullscreenLabel = "LAUNCH FULLSCREEN";
@@ -2146,12 +2162,17 @@
         if (loadingScreenDismissed || !loadingScreen) {
           return;
         }
-        setLoadState("ready");
         loadingScreenDismissed = true;
         loadingScreen.classList.add("is-exiting");
-        window.setTimeout(function () {
+        const finalizeDismissal = function () {
           loadingScreen.style.display = "none";
-        }, 880);
+          setLoadState("ready");
+        };
+        if (EMBEDDED_MODE) {
+          finalizeDismissal();
+          return;
+        }
+        window.setTimeout(finalizeDismissal, 880);
       }
 
       function clearLaunchPanelHideTimer() {

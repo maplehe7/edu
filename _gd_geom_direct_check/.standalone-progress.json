@@ -1,0 +1,98 @@
+{
+  "candidate_urls": {
+    "loader": [
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.loader.js"
+    ],
+    "framework": [
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.framework.js",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.framework.js.unityweb",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.framework.js.gz",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.framework.js.br"
+    ],
+    "data": [
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.data",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.data.unityweb",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.data.gz",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.data.br"
+    ],
+    "wasm": [
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.wasm",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.wasm.unityweb",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.wasm.gz",
+      "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.wasm.br"
+    ]
+  },
+  "assets": {
+    "loader": {
+      "filename": "geometry-dash-lite.loader.js",
+      "url": "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.loader.js",
+      "size": 20642
+    },
+    "framework": {
+      "filename": "geometry-dash-lite.framework.js",
+      "url": "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.framework.js",
+      "size": 411124
+    },
+    "data": {
+      "filename": "geometry-dash-lite.data",
+      "url": "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.data",
+      "size": 45366159
+    },
+    "wasm": {
+      "filename": "geometry-dash-lite.wasm",
+      "url": "https://slope3.com/gamep/geometry-dash-lite/Build/geometry-dash-lite.wasm",
+      "size": 28832694
+    }
+  },
+  "completed": true,
+  "summary": {
+    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\_gd_geom_direct_check",
+    "index_html": "C:\\Users\\hello\\Downloads\\edu\\_gd_geom_direct_check\\index.html",
+    "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\_gd_geom_direct_check\\game-root.html",
+    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\_gd_geom_direct_check\\required-functions.json",
+    "loader": "geometry-dash-lite.loader.js",
+    "framework": "geometry-dash-lite.framework.js",
+    "data": "geometry-dash-lite.data",
+    "wasm": "geometry-dash-lite.wasm",
+    "required_function_count": 2,
+    "window_root_count": 8,
+    "window_callable_chain_count": 4,
+    "used_br_assets": false,
+    "used_compressed_assets": false,
+    "site_lock_framework_patched": true,
+    "gmsoft_host_bridge_patched": false,
+    "gmsoft_sendmessage_defaults_patched": false,
+    "sendmessage_value_compat_patched": false,
+    "build_kind": "modern",
+    "mode": "entry_auto",
+    "source_page_url": "https://geometrydashlite.io/geometry-dash-game/",
+    "source_url_spoof_enabled": true,
+    "original_folder_url": "https://slope3.com/gamep/geometry-dash-lite",
+    "streaming_assets_url": "https://slope3.com/gamep/geometry-dash-lite/StreamingAssets",
+    "asset_cache_buster": "fe96bcaf23a6",
+    "embed_cache_buster": "317898ccd715",
+    "launch_options": "both",
+    "recommended_launch_mode": "none",
+    "launcher": "ocean-launcher",
+    "gmsoft_like_build": false,
+    "page_config_keys": [
+      "companyName",
+      "productName",
+      "productVersion"
+    ],
+    "auxiliary_asset_rewrites": {
+      "https://geometrydashlite.io/setting.txt": "../setting.txt"
+    },
+    "launcher_support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
+    "support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
+    "support_script_files": [],
+    "support_script_urls": [],
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\_gd_geom_direct_check\\.standalone-progress.json"
+  }
+}

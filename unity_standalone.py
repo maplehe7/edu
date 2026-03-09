@@ -717,7 +717,11 @@ def decode_embedded_html_payload(raw_value: str) -> str:
             .replace("\\r", "\n")
             .replace("\\t", "\t")
         )
-    return "".join(normalized_parts)
+    normalized = "".join(normalized_parts)
+    lower_normalized = normalized.lower()
+    if ("<html" in lower_normalized or "<body" in lower_normalized) and normalized.count("<\\/") >= 2:
+        normalized = normalized.replace("<\\/", "</")
+    return normalized
 
 
 def normalize_embedded_script_source(script_source: str) -> str:
@@ -830,6 +834,21 @@ def looks_like_custom_unity_html_bootstrap(index_html: str) -> bool:
         and "startunitybr" in lower
         and ("innerloaderurl" in lower or "dataparturls" in lower or "buildurl" in lower)
         and "unityloader.instantiate" not in lower
+    )
+
+
+def looks_like_inline_legacy_unity_wrapper_html(index_html: str) -> bool:
+    lower = index_html.lower()
+    return (
+        "<html" in lower
+        and "unityloader.instantiate" in lower
+        and (
+            "src=\"data:" in lower
+            or "src='data:" in lower
+            or "data:@file/javascript" in lower
+            or "data:application/javascript" in lower
+            or "data:text/javascript" in lower
+        )
     )
 
 
@@ -1252,6 +1271,8 @@ def detect_supported_entry_kind(index_html: str) -> str:
         return ""
     if looks_like_custom_unity_html_bootstrap(index_html):
         return "html"
+    if looks_like_inline_legacy_unity_wrapper_html(index_html):
+        return "html"
     if looks_like_unity_entry_html(index_html):
         return "unity"
     if looks_like_eagler_entry_html(index_html):
@@ -1347,12 +1368,15 @@ def discover_crazygames_entry_url(index_html: str, index_url: str) -> str:
 def discover_gamecomets_entry_url(index_url: str) -> str:
     parsed = urllib.parse.urlparse(index_url)
     host = parsed.netloc.lower()
+    path = parsed.path.rstrip("/").lower()
+    if host == "sites.google.com" and path.endswith("/new-games/gd-lite"):
+        return "https://geometrydashlite.io/geometry-dash-game/"
+
     if not host.endswith("gamecomets.com"):
         return ""
 
-    path = parsed.path.rstrip("/").lower()
     if path in {"/game/geometry-dash-lite", "/games/geometry-dash-lite"}:
-        return "https://sites.google.com/view/drive-u-7-home-10/new-games/gd-lite"
+        return "https://geometrydashlite.io/geometry-dash-game/"
 
     return ""
 
@@ -4658,6 +4682,7 @@ def generate_index_html(
     allowed_launch_modes_js = json.dumps(allowed_launch_modes, ensure_ascii=False)
     recommended_launch_mode_js = json.dumps(recommended_launch_mode, ensure_ascii=False)
     embedded_mode_js = "true" if embedded_mode else "false"
+    embedded_body_attr = ' data-ocean-embedded="1"' if embedded_mode else ""
     auxiliary_asset_rewrites_js = json.dumps(
         auxiliary_asset_rewrites or {},
         ensure_ascii=False,
@@ -5069,9 +5094,25 @@ def generate_index_html(
         animation: none !important;
       }}
     }}
+    body[data-ocean-embedded="1"],
+    body[data-ocean-embedded="1"] #container,
+    body[data-ocean-embedded="1"] #unity-canvas,
+    body[data-ocean-embedded="1"] #unity-legacy-container {{
+      background: transparent;
+    }}
+    body[data-ocean-embedded="1"] #loadingScreen {{
+      background: transparent;
+      padding: 0;
+      pointer-events: none;
+    }}
+    body[data-ocean-embedded="1"] #loadingBackdrop,
+    body[data-ocean-embedded="1"] #loadingCenter,
+    body[data-ocean-embedded="1"] #stepLog {{
+      display: none !important;
+    }}
   </style>
 </head>
-<body>
+<body{embedded_body_attr}>
   <div id="container">
     <canvas id="unity-canvas"></canvas>
     <div id="unity-legacy-container"></div>
@@ -6819,12 +6860,17 @@ def generate_index_html(
         if (loadingScreenDismissed || !loadingScreen) {{
           return;
         }}
-        setLoadState("ready");
         loadingScreenDismissed = true;
         loadingScreen.classList.add("is-exiting");
-        window.setTimeout(function () {{
+        const finalizeDismissal = function () {{
           loadingScreen.style.display = "none";
-        }}, 880);
+          setLoadState("ready");
+        }};
+        if (EMBEDDED_MODE) {{
+          finalizeDismissal();
+          return;
+        }}
+        window.setTimeout(finalizeDismissal, 880);
       }}
 
       function clearLaunchPanelHideTimer() {{
@@ -9917,7 +9963,17 @@ def main(argv: Sequence[str]) -> int:
         log(f"Detected entry kind: {entry_kind}")
 
         if entry_kind == "unity":
-            if looks_like_split_unity_bootstrap_page(detected_entry.index_html):
+            if looks_like_inline_legacy_unity_wrapper_html(detected_entry.index_html):
+                entry_kind = "html"
+                detected_html_entry = DetectedEntry(
+                    entry_kind="html",
+                    index_url=detected_entry.index_url,
+                    index_html=detected_entry.index_html,
+                    source_page_url=detected_entry.source_page_url or detected_entry.index_url,
+                )
+                log("Falling back to HTML wrapper export for inline legacy Unity bootstrap page")
+                log(f"Resolved HTML entry URL: {detected_html_entry.index_url}")
+            elif looks_like_split_unity_bootstrap_page(detected_entry.index_html):
                 entry_kind = "html"
                 detected_html_entry = DetectedEntry(
                     entry_kind="html",

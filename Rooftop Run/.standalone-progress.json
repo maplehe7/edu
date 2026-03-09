@@ -48,6 +48,7 @@
   "summary": {
     "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run",
     "index_html": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\index.html",
+    "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\game-root.html",
     "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Rooftop Run\\required-functions.json",
     "loader": "RoofTop Web.loader.js",
     "framework": "RoofTop Web.framework.js.br",
@@ -68,8 +69,8 @@
     "source_url_spoof_enabled": true,
     "original_folder_url": "",
     "streaming_assets_url": "",
-    "asset_cache_buster": "cba64dce29cd",
-    "embed_cache_buster": "16e715322d4c",
+    "asset_cache_buster": "be567ae5aaec",
+    "embed_cache_buster": "9451eca42742",
     "launch_options": "both",
     "recommended_launch_mode": "none",
     "launcher": "ocean-launcher",

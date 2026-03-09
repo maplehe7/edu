@@ -832,6 +832,45 @@
     }
   }
 
+  function syncEmbeddedRuntimeProgress(frameDocument) {
+    if (!frameDocument) {
+      return;
+    }
+    const embeddedLoadingScreen = frameDocument.getElementById("loadingScreen");
+    if (!embeddedLoadingScreen) {
+      return;
+    }
+    const rawProgress = Number(embeddedLoadingScreen.getAttribute("data-progress"));
+    if (!Number.isFinite(rawProgress)) {
+      return;
+    }
+    const clampedProgress = Math.max(0, Math.min(100, Math.round(rawProgress)));
+    setProgress(clampedProgress / 100);
+    setStatus("Loading " + clampedProgress + "%");
+  }
+
+  function inspectEmbeddedFrameHandoff(frame) {
+    const context = getSameOriginFrameContext(frame);
+    if (!context) {
+      return null;
+    }
+    const frameDocument = context.frameDocument;
+    const root = frameDocument.documentElement || null;
+    const body = frameDocument.body || null;
+    const state =
+      (root && root.getAttribute("data-ocean-unity-state")) ||
+      (body && body.getAttribute("data-ocean-unity-state")) ||
+      "";
+    syncEmbeddedRuntimeProgress(frameDocument);
+    return {
+      state: state,
+      hasState: Boolean(state),
+      readyState: String(frameDocument.readyState || ""),
+      hasCanvas: Boolean(frameDocument.querySelector("canvas")),
+      bodyNodeCount: body ? body.childNodes.length : 0,
+    };
+  }
+
   function suppressEmbeddedLaunchPrompts(frameWindow, frameDocument) {
     const skipCountdownButton = frameDocument.getElementById("skipCountdown");
     const mobileLaunchButton = frameDocument.querySelector(
@@ -1147,8 +1186,35 @@
   function waitForGameHandoff() {
     logLoaderStep("Waiting for runtime handoff");
     clearHandoffPollTimer();
-    const deadline = Date.now() + 4000;
+    const deadline = Date.now() + 25000;
     handoffPollTimer = window.setInterval(function () {
+      const embeddedFrame = gameFrame.querySelector("iframe.ocean-game-embed");
+      if (embeddedFrame) {
+        const embeddedState = inspectEmbeddedFrameHandoff(embeddedFrame);
+        if (embeddedState) {
+          if (embeddedState.state === "ready" || embeddedState.state === "failed") {
+            completeHandoff();
+            return;
+          }
+          if (
+            !embeddedState.hasState &&
+            embeddedState.readyState === "complete" &&
+            (embeddedState.hasCanvas || embeddedState.bodyNodeCount > 0)
+          ) {
+            completeHandoff();
+            return;
+          }
+          if (Date.now() < deadline) {
+            return;
+          }
+          completeHandoff();
+          return;
+        }
+        if (Date.now() >= deadline) {
+          completeHandoff();
+        }
+        return;
+      }
       const hasGameContent = gameFrame.childNodes.length > 0;
       if (hasGameContent || Date.now() >= deadline) {
         completeHandoff();

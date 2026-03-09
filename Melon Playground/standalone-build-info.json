@@ -1,6 +1,7 @@
 {
   "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground",
   "index_html": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground\\index.html",
+  "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground\\game-root.html",
   "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Melon Playground\\required-functions.json",
   "loader": "ragdoll-playground-v25041512.loader.js",
   "framework": "ragdoll-playground-v25041512.framework.js.unityweb",
@@ -21,8 +22,8 @@
   "source_url_spoof_enabled": false,
   "original_folder_url": "",
   "streaming_assets_url": "25041512/StreamingAssets",
-  "asset_cache_buster": "0eee9f95c0a6",
-  "embed_cache_buster": "f2ea1c35b152",
+  "asset_cache_buster": "f2998600f94a",
+  "embed_cache_buster": "676388bb6f73",
   "launch_options": "both",
   "recommended_launch_mode": "none",
   "launcher": "ocean-launcher",

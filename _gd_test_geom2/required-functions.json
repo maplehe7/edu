@@ -1,0 +1,18 @@
+{
+  "count": 2,
+  "functions": [
+    "GetProcAddress",
+    "getUserMedia"
+  ],
+  "window_root_count": 4,
+  "window_roots": [
+    "event",
+    "getUserMedia",
+    "outerHeight",
+    "outerWidth"
+  ],
+  "window_callable_chain_count": 1,
+  "window_callable_chains": [
+    "getUserMedia"
+  ]
+}

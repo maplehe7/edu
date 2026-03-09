@@ -1,123 +1,50 @@
 {
-  "candidate_urls": {
-    "loader": [
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.loader.js"
-    ],
-    "framework": [
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js",
-      "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.unityweb",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.unityweb",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.gz",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.br"
-    ],
-    "data": [
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data",
-      "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.unityweb",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.unityweb",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.gz",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.br"
-    ],
-    "wasm": [
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm",
-      "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.unityweb",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.unityweb",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.gz",
-      "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.br"
-    ]
-  },
-  "assets": {
-    "loader": {
-      "filename": "ragdoll-playground-v25041512.loader.js",
-      "url": "https://play2.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.loader.js",
-      "size": 42615
-    },
-    "framework": {
-      "filename": "ragdoll-playground-v25041512.framework.js.unityweb",
-      "url": "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.framework.js.unityweb",
-      "size": 905187
-    },
-    "data": {
-      "filename": "ragdoll-playground-v25041512.data.unityweb",
-      "url": "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.data.unityweb",
-      "size": 75791100
-    },
-    "wasm": {
-      "filename": "ragdoll-playground-v25041512.wasm.unityweb",
-      "url": "https://play.1games.io/game/ragdoll-playground/25041512/Build/ragdoll-playground-v25041512.wasm.unityweb",
-      "size": 34222969
-    }
-  },
+  "mode": "entry_auto",
+  "entry_kind": "remote_stream",
+  "root_url": "https://now.gg/apps/playducky/7199/",
+  "input_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+  "resolved_entry_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+  "remote_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+  "title": "Melon Sandbox",
   "completed": true,
   "summary": {
     "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Melon Sandbox",
     "index_html": "C:\\Users\\hello\\Downloads\\edu\\Melon Sandbox\\index.html",
     "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Melon Sandbox\\required-functions.json",
-    "loader": "ragdoll-playground-v25041512.loader.js",
-    "framework": "ragdoll-playground-v25041512.framework.js.unityweb",
-    "data": "ragdoll-playground-v25041512.data.unityweb",
-    "wasm": "ragdoll-playground-v25041512.wasm.unityweb",
-    "required_function_count": 0,
-    "window_root_count": 3,
-    "window_callable_chain_count": 0,
-    "used_br_assets": true,
-    "used_compressed_assets": true,
-    "site_lock_framework_patched": false,
-    "gmsoft_host_bridge_patched": true,
-    "gmsoft_sendmessage_defaults_patched": true,
-    "sendmessage_value_compat_patched": true,
-    "build_kind": "modern",
     "mode": "entry_auto",
-    "source_page_url": "https://1games.io/game/ragdoll-playground/",
-    "source_url_spoof_enabled": false,
-    "original_folder_url": "",
-    "streaming_assets_url": "25041512/StreamingAssets",
-    "asset_cache_buster": "726a5ff5e350",
-    "embed_cache_buster": "5f3b2ddadd48",
+    "entry_kind": "remote_stream",
+    "title": "Melon Sandbox",
+    "input_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+    "root_url": "https://now.gg/apps/playducky/7199/",
+    "resolved_entry_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+    "remote_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+    "remote_provider": "now.gg",
+    "remote_kind": "webrtc_stream",
+    "remote_stream_reason": "now.gg app page does not expose a same-origin downloadable HTML payload",
+    "launcher": "ocean-launcher",
+    "asset_strategy": "not_mirrored_remote_stream",
     "launch_options": "both",
     "recommended_launch_mode": "none",
-    "launcher": "ocean-launcher",
-    "gmsoft_like_build": true,
-    "page_config_keys": [
-      "buildAPI",
-      "companyName",
-      "enableMoreGame",
-      "enablePromotion",
-      "eventLog",
-      "gameId",
-      "gdHost",
-      "hostindex",
-      "productName",
-      "productVersion",
-      "pubId"
-    ],
-    "auxiliary_asset_rewrites": {},
-    "launcher_support_files": [
+    "support_files": [
       "ocean-launcher.css",
       "ocean-launcher.js"
     ],
-    "support_files": [
-      "ocean-launcher.css",
-      "ocean-launcher.js",
-      "support/gmsoftsdk_v5.js",
-      "support/firebase-auth-compat.js",
-      "support/firebase-analytics-compat.js",
-      "support/firebase-app-compat.js",
-      "support/firebase-firestore-compat.js"
-    ],
-    "support_script_files": [
-      "support/gmsoftsdk_v5.js",
-      "support/firebase-auth-compat.js",
-      "support/firebase-analytics-compat.js",
-      "support/firebase-app-compat.js",
-      "support/firebase-firestore-compat.js"
-    ],
-    "support_script_urls": [
-      "https://games.1games.io/lib/gmsoftsdk_v5.js",
-      "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js",
-      "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js",
-      "https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js",
-      "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"
-    ],
+    "metadata": {
+      "remote_provider": "now.gg",
+      "app_id": "7199",
+      "app_name": "Melon Sandbox",
+      "app_slug": "melon-sandbox",
+      "app_type": "Android",
+      "package_name": "com.studio27.MelonPlayground",
+      "developer_slug": "playducky",
+      "play_domain": "now.gg",
+      "enable_play_page": false,
+      "app_page_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+      "direct_candidate_urls": [],
+      "remote_url": "https://now.gg/apps/playducky/7199/melon-sandbox.html",
+      "remote_kind": "webrtc_stream",
+      "remote_stream_reason": "now.gg app page does not expose a same-origin downloadable HTML payload"
+    },
     "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Melon Sandbox\\.standalone-progress.json"
   }
 }

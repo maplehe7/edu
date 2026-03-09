@@ -3,33 +3,39 @@
   "index_html": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\index.html",
   "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\game-root.html",
   "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\required-functions.json",
-  "loader": "UnityLoader.js",
-  "framework": "GeometryDashLite.wasm.framework.js",
-  "data": "GeometryDashLite.data.unityweb",
-  "wasm": "GeometryDashLite.wasm.code.unityweb",
+  "loader": "geometry-dash-lite.loader.js",
+  "framework": "geometry-dash-lite.framework.js",
+  "data": "geometry-dash-lite.data",
+  "wasm": "geometry-dash-lite.wasm",
   "required_function_count": 2,
-  "window_root_count": 4,
-  "window_callable_chain_count": 1,
-  "used_br_assets": true,
-  "used_compressed_assets": true,
+  "window_root_count": 8,
+  "window_callable_chain_count": 4,
+  "used_br_assets": false,
+  "used_compressed_assets": false,
   "site_lock_framework_patched": true,
   "gmsoft_host_bridge_patched": false,
   "gmsoft_sendmessage_defaults_patched": false,
   "sendmessage_value_compat_patched": false,
-  "build_kind": "legacy_json",
+  "build_kind": "modern",
   "mode": "entry_auto",
-  "source_page_url": "https://script.google.com/macros/s/AKfycbydNb9Y8FIM3D0vcweKtYCYbjJcSXghedO6MN0aWbP5qIwamjjSkBDirvuMHR_6sc4/exec",
+  "source_page_url": "https://geometrydashlite.io/geometry-dash-game/",
   "source_url_spoof_enabled": true,
-  "original_folder_url": "",
-  "streaming_assets_url": "",
-  "asset_cache_buster": "c3cbcd0dd78d",
-  "embed_cache_buster": "91303042aba6",
+  "original_folder_url": "https://slope3.com/gamep/geometry-dash-lite",
+  "streaming_assets_url": "https://slope3.com/gamep/geometry-dash-lite/StreamingAssets",
+  "asset_cache_buster": "2dcd3d0dd089",
+  "embed_cache_buster": "74fe661958c6",
   "launch_options": "both",
   "recommended_launch_mode": "none",
   "launcher": "ocean-launcher",
   "gmsoft_like_build": false,
-  "page_config_keys": [],
-  "auxiliary_asset_rewrites": {},
+  "page_config_keys": [
+    "companyName",
+    "productName",
+    "productVersion"
+  ],
+  "auxiliary_asset_rewrites": {
+    "https://geometrydashlite.io/setting.txt": "../setting.txt"
+  },
   "launcher_support_files": [
     "ocean-launcher.css",
     "ocean-launcher.js"
@@ -40,10 +46,5 @@
   ],
   "support_script_files": [],
   "support_script_urls": [],
-  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json",
-  "legacy_asset_names": {
-    "dataUrl": "GeometryDashLite.data.unityweb",
-    "wasmCodeUrl": "GeometryDashLite.wasm.code.unityweb",
-    "wasmFrameworkUrl": "GeometryDashLite.wasm.framework.js"
-  }
+  "progress_file": "C:\\Users\\hello\\Downloads\\edu\\GD Lite\\.standalone-progress.json"
 }
