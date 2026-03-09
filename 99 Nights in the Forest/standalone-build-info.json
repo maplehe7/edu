@@ -2,7 +2,7 @@
   "output_dir": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest",
   "index_html": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest\\index.html",
   "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest\\game-root.html",
-  "mobile_embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest\\game-root-mobile.html",
+  "mobile_embedded_entry_html": "",
   "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\99 Nights in the Forest\\required-functions.json",
   "mode": "entry_auto",
   "entry_kind": "html",
@@ -33,11 +33,11 @@
     "countdown_autostart_injected": 0,
     "mobile_autolaunch_injected": 0,
     "device_pixel_ratio_guarded": 0,
-    "modapi_bridge_injected": 1
+    "modapi_bridge_injected": 0
   },
-  "eagler_mobile_option_enabled": true,
-  "eagler_mobile_script_file": "eaglermobile.user.js",
-  "eagler_mobile_script_url": "https://raw.githubusercontent.com/FlamedDogo99/EaglerMobile/main/eaglermobile.user.js",
+  "eagler_mobile_option_enabled": false,
+  "eagler_mobile_script_file": "",
+  "eagler_mobile_script_url": "",
   "launch_options": "both",
   "recommended_launch_mode": "frame",
   "source_external_script_urls": [

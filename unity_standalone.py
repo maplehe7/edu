@@ -3441,6 +3441,8 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
         "device_pixel_ratio_guarded": 0,
         "modapi_bridge_injected": 0,
     }
+    if not looks_like_eagler_entry_html(patched):
+        return patched, patch_counts
 
     modapi_bridge_script = """
 <script>
@@ -8504,6 +8506,7 @@ def export_html_entry(
     localized_source_html, eagler_wrapper_patches = patch_inline_eagler_wrapper_html(
         localized_source_html
     )
+    eagler_mobile_option_enabled = looks_like_eagler_entry_html(localized_source_html)
     external_links = extract_html_external_links(localized_source_html)
     embedded_entry_name = "game-root.html"
     embedded_entry_content = generate_html_entry_index_html(
@@ -8511,7 +8514,6 @@ def export_html_entry(
         source_html=localized_source_html,
     )
     (output_dir / embedded_entry_name).write_text(embedded_entry_content, encoding="utf-8")
-    eagler_mobile_option_enabled = any(eagler_wrapper_patches.values()) or "eagler" in title.lower()
     eagler_mobile_script: dict[str, str] | None = None
     mobile_embedded_entry_name = ""
     if eagler_mobile_option_enabled:
