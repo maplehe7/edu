@@ -422,16 +422,8 @@
   }
 
   function updateLaunchModeUi() {
-    launchFrameBtn.textContent =
-      launchFrameLabel +
-      (isLaunchRecommendationActive() && recommendedLaunchMode === "frame"
-        ? " (RECOMMENDED)"
-        : "");
-    launchFullscreenBtn.textContent =
-      launchFullscreenLabel +
-      (isLaunchRecommendationActive() && recommendedLaunchMode === "fullscreen"
-        ? " (RECOMMENDED)"
-        : "");
+    launchFrameBtn.textContent = launchFrameLabel;
+    launchFullscreenBtn.textContent = launchFullscreenLabel;
     launchFrameBtn.style.display = frameLaunchAllowed ? "" : "none";
     launchFullscreenBtn.style.display = fullscreenLaunchAllowed ? "" : "none";
     launchFrameBtn.disabled = !frameLaunchAllowed;
@@ -445,9 +437,6 @@
     }
     if (hasAlternateEmbedVariant()) {
       noteParts.push("Variant: Standard or " + resolveEmbedVariantLabel("alt"));
-    }
-    if (isLaunchRecommendationActive()) {
-      noteParts.push("Recommended: " + labelForLaunchMode(recommendedLaunchMode));
     }
     if (noteParts.length) {
       playNote.textContent = noteParts.join("  ");
@@ -1059,21 +1048,25 @@
 
   function confirmRecommendedLaunchOverride(mode) {
     if (!isLaunchRecommendationActive() || recommendedLaunchMode === mode) {
-      return true;
+      return mode;
     }
     const recommendedLabel = labelForLaunchMode(recommendedLaunchMode);
     const selectedLabel = labelForLaunchMode(mode);
-    const shouldContinue = window.confirm(
-      recommendedLabel +
-        " is recommended for this build.\n\nContinue with " +
+    const shouldKeepSelectedMode = window.confirm(
+      "Are you sure you want to " +
+        selectedLabel.toLowerCase() +
+        "?\n\n" +
+        recommendedLabel +
+        " is recommended for this game.\n\n" +
+        "OK = " +
         selectedLabel +
-        "?"
+        "\nCancel = Go back"
     );
-    if (!shouldContinue) {
-      setStatus(recommendedLabel + " is recommended");
-      return false;
+    if (shouldKeepSelectedMode) {
+      return mode;
     }
-    return true;
+    setStatus(recommendedLabel + " is recommended");
+    return "";
   }
 
   function confirmAlternateEmbedVariant() {
@@ -1121,7 +1114,12 @@
     if (!frameLaunchAllowed) {
       return;
     }
-    if (!confirmRecommendedLaunchOverride("frame")) {
+    const launchMode = confirmRecommendedLaunchOverride("frame");
+    if (!launchMode) {
+      return;
+    }
+    if (launchMode === "fullscreen") {
+      startFullscreenGame();
       return;
     }
     startGame();
@@ -1131,7 +1129,12 @@
     if (!fullscreenLaunchAllowed) {
       return;
     }
-    if (!confirmRecommendedLaunchOverride("fullscreen")) {
+    const launchMode = confirmRecommendedLaunchOverride("fullscreen");
+    if (!launchMode) {
+      return;
+    }
+    if (launchMode === "frame") {
+      startGame();
       return;
     }
     startFullscreenGame();

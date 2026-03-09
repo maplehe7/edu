@@ -2682,7 +2682,7 @@ def analyze_framework(framework_path: Path) -> FrameworkAnalysis:
     # Pattern 2: function calls that explicitly target window.<name>(...)
     window_call_matches = re.findall(r"\bwindow\.([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", raw_text)
 
-    # Pattern 3: direct global calls used by Unity glue libraries, e.g. InitSDKJs()
+    # Pattern 3: direct global calls ued by Unity glue libraries, e.g. InitSDKJs()
     direct_call_matches = re.findall(
         r"(?<![.\w$])([A-Za-z_$][A-Za-z0-9_$]*)\s*\(",
         raw_text,
