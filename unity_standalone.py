@@ -829,9 +829,191 @@ def looks_like_custom_unity_html_bootstrap(index_html: str) -> bool:
         and "<canvas" in lower
         and "startunitybr" in lower
         and ("innerloaderurl" in lower or "dataparturls" in lower or "buildurl" in lower)
-        and ".loader.js" not in lower
         and "unityloader.instantiate" not in lower
     )
+
+
+def split_js_top_level(source: str, separator: str) -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    quote = ""
+    escape_active = False
+    depth = 0
+    for char in source:
+        if quote:
+            current.append(char)
+            if escape_active:
+                escape_active = False
+            elif char == "\\":
+                escape_active = True
+            elif char == quote:
+                quote = ""
+            continue
+        if char in ("'", '"', "`"):
+            quote = char
+            current.append(char)
+            continue
+        if char in "([{":
+            depth += 1
+        elif char in ")]}" and depth > 0:
+            depth -= 1
+        if char == separator and depth == 0:
+            part = "".join(current).strip()
+            if part:
+                parts.append(part)
+            current = []
+            continue
+        current.append(char)
+    tail = "".join(current).strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+def evaluate_simple_js_concat_expression(expression: str, variables: Mapping[str, str]) -> str:
+    value_parts: list[str] = []
+    for token in split_js_top_level(expression.strip().rstrip(";"), "+"):
+        token = token.strip()
+        if not token:
+            continue
+        if token in variables:
+            value_parts.append(variables[token])
+            continue
+        if len(token) >= 2 and token[0] == token[-1] and token[0] in ("'", '"'):
+            value_parts.append(decode_js_string_literal(token[1:-1]))
+            continue
+        return ""
+    return "".join(value_parts).strip()
+
+
+def strip_custom_split_suffix(name: str) -> str:
+    cleaned = name
+    if re.search(r"\.\d{2,4}$", cleaned):
+        cleaned = cleaned.rsplit(".", 1)[0]
+    for suffix in (".unityweb", ".br", ".gz"):
+        if cleaned.lower().endswith(suffix):
+            cleaned = cleaned[: -len(suffix)]
+            break
+    return cleaned
+
+
+def infer_custom_split_data_name(data_part_urls: Sequence[str]) -> str:
+    if not data_part_urls:
+        return "game.data"
+    base = strip_custom_split_suffix(basename_from_url(data_part_urls[0]))
+    if not base:
+        return "game.data"
+    if "." not in base:
+        base += ".data"
+    return sanitize_filename(base, "game.data")
+
+
+def infer_custom_split_wasm_name(wasm_url: str) -> str:
+    base = strip_custom_split_suffix(basename_from_url(wasm_url))
+    if not base:
+        base = "game"
+    if not base.lower().endswith(".wasm"):
+        base += ".wasm"
+    return sanitize_filename(base, "game.wasm")
+
+
+def extract_custom_split_unity_bootstrap(
+    index_html: str,
+    index_url: str,
+) -> dict[str, Any] | None:
+    if not looks_like_custom_unity_html_bootstrap(index_html):
+        return None
+
+    variables: dict[str, str] = {}
+    build_url_matches = list(
+        re.finditer(
+            r"""\b(?:const|let|var)\s+buildUrl\s*=\s*([^;]+);""",
+            index_html,
+            re.IGNORECASE,
+        )
+    )
+    build_url_match = build_url_matches[-1] if build_url_matches else None
+    if build_url_match:
+        build_url_value = evaluate_simple_js_concat_expression(build_url_match.group(1), variables)
+        if build_url_value:
+            variables["buildUrl"] = normalize_url(urllib.parse.urljoin(index_url, build_url_value))
+
+    wasm_matches = list(
+        re.finditer(
+            r"""\b(?:const|let|var)\s+wasmUrl\s*=\s*([^;]+);""",
+            index_html,
+            re.IGNORECASE,
+        )
+    )
+    wasm_match = wasm_matches[-1] if wasm_matches else None
+    data_parts_matches = list(
+        re.finditer(
+            r"""\b(?:const|let|var)\s+dataPartUrls\s*=\s*\[(.*?)\]\s*;""",
+            index_html,
+            re.IGNORECASE | re.DOTALL,
+        )
+    )
+    data_parts_match = data_parts_matches[-1] if data_parts_matches else None
+    loader_expr_matches = list(
+        re.finditer(
+            r"""\binnerLoaderUrl\s*:\s*([^,\n}]+)""",
+            index_html,
+            re.IGNORECASE,
+        )
+    )
+    loader_expr_match = loader_expr_matches[-1] if loader_expr_matches else None
+    framework_expr_matches = list(
+        re.finditer(
+            r"""\bframeworkUrl\s*:\s*([^,\n}]+)""",
+            index_html,
+            re.IGNORECASE,
+        )
+    )
+    framework_expr_match = framework_expr_matches[-1] if framework_expr_matches else None
+    streaming_assets_matches = list(
+        re.finditer(
+            r"""\bstreamingAssetsUrl\s*:\s*([^,\n}]+)""",
+            index_html,
+            re.IGNORECASE,
+        )
+    )
+    streaming_assets_match = streaming_assets_matches[-1] if streaming_assets_matches else None
+
+    if not (wasm_match and data_parts_match and loader_expr_match and framework_expr_match):
+        return None
+
+    wasm_url = evaluate_simple_js_concat_expression(wasm_match.group(1), variables)
+    loader_url = evaluate_simple_js_concat_expression(loader_expr_match.group(1), variables)
+    framework_url = evaluate_simple_js_concat_expression(framework_expr_match.group(1), variables)
+    streaming_assets_url = (
+        evaluate_simple_js_concat_expression(streaming_assets_match.group(1), variables)
+        if streaming_assets_match
+        else ""
+    )
+    data_part_urls = [
+        evaluate_simple_js_concat_expression(item, variables)
+        for item in split_js_top_level(data_parts_match.group(1), ",")
+    ]
+    data_part_urls = [url for url in data_part_urls if url]
+
+    if not (wasm_url and loader_url and framework_url and data_part_urls):
+        return None
+
+    return {
+        "build_root_url": variables.get("buildUrl", ""),
+        "loader_url": normalize_url(urllib.parse.urljoin(index_url, loader_url)),
+        "framework_url": normalize_url(urllib.parse.urljoin(index_url, framework_url)),
+        "wasm_url": normalize_url(urllib.parse.urljoin(index_url, wasm_url)),
+        "data_part_urls": [
+            normalize_url(urllib.parse.urljoin(index_url, url))
+            for url in data_part_urls
+        ],
+        "streaming_assets_url": (
+            normalize_url(urllib.parse.urljoin(index_url, streaming_assets_url))
+            if streaming_assets_url
+            else ""
+        ),
+    }
 
 
 def looks_like_embedded_game_wrapper_html(index_html: str) -> bool:
@@ -4491,6 +4673,9 @@ def generate_index_html(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>{html.escape(product_name)}</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2305070f%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%223.5%22 fill=%22%2322d3ee%22/%3E%3C/svg%3E" />
   <style>
@@ -6136,6 +6321,33 @@ def generate_index_html(
       const playNoteText = playNote ? playNote.textContent.trim() : "";
       const status = document.getElementById("status");
       const stepLog = document.getElementById("stepLog");
+      const decisionDialog = (function () {{
+        if (!loadingScreen) {{
+          return null;
+        }}
+        const overlay = document.createElement("div");
+        overlay.hidden = true;
+        overlay.setAttribute("aria-hidden", "true");
+        overlay.style.cssText =
+          "position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;" +
+          "padding:24px;background:rgba(2,6,23,0.58);backdrop-filter:blur(10px);";
+        overlay.innerHTML =
+          '<div role="dialog" aria-modal="true" aria-labelledby="oceanDecisionTitle" ' +
+          'style="width:min(92vw,540px);border-radius:32px;padding:28px 28px 24px;' +
+          'border:1px solid rgba(120,196,255,0.30);background:linear-gradient(180deg,rgba(2,6,23,0.96),rgba(7,18,41,0.98));' +
+          'box-shadow:0 24px 80px rgba(0,0,0,0.42),0 0 0 1px rgba(59,130,246,0.12) inset;">' +
+          '<h2 id="oceanDecisionTitle" style="margin:0 0 14px;color:#effcff;font:800 clamp(1.6rem,4vw,2.2rem)/1.05 \\"Segoe UI Variable Text\\",\\"Segoe UI\\",sans-serif;letter-spacing:-0.03em;"></h2>' +
+          '<div id="oceanDecisionBody" style="margin:0 0 18px;color:rgba(225,245,255,0.76);font:700 1rem/1.45 \\"Segoe UI Variable Text\\",\\"Segoe UI\\",sans-serif;"></div>' +
+          '<div id="oceanDecisionActions" style="display:flex;flex-direction:column;gap:12px;"></div>' +
+          '</div>';
+        loadingScreen.appendChild(overlay);
+        return {{
+          overlay: overlay,
+          title: overlay.querySelector("#oceanDecisionTitle"),
+          body: overlay.querySelector("#oceanDecisionBody"),
+          actions: overlay.querySelector("#oceanDecisionActions"),
+        }};
+      }})();
       const ALLOWED_LAUNCH_MODES = {allowed_launch_modes_js};
       const RECOMMENDED_LAUNCH_MODE = {recommended_launch_mode_js};
       const launchFrameLabel = "LAUNCH HERE";
@@ -6153,6 +6365,8 @@ def generate_index_html(
       const loaderStepEpoch = Date.now();
       let lastLoggedStep = "";
       let lastProgressBucket = -1;
+      let activeDecisionResolve = null;
+      let activeDecisionCancelValue = "";
       if (ORIGINAL_FOLDER_URL) {{
         window.originalFolder = ORIGINAL_FOLDER_URL;
       }}
@@ -6258,17 +6472,89 @@ def generate_index_html(
         return allowedLaunchModes === "both" && recommendedLaunchMode !== "none";
       }}
 
+      function closeDecisionDialog(value) {{
+        if (!activeDecisionResolve || !decisionDialog) {{
+          return;
+        }}
+        const resolve = activeDecisionResolve;
+        activeDecisionResolve = null;
+        activeDecisionCancelValue = "";
+        decisionDialog.overlay.hidden = true;
+        decisionDialog.overlay.setAttribute("aria-hidden", "true");
+        decisionDialog.actions.textContent = "";
+        resolve(String(value || ""));
+      }}
+
+      function showDecisionDialog(options) {{
+        if (!decisionDialog) {{
+          return Promise.resolve(
+            typeof options.defaultValue === "string" ? options.defaultValue : ""
+          );
+        }}
+        if (activeDecisionResolve) {{
+          closeDecisionDialog(activeDecisionCancelValue);
+        }}
+        const titleText =
+          typeof options.title === "string" && options.title.trim()
+            ? options.title.trim()
+            : "Choose option";
+        const bodyText = typeof options.body === "string" ? options.body.trim() : "";
+        const buttons = Array.isArray(options.buttons) && options.buttons.length
+          ? options.buttons
+          : [{{ label: "Continue", value: "continue", primary: true }}];
+        let firstButton = null;
+        activeDecisionCancelValue =
+          typeof options.cancelValue === "string" ? options.cancelValue : "";
+        decisionDialog.title.textContent = titleText;
+        decisionDialog.body.textContent = bodyText;
+        decisionDialog.actions.textContent = "";
+        buttons.forEach(function (buttonConfig, index) {{
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent =
+            buttonConfig && typeof buttonConfig.label === "string" && buttonConfig.label.trim()
+              ? buttonConfig.label.trim()
+              : "Continue";
+          button.style.cssText =
+            "width:100%;padding:15px 22px;border-radius:999px;cursor:pointer;text-align:center;" +
+            "font:800 14px/1.1 \\"Segoe UI Variable Text\\",\\"Segoe UI\\",\\"Trebuchet MS\\",system-ui,sans-serif;" +
+            "letter-spacing:0.08em;text-transform:uppercase;transition:transform 180ms ease,box-shadow 180ms ease,background 180ms ease,border-color 180ms ease;" +
+            (buttonConfig && buttonConfig.primary
+              ? "border:1px solid rgba(88,200,255,0.62);background:linear-gradient(180deg,rgba(16,28,58,0.94),rgba(10,22,46,0.98));color:#effcff;box-shadow:0 18px 36px rgba(0,0,0,0.34),0 0 24px rgba(59,130,246,0.22);"
+              : "border:1px solid rgba(120,196,255,0.30);background:linear-gradient(180deg,rgba(10,16,31,0.86),rgba(10,18,38,0.96));color:#effcff;box-shadow:0 14px 34px rgba(0,0,0,0.32),inset 0 1px 0 rgba(255,255,255,0.08);");
+          button.addEventListener("click", function () {{
+            closeDecisionDialog(buttonConfig ? buttonConfig.value : "");
+          }});
+          decisionDialog.actions.appendChild(button);
+          if (!firstButton || index === 0 || (buttonConfig && buttonConfig.primary)) {{
+            firstButton = button;
+          }}
+        }});
+        decisionDialog.overlay.hidden = false;
+        decisionDialog.overlay.setAttribute("aria-hidden", "false");
+        window.setTimeout(function () {{
+          if (firstButton && typeof firstButton.focus === "function") {{
+            firstButton.focus();
+          }}
+        }}, 0);
+        return new Promise(function (resolve) {{
+          activeDecisionResolve = resolve;
+        }});
+      }}
+
+      function showMessageDialog(title, body) {{
+        return showDecisionDialog({{
+          title: title,
+          body: body,
+          buttons: [{{ label: "OK", value: "ok", primary: true }}],
+          cancelValue: "ok",
+          defaultValue: "ok",
+        }});
+      }}
+
       function updateLaunchModeUi() {{
-        launchFrameBtn.textContent =
-          launchFrameLabel +
-          (isLaunchRecommendationActive() && recommendedLaunchMode === "frame"
-            ? " (RECOMMENDED)"
-            : "");
-        launchFullscreenBtn.textContent =
-          launchFullscreenLabel +
-          (isLaunchRecommendationActive() && recommendedLaunchMode === "fullscreen"
-            ? " (RECOMMENDED)"
-            : "");
+        launchFrameBtn.textContent = launchFrameLabel;
+        launchFullscreenBtn.textContent = launchFullscreenLabel;
         launchFrameBtn.style.display = frameLaunchAllowed ? "" : "none";
         launchFullscreenBtn.style.display = fullscreenLaunchAllowed ? "" : "none";
         launchFrameBtn.disabled = !frameLaunchAllowed;
@@ -6280,9 +6566,6 @@ def generate_index_html(
         if (playNoteText) {{
           noteParts.push(playNoteText);
         }}
-        if (isLaunchRecommendationActive()) {{
-          noteParts.push("Recommended: " + labelForLaunchMode(recommendedLaunchMode));
-        }}
         if (noteParts.length) {{
           playNote.textContent = noteParts.join("  ");
           playNote.style.display = "";
@@ -6293,21 +6576,21 @@ def generate_index_html(
 
       function confirmRecommendedLaunchOverride(mode) {{
         if (!isLaunchRecommendationActive() || recommendedLaunchMode === mode) {{
-          return true;
+          return Promise.resolve(mode);
         }}
-        const recommendedLabel = labelForLaunchMode(recommendedLaunchMode);
         const selectedLabel = labelForLaunchMode(mode);
-        const shouldContinue = window.confirm(
-          recommendedLabel +
-            " is recommended for this build.\n\nContinue with " +
-            selectedLabel +
-            "?"
-        );
-        if (!shouldContinue) {{
-          setStatus(recommendedLabel + " is recommended");
-          return false;
-        }}
-        return true;
+        return showDecisionDialog({{
+          title:
+            (recommendedLaunchMode === "fullscreen" ? "Fullscreen" : "Launch here") +
+            " is recommended for this game!",
+          body: "Are you sure you want to " + selectedLabel.toLowerCase() + "?",
+          buttons: [
+            {{ label: "Confirm", value: mode, primary: true }},
+            {{ label: "Go Back", value: "" }},
+          ],
+          cancelValue: "",
+          defaultValue: mode,
+        }});
       }}
 
       function unityProgressPhase(percent) {{
@@ -6628,7 +6911,8 @@ def generate_index_html(
       function showHttpRequiredMessage() {{
         resetLaunchState();
         setStatus("Use HTTP or HTTPS to run this build");
-        alert(
+        showMessageDialog(
+          "HTTP or HTTPS required",
           "This Unity build must be served over HTTP or HTTPS. Opening index.html directly from disk can stall at 0%. Use GitHub Pages or run a local web server."
         );
       }}
@@ -7161,20 +7445,24 @@ def generate_index_html(
         if (!frameLaunchAllowed) {{
           return;
         }}
-        if (!confirmRecommendedLaunchOverride("frame")) {{
-          return;
-        }}
-        startGame();
+        confirmRecommendedLaunchOverride("frame").then(function (launchMode) {{
+          if (!launchMode) {{
+            return;
+          }}
+          startGame();
+        }});
       }}
 
       function handleFullscreenLaunchClick() {{
         if (!fullscreenLaunchAllowed) {{
           return;
         }}
-        if (!confirmRecommendedLaunchOverride("fullscreen")) {{
-          return;
-        }}
-        startFullscreenGame();
+        confirmRecommendedLaunchOverride("fullscreen").then(function (launchMode) {{
+          if (!launchMode) {{
+            return;
+          }}
+          startFullscreenGame();
+        }});
       }}
 
       function ensureStorageAccess() {{
@@ -7710,7 +7998,7 @@ def generate_index_html(
             resetLaunchState();
             setLoadState("failed");
             setStatus("Failed to load game");
-            alert("Unity failed to load: " + err);
+            showMessageDialog("Failed to load game", "Unity failed to load: " + err);
           }});
         }})
         .catch(function (err) {{
@@ -7775,7 +8063,7 @@ def generate_index_html(
             resetLaunchState();
             setLoadState("failed");
             setStatus("Failed to load game");
-            alert("Unity failed to load: " + err);
+            showMessageDialog("Failed to load game", "Unity failed to load: " + err);
           }}
         }})
         .catch(function () {{
@@ -8366,6 +8654,24 @@ def suppress_known_html_alert_calls(document_html: str) -> str:
     )
 
 
+def disable_known_html_console_muting(document_html: str) -> str:
+    patched = re.sub(
+        r"""\b(?:const|let|var)\s+muteConsole\s*=\s*true\s*;""",
+        "const muteConsole = false;",
+        document_html,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+    patched = re.sub(
+        r"""if\s*\(\s*muteConsole\s*\)\s*\{\s*console\.log\s*=\s*console\.warn\s*=\s*console\.error\s*=\s*console\.info\s*=\s*console\.debug\s*=\s*\(\)\s*=>\s*\{\s*\}\s*;\s*\}""",
+        "if (muteConsole) { console.warn('[ocean] source attempted to mute console output'); }",
+        patched,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+    return patched
+
+
 def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
     script_name = "eaglermobile.user.js"
     resolved_url = download_raw_asset(
@@ -8380,7 +8686,9 @@ def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
 
 
 def generate_html_entry_index_html(title: str, source_html: str) -> str:
-    document = suppress_known_html_alert_calls(source_html.lstrip("\ufeff").strip())
+    document = source_html.lstrip("\ufeff").strip()
+    document = suppress_known_html_alert_calls(document)
+    document = disable_known_html_console_muting(document)
     document = re.sub(r"(?im)^[ \t]*/body>\s*$", "", document)
     document = re.sub(r"(?im)^[ \t]*body>\s*$", "", document)
     if not document:
@@ -8624,6 +8932,262 @@ window.OCEAN_RECOMMENDED_LAUNCH_MODE = {recommended_launch_mode_js};
 """
 
 
+def export_custom_split_unity_entry(
+    output_dir: Path,
+    progress_file: Path,
+    detected_entry: DetectedEntry,
+    input_url: str,
+    root_url: str,
+    custom_bootstrap: Mapping[str, Any],
+    allowed_launch_modes: str = "both",
+    recommended_launch_mode: str = "none",
+) -> dict[str, Any]:
+    allowed_launch_modes, recommended_launch_mode = normalize_launch_preferences(
+        allowed_launch_modes,
+        recommended_launch_mode,
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    build_dir = output_dir / "Build"
+    build_dir.mkdir(parents=True, exist_ok=True)
+
+    title = infer_display_title(
+        extract_html_title(detected_entry.index_html),
+        root_url,
+        source_page_url=detected_entry.source_page_url or input_url,
+    )
+    source_page_url = canonicalize_source_page_url(
+        detected_entry.source_page_url or input_url,
+        str(custom_bootstrap.get("build_root_url") or ""),
+    )
+    unity_support_script_urls = collect_unity_support_script_urls(
+        detected_entry.index_html,
+        detected_entry.index_url,
+        str(custom_bootstrap["loader_url"]),
+    )
+
+    progress_payload = load_json_file(progress_file)
+    progress_payload.update(
+        {
+            "mode": "entry_auto",
+            "entry_kind": "unity",
+            "build_kind": "custom_split_modern",
+            "root_url": root_url,
+            "input_url": input_url,
+            "resolved_entry_url": detected_entry.index_url,
+            "title": title,
+            "loader_url": custom_bootstrap["loader_url"],
+            "framework_url": custom_bootstrap["framework_url"],
+            "wasm_url": custom_bootstrap["wasm_url"],
+            "data_part_urls": list(custom_bootstrap["data_part_urls"]),
+            "completed": False,
+        }
+    )
+    save_json_file(progress_file, progress_payload)
+
+    loader_name = sanitize_filename(
+        basename_from_url(str(custom_bootstrap["loader_url"])),
+        "loader.js",
+    )
+    framework_name = sanitize_filename(
+        basename_from_url(str(custom_bootstrap["framework_url"])),
+        "framework.js",
+    )
+    data_name = infer_custom_split_data_name(
+        [str(url) for url in custom_bootstrap["data_part_urls"]]
+    )
+    wasm_name = infer_custom_split_wasm_name(str(custom_bootstrap["wasm_url"]))
+
+    loader_resolved_url = download_raw_asset(
+        str(custom_bootstrap["loader_url"]),
+        build_dir / loader_name,
+        referer_url=detected_entry.index_url,
+    )
+    framework_resolved_url = download_raw_asset(
+        str(custom_bootstrap["framework_url"]),
+        build_dir / framework_name,
+        referer_url=detected_entry.index_url,
+    )
+
+    if brotli is None:
+        raise FetchError("brotli support is required to export this split Unity page.")
+
+    data_part_urls = [str(url) for url in custom_bootstrap["data_part_urls"]]
+    combined_data_parts = bytearray()
+    for index, part_url in enumerate(data_part_urls, start=1):
+        resolved_part_url, raw_part, _, _ = fetch_url(part_url, referer_url=detected_entry.index_url)
+        if not raw_part:
+            raise FetchError(f"{part_url} -> empty response")
+        if looks_like_html(raw_part):
+            raise FetchError(f"{part_url} -> returned HTML instead of split data")
+        combined_data_parts.extend(raw_part)
+        log(
+            f"Custom split Unity data parts: {index}/{len(data_part_urls)} -> {basename_from_url(resolved_part_url)}"
+        )
+
+    try:
+        data_bytes = brotli.decompress(bytes(combined_data_parts))
+    except Exception as exc:
+        raise FetchError("Failed to decompress combined split Unity data asset.") from exc
+    (build_dir / data_name).write_bytes(data_bytes)
+
+    wasm_resolved_url, wasm_raw, _, _ = fetch_url(
+        str(custom_bootstrap["wasm_url"]),
+        referer_url=detected_entry.index_url,
+    )
+    if not wasm_raw:
+        raise FetchError(f"{custom_bootstrap['wasm_url']} -> empty response")
+    if looks_like_html(wasm_raw):
+        raise FetchError(f"{custom_bootstrap['wasm_url']} -> returned HTML instead of wasm")
+    try:
+        wasm_bytes = brotli.decompress(wasm_raw)
+    except Exception as exc:
+        raise FetchError("Failed to decompress split Unity wasm asset.") from exc
+    (build_dir / wasm_name).write_bytes(wasm_bytes)
+
+    assets = DownloadedAssets(
+        loader_name=loader_name,
+        framework_name=framework_name,
+        data_name=data_name,
+        wasm_name=wasm_name,
+        used_br_assets=False,
+        build_kind="modern",
+    )
+    downloaded_support_scripts = download_unity_support_scripts(
+        output_dir,
+        unity_support_script_urls,
+        referer_url=detected_entry.index_url,
+    )
+
+    site_lock_framework_patched = False
+    gmsoft_host_bridge_patched = patch_gmsoft_host_bridge(build_dir / assets.framework_name)
+    gmsoft_sendmessage_defaults_patched = patch_gmsoft_sendmessage_defaults(
+        build_dir / assets.framework_name
+    )
+    sendmessage_value_compat_patched = patch_sendmessage_value_compat(
+        build_dir / assets.framework_name
+    )
+    framework_analysis = analyze_framework(build_dir / assets.framework_name)
+    required_functions = framework_analysis.required_functions
+    original_folder_url = str(custom_bootstrap.get("build_root_url") or "")
+    streaming_assets_url = str(custom_bootstrap.get("streaming_assets_url") or "")
+    page_config: dict[str, Any] = {}
+    auxiliary_asset_rewrites = collect_auxiliary_asset_rewrites(
+        output_dir,
+        source_page_url,
+        original_folder_url,
+        (
+            build_dir / assets.framework_name,
+            build_dir / assets.data_name,
+        ),
+    )
+    gmsoft_like_build = looks_like_gmsoft_page_config(page_config)
+    source_url_spoof_patterns = [
+        b"SiteLock",
+        b"whitelistedDomains",
+        b"allowedRemoteHosts",
+        b"IsOnWhitelistedDomain",
+        b"DomainLocker",
+        b"check_domains_str",
+        b"redirect_domain",
+        b"ALLOW_DOMAINS",
+    ]
+    enable_source_url_spoof = any(
+        file_contains_any_bytes(path, source_url_spoof_patterns)
+        for path in (
+            build_dir / assets.framework_name,
+            build_dir / assets.data_name,
+        )
+        if path.name
+    )
+    asset_cache_buster = compute_asset_cache_buster(build_dir, assets)
+    product_name = title
+    index_content = generate_index_html(
+        product_name,
+        assets,
+        required_functions,
+        framework_analysis.window_roots,
+        framework_analysis.window_callable_chains,
+        support_script_filenames=[item["name"] for item in downloaded_support_scripts],
+        source_page_url=source_page_url,
+        enable_source_url_spoof=enable_source_url_spoof,
+        original_folder_url=original_folder_url,
+        streaming_assets_url=streaming_assets_url,
+        asset_cache_buster=asset_cache_buster,
+        page_config=page_config,
+        auxiliary_asset_rewrites=auxiliary_asset_rewrites,
+        allowed_launch_modes=allowed_launch_modes,
+        recommended_launch_mode=recommended_launch_mode,
+    )
+    validate_required_function_coverage(index_content, required_functions)
+    (output_dir / "index.html").write_text(index_content, encoding="utf-8")
+    write_vendor_support_files(output_dir, framework_analysis)
+    (output_dir / "required-functions.json").write_text(
+        json.dumps(
+            {
+                "count": len(required_functions),
+                "functions": required_functions,
+                "window_root_count": len(framework_analysis.window_roots),
+                "window_roots": framework_analysis.window_roots,
+                "window_callable_chain_count": len(framework_analysis.window_callable_chains),
+                "window_callable_chains": framework_analysis.window_callable_chains,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    summary = {
+        "output_dir": str(output_dir),
+        "index_html": str(output_dir / "index.html"),
+        "required_functions_file": str(output_dir / "required-functions.json"),
+        "loader": assets.loader_name,
+        "framework": assets.framework_name,
+        "data": assets.data_name,
+        "wasm": assets.wasm_name,
+        "required_function_count": len(required_functions),
+        "window_root_count": len(framework_analysis.window_roots),
+        "window_callable_chain_count": len(framework_analysis.window_callable_chains),
+        "used_br_assets": False,
+        "used_compressed_assets": False,
+        "site_lock_framework_patched": site_lock_framework_patched,
+        "gmsoft_host_bridge_patched": gmsoft_host_bridge_patched,
+        "gmsoft_sendmessage_defaults_patched": gmsoft_sendmessage_defaults_patched,
+        "sendmessage_value_compat_patched": sendmessage_value_compat_patched,
+        "build_kind": "custom_split_modern",
+        "mode": "entry_auto",
+        "entry_kind": "unity",
+        "title": title,
+        "source_page_url": source_page_url,
+        "source_url_spoof_enabled": enable_source_url_spoof,
+        "original_folder_url": original_folder_url,
+        "streaming_assets_url": streaming_assets_url,
+        "asset_cache_buster": asset_cache_buster,
+        "launch_options": allowed_launch_modes,
+        "recommended_launch_mode": recommended_launch_mode,
+        "gmsoft_like_build": gmsoft_like_build,
+        "page_config_keys": sorted(page_config.keys()),
+        "auxiliary_asset_rewrites": auxiliary_asset_rewrites,
+        "support_script_files": [item["name"] for item in downloaded_support_scripts],
+        "support_script_urls": [item["resolved_url"] for item in downloaded_support_scripts],
+        "loader_url": loader_resolved_url,
+        "framework_url": framework_resolved_url,
+        "data_part_urls": data_part_urls,
+        "wasm_url": wasm_resolved_url,
+        "progress_file": str(progress_file),
+    }
+    (output_dir / "standalone-build-info.json").write_text(
+        json.dumps(summary, indent=2),
+        encoding="utf-8",
+    )
+
+    progress_payload = load_json_file(progress_file)
+    progress_payload["completed"] = True
+    progress_payload["summary"] = summary
+    save_json_file(progress_file, progress_payload)
+
+    return summary
+
+
 def export_html_entry(
     output_dir: Path,
     progress_file: Path,
@@ -8637,6 +9201,21 @@ def export_html_entry(
         allowed_launch_modes,
         recommended_launch_mode,
     )
+    custom_split_bootstrap = extract_custom_split_unity_bootstrap(
+        detected_entry.index_html,
+        detected_entry.index_url,
+    )
+    if custom_split_bootstrap:
+        return export_custom_split_unity_entry(
+            output_dir,
+            progress_file,
+            detected_entry,
+            input_url,
+            root_url,
+            custom_split_bootstrap,
+            allowed_launch_modes=allowed_launch_modes,
+            recommended_launch_mode=recommended_launch_mode,
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     title = infer_display_title(

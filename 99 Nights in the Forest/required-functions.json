@@ -1,8 +1,17 @@
 {
-  "count": 0,
-  "functions": [],
-  "window_root_count": 0,
-  "window_roots": [],
-  "window_callable_chain_count": 0,
-  "window_callable_chains": []
+  "count": 2,
+  "functions": [
+    "getUserMedia",
+    "ym"
+  ],
+  "window_root_count": 3,
+  "window_roots": [
+    "getUserMedia",
+    "warnedAboutManualFilesystemSyncGettingDeprecated",
+    "yandexMetricaCounterId"
+  ],
+  "window_callable_chain_count": 1,
+  "window_callable_chains": [
+    "getUserMedia"
+  ]
 }

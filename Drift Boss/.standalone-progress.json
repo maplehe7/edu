@@ -1,0 +1,76 @@
+{
+  "mode": "entry_auto",
+  "entry_kind": "html",
+  "root_url": "https://driftboss.io/drift-boss-math-playground/",
+  "input_url": "https://driftboss.io/drift-boss-math-playground",
+  "resolved_entry_url": "https://gamecollections.me/game/owner/drift-boss-gm/",
+  "title": "Drift Boss",
+  "completed": true,
+  "summary": {
+    "output_dir": "C:\\Users\\hello\\Downloads\\edu\\Drift Boss",
+    "index_html": "C:\\Users\\hello\\Downloads\\edu\\Drift Boss\\index.html",
+    "embedded_entry_html": "C:\\Users\\hello\\Downloads\\edu\\Drift Boss\\game-root.html",
+    "mobile_embedded_entry_html": "",
+    "required_functions_file": "C:\\Users\\hello\\Downloads\\edu\\Drift Boss\\required-functions.json",
+    "mode": "entry_auto",
+    "entry_kind": "html",
+    "title": "Drift Boss",
+    "input_url": "https://driftboss.io/drift-boss-math-playground",
+    "root_url": "https://driftboss.io/drift-boss-math-playground/",
+    "resolved_entry_url": "https://gamecollections.me/game/owner/drift-boss-gm/",
+    "html_source_mode": "absolutized_embed_root",
+    "launcher": "ocean-launcher",
+    "embed_cache_buster": "603d21e78739",
+    "support_files": [
+      "ocean-launcher.css",
+      "ocean-launcher.js"
+    ],
+    "embedded_ad_blocks_removed": {
+      "style_blocks": 0,
+      "script_blocks": 0,
+      "iframe_blocks": 0,
+      "mask_blocks": 0,
+      "container_blocks": 0,
+      "comment_blocks": 0
+    },
+    "nonessential_markup_removed": {
+      "canonical_links": 0
+    },
+    "html_runtime_mirror": {},
+    "eagler_wrapper_patches": {
+      "countdown_guarded": 0,
+      "countdown_autostart_injected": 0,
+      "mobile_autolaunch_injected": 0,
+      "device_pixel_ratio_guarded": 0,
+      "modapi_bridge_injected": 0
+    },
+    "eagler_mobile_option_enabled": false,
+    "eagler_mobile_script_file": "",
+    "eagler_mobile_script_url": "",
+    "launch_options": "both",
+    "recommended_launch_mode": "none",
+    "source_external_script_urls": [
+      "https://gamecollections.me/game/owner/drift-boss-gm/game.js",
+      "https://gamecollections.me/cloak.js"
+    ],
+    "source_external_stylesheet_urls": [
+      "https://gamecollections.me/game/owner/drift-boss-gm/game.css"
+    ],
+    "source_external_frame_urls": [],
+    "source_external_other_urls": [
+      "https://gamecollections.me/media/graphics/misc/favicon.ico"
+    ],
+    "external_script_urls": [
+      "https://gamecollections.me/game/owner/drift-boss-gm/game.js",
+      "https://gamecollections.me/cloak.js"
+    ],
+    "external_stylesheet_urls": [
+      "https://gamecollections.me/game/owner/drift-boss-gm/game.css"
+    ],
+    "external_frame_urls": [],
+    "external_other_urls": [
+      "https://gamecollections.me/media/graphics/misc/favicon.ico"
+    ],
+    "progress_file": "C:\\Users\\hello\\Downloads\\edu\\Drift Boss\\.standalone-progress.json"
+  }
+}
