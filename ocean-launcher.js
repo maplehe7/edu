@@ -417,29 +417,11 @@
   }
 
   function resolveEmbedVariantLabel(variant) {
-    return variant === "alt" ? alternateEmbedLabel : "Standard version";
+    return variant === "alt" ? "Moblie Controls" : "Desktop Controls";
   }
 
   function resolveVariantPromptMessage(launchMode) {
-    const configuredPrompt = alternateEmbedPrompt
-      ? alternateEmbedPrompt.replace(/\n\s*(OK|Cancel)\s*=.*$/gim, "").trim()
-      : "";
-    if (configuredPrompt) {
-      const regularLabel =
-        launchMode === "fullscreen"
-          ? "launch fullscreen"
-          : launchMode === "frame"
-            ? "launch here"
-            : "use the regular version";
-      return configuredPrompt + "\n\nOr do you want to " + regularLabel + "?";
-    }
-    if (launchMode === "fullscreen") {
-      return "Do you want the mobile controls version for this launch, or do you want to launch fullscreen?";
-    }
-    if (launchMode === "frame") {
-      return "Do you want the mobile controls version for this launch, or do you want to launch here?";
-    }
-    return "Do you want the mobile controls version for this launch, or do you want the regular version?";
+    return "Choose your controls for this launch.";
   }
 
   function resolveActiveEmbedUrl() {
@@ -1147,27 +1129,15 @@
     if (!isLaunchRecommendationActive() || recommendedLaunchMode === mode) {
       return Promise.resolve(mode);
     }
-    const recommendedLabel = labelForLaunchMode(recommendedLaunchMode);
     const selectedLabel = labelForLaunchMode(mode);
     return showDecisionDialog({
       title: "Launch option",
-      body:
-        "Are you sure you want to " +
-        selectedLabel.toLowerCase() +
-        "?\n\n" +
-        recommendedLabel +
-        " is recommended for this game.",
+      body: "Are you sure you want to " + selectedLabel.toLowerCase() + "?",
       buttons: [
-        { label: selectedLabel, value: mode },
-        { label: recommendedLabel, value: recommendedLaunchMode, primary: true },
-        { label: "Go back", value: "" },
+        { label: "Confirm", value: mode, primary: true },
+        { label: "Go Back", value: "" },
       ],
       cancelValue: "",
-    }).then(function (selectedMode) {
-      if (!selectedMode) {
-        setStatus(recommendedLabel + " is recommended");
-      }
-      return selectedMode;
     });
   }
 
@@ -1177,15 +1147,13 @@
     }
     const normalizedLaunchMode =
       launchMode === "fullscreen" || launchMode === "frame" ? launchMode : "frame";
-    const regularLabel =
-      normalizedLaunchMode === "fullscreen" ? launchFullscreenLabel : launchFrameLabel;
     return showDecisionDialog({
-      title: "Choose version",
+      title: "Choose controls",
       body: resolveVariantPromptMessage(normalizedLaunchMode),
       buttons: [
-        { label: resolveEmbedVariantLabel("alt"), value: "alt", primary: true },
-        { label: regularLabel, value: "primary" },
-        { label: "Go back", value: "" },
+        { label: resolveEmbedVariantLabel("primary"), value: "primary", primary: true },
+        { label: resolveEmbedVariantLabel("alt"), value: "alt" },
+        { label: "Go Back", value: "" },
       ],
       cancelValue: "",
     }).then(function (selectedVariant) {
