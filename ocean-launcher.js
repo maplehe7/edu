@@ -348,6 +348,26 @@
       loadingScreen.appendChild(element);
       return element;
     })();
+  const decisionDialog = (function () {
+    const overlay = document.createElement("div");
+    overlay.id = "oceanDecisionModal";
+    overlay.hidden = true;
+    overlay.innerHTML =
+      '<div class="oceanDecisionCard" role="dialog" aria-modal="true" aria-labelledby="oceanDecisionTitle">' +
+      '<h2 id="oceanDecisionTitle" class="oceanDecisionTitle"></h2>' +
+      '<div id="oceanDecisionBody" class="oceanDecisionBody"></div>' +
+      '<div id="oceanDecisionActions" class="oceanDecisionActions"></div>' +
+      "</div>";
+    loadingScreen.appendChild(overlay);
+    return {
+      overlay: overlay,
+      title: overlay.querySelector("#oceanDecisionTitle"),
+      body: overlay.querySelector("#oceanDecisionBody"),
+      actions: overlay.querySelector("#oceanDecisionActions"),
+    };
+  })();
+  let activeDecisionResolve = null;
+  let activeDecisionCancelValue = "";
 
   function normalizeAllowedLaunchModes(value) {
     const normalized = String(value || "").trim().toLowerCase();
@@ -400,21 +420,90 @@
     return variant === "alt" ? alternateEmbedLabel : "Standard version";
   }
 
-  function resolveVariantPromptMessage() {
-    if (alternateEmbedPrompt) {
-      return alternateEmbedPrompt;
+  function resolveVariantPromptMessage(launchMode) {
+    const configuredPrompt = alternateEmbedPrompt
+      ? alternateEmbedPrompt.replace(/\n\s*(OK|Cancel)\s*=.*$/gim, "").trim()
+      : "";
+    if (configuredPrompt) {
+      const regularLabel =
+        launchMode === "fullscreen"
+          ? "launch fullscreen"
+          : launchMode === "frame"
+            ? "launch here"
+            : "use the regular version";
+      return configuredPrompt + "\n\nOr do you want to " + regularLabel + "?";
     }
-    return (
-      "Use the " +
-      resolveEmbedVariantLabel("alt") +
-      " for this build?\n\nOK = " +
-      resolveEmbedVariantLabel("alt") +
-      "\nCancel = Standard version"
-    );
+    if (launchMode === "fullscreen") {
+      return "Do you want the mobile controls version for this launch, or do you want to launch fullscreen?";
+    }
+    if (launchMode === "frame") {
+      return "Do you want the mobile controls version for this launch, or do you want to launch here?";
+    }
+    return "Do you want the mobile controls version for this launch, or do you want the regular version?";
   }
 
   function resolveActiveEmbedUrl() {
     return activeEmbedVariant === "alt" && hasAlternateEmbedVariant() ? alternateEmbedUrl : embedUrl;
+  }
+
+  function closeDecisionDialog(value) {
+    if (!activeDecisionResolve) {
+      return;
+    }
+    const resolve = activeDecisionResolve;
+    activeDecisionResolve = null;
+    activeDecisionCancelValue = "";
+    decisionDialog.overlay.classList.remove("is-visible");
+    decisionDialog.overlay.hidden = true;
+    decisionDialog.actions.textContent = "";
+    resolve(String(value || ""));
+  }
+
+  function showDecisionDialog(options) {
+    if (activeDecisionResolve) {
+      closeDecisionDialog(activeDecisionCancelValue);
+    }
+    const titleText =
+      typeof options.title === "string" && options.title.trim()
+        ? options.title.trim()
+        : "Choose option";
+    const bodyText = typeof options.body === "string" ? options.body.trim() : "";
+    const buttons = Array.isArray(options.buttons) && options.buttons.length
+      ? options.buttons
+      : [{ label: "Continue", value: "continue", primary: true }];
+    let firstButton = null;
+    activeDecisionCancelValue =
+      typeof options.cancelValue === "string" ? options.cancelValue : "";
+    decisionDialog.title.textContent = titleText;
+    decisionDialog.body.textContent = bodyText;
+    decisionDialog.actions.textContent = "";
+    buttons.forEach(function (buttonConfig, index) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className =
+        "oceanDecisionAction" + (buttonConfig && buttonConfig.primary ? " is-primary" : "");
+      button.textContent =
+        buttonConfig && typeof buttonConfig.label === "string" && buttonConfig.label.trim()
+          ? buttonConfig.label.trim()
+          : "Continue";
+      button.addEventListener("click", function () {
+        closeDecisionDialog(buttonConfig ? buttonConfig.value : "");
+      });
+      decisionDialog.actions.appendChild(button);
+      if (!firstButton || index === 0 || (buttonConfig && buttonConfig.primary)) {
+        firstButton = button;
+      }
+    });
+    decisionDialog.overlay.hidden = false;
+    decisionDialog.overlay.classList.add("is-visible");
+    window.setTimeout(function () {
+      if (firstButton && typeof firstButton.focus === "function") {
+        firstButton.focus();
+      }
+    }, 0);
+    return new Promise(function (resolve) {
+      activeDecisionResolve = resolve;
+    });
   }
 
   function isLaunchRecommendationActive() {
@@ -431,15 +520,8 @@
     if (!playNote) {
       return;
     }
-    const noteParts = [];
     if (playNoteText) {
-      noteParts.push(playNoteText);
-    }
-    if (hasAlternateEmbedVariant()) {
-      noteParts.push("Variant: Standard or " + resolveEmbedVariantLabel("alt"));
-    }
-    if (noteParts.length) {
-      playNote.textContent = noteParts.join("  ");
+      playNote.textContent = playNoteText;
       playNote.style.display = "";
     } else {
       playNote.style.display = "none";
@@ -757,7 +839,22 @@
       mobilePrompt.parentNode.removeChild(mobilePrompt);
     }
     try {
-      frameWindow.main();
+      if (typeof frameWindow.launchTick === "function") {
+        if (frameWindow.launchInterval) {
+          try {
+            frameWindow.clearInterval(frameWindow.launchInterval);
+          } catch (err) {
+          }
+          frameWindow.launchInterval = null;
+        }
+        frameWindow.launchCounter = 100;
+        frameWindow.launchTick();
+        return;
+      }
+      if (!frameWindow.__oceanEaglerMainStarted) {
+        frameWindow.__oceanEaglerMainStarted = true;
+        frameWindow.main();
+      }
     } catch (err) {
       console.warn("Embedded launch prompt bypass failed:", err);
     }
@@ -1048,45 +1145,81 @@
 
   function confirmRecommendedLaunchOverride(mode) {
     if (!isLaunchRecommendationActive() || recommendedLaunchMode === mode) {
-      return mode;
+      return Promise.resolve(mode);
     }
     const recommendedLabel = labelForLaunchMode(recommendedLaunchMode);
     const selectedLabel = labelForLaunchMode(mode);
-    const shouldKeepSelectedMode = window.confirm(
-      "Are you sure you want to " +
+    return showDecisionDialog({
+      title: "Launch option",
+      body:
+        "Are you sure you want to " +
         selectedLabel.toLowerCase() +
         "?\n\n" +
         recommendedLabel +
-        " is recommended for this game.\n\n" +
-        "OK = " +
-        selectedLabel +
-        "\nCancel = Go back"
-    );
-    if (shouldKeepSelectedMode) {
-      return mode;
-    }
-    setStatus(recommendedLabel + " is recommended");
-    return "";
+        " is recommended for this game.",
+      buttons: [
+        { label: selectedLabel, value: mode },
+        { label: recommendedLabel, value: recommendedLaunchMode, primary: true },
+        { label: "Go back", value: "" },
+      ],
+      cancelValue: "",
+    }).then(function (selectedMode) {
+      if (!selectedMode) {
+        setStatus(recommendedLabel + " is recommended");
+      }
+      return selectedMode;
+    });
   }
 
-  function confirmAlternateEmbedVariant() {
+  function confirmAlternateEmbedVariant(launchMode) {
     if (!hasAlternateEmbedVariant() || requestedEmbedVariant) {
-      return true;
+      return Promise.resolve(true);
     }
-    const useAlternateEmbed = window.confirm(resolveVariantPromptMessage());
-    activeEmbedVariant = useAlternateEmbed ? "alt" : "primary";
-    logLoaderStep("Variant selected: " + resolveEmbedVariantLabel(activeEmbedVariant));
-    return true;
+    const normalizedLaunchMode =
+      launchMode === "fullscreen" || launchMode === "frame" ? launchMode : "frame";
+    const regularLabel =
+      normalizedLaunchMode === "fullscreen" ? launchFullscreenLabel : launchFrameLabel;
+    return showDecisionDialog({
+      title: "Choose version",
+      body: resolveVariantPromptMessage(normalizedLaunchMode),
+      buttons: [
+        { label: resolveEmbedVariantLabel("alt"), value: "alt", primary: true },
+        { label: regularLabel, value: "primary" },
+        { label: "Go back", value: "" },
+      ],
+      cancelValue: "",
+    }).then(function (selectedVariant) {
+      if (!selectedVariant) {
+        return false;
+      }
+      activeEmbedVariant = selectedVariant;
+      logLoaderStep("Variant selected: " + resolveEmbedVariantLabel(activeEmbedVariant));
+      return true;
+    });
   }
 
   function startFullscreenGame() {
-    if (!confirmAlternateEmbedVariant()) {
-      return;
-    }
-    if (remoteLaunchOnly) {
-      const popup = window.open(remoteUrl, "_blank");
+    return confirmAlternateEmbedVariant("fullscreen").then(function (shouldContinue) {
+      if (!shouldContinue) {
+        return;
+      }
+      if (remoteLaunchOnly) {
+        const popup = window.open(remoteUrl, "_blank");
+        if (!popup || popup.closed) {
+          setStatus("New tab blocked. Allow popups or use open here.");
+          return;
+        }
+        try {
+          popup.opener = null;
+        } catch (err) {
+          // Ignore opener hardening failures.
+        }
+        setStatus("Opened remote stream in a new tab");
+        return;
+      }
+      const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
       if (!popup || popup.closed) {
-        setStatus("New tab blocked. Allow popups or use open here.");
+        setStatus("New tab blocked. Allow popups or use launch here.");
         return;
       }
       try {
@@ -1094,50 +1227,40 @@
       } catch (err) {
         // Ignore opener hardening failures.
       }
-      setStatus("Opened remote stream in a new tab");
-      return;
-    }
-    const popup = window.open(buildLaunchUrl("fullscreen"), "_blank");
-    if (!popup || popup.closed) {
-      setStatus("New tab blocked. Allow popups or use launch here.");
-      return;
-    }
-    try {
-      popup.opener = null;
-    } catch (err) {
-      // Ignore opener hardening failures.
-    }
-    setStatus("Opened fullscreen in a new tab");
+      setStatus("Opened fullscreen in a new tab");
+    });
   }
 
   function handleFrameLaunchClick() {
     if (!frameLaunchAllowed) {
       return;
     }
-    const launchMode = confirmRecommendedLaunchOverride("frame");
-    if (!launchMode) {
-      return;
-    }
-    if (launchMode === "fullscreen") {
-      startFullscreenGame();
-      return;
-    }
-    startGame();
+    confirmRecommendedLaunchOverride("frame").then(function (launchMode) {
+      if (!launchMode) {
+        return;
+      }
+      if (launchMode === "fullscreen") {
+        startFullscreenGame();
+        return;
+      }
+      startGame();
+    });
   }
 
   function handleFullscreenLaunchClick() {
     if (!fullscreenLaunchAllowed) {
       return;
     }
-    const launchMode = confirmRecommendedLaunchOverride("fullscreen");
-    if (!launchMode) {
-      return;
-    }
-    if (launchMode === "frame") {
-      startGame();
-      return;
-    }
-    startFullscreenGame();
+    confirmRecommendedLaunchOverride("fullscreen").then(function (launchMode) {
+      if (!launchMode) {
+        return;
+      }
+      if (launchMode === "frame") {
+        startGame();
+        return;
+      }
+      startFullscreenGame();
+    });
   }
 
   function startEmbeddedGame() {
@@ -1189,61 +1312,68 @@
 
   function startGame() {
     if (started) {
-      return;
+      return Promise.resolve();
     }
     if (!startMain && !resolveActiveEmbedUrl() && !remoteUrl) {
       setStatus("Game bootstrap is missing");
-      return;
+      return Promise.resolve();
     }
-    if (!remoteLaunchOnly) {
-      confirmAlternateEmbedVariant();
-    }
-    if (remoteLaunchOnly) {
-      started = true;
-      logLoaderStep("Remote stream handoff starting");
-      setStatus("Opening remote stream");
-      window.setTimeout(function () {
-        window.location.assign(remoteUrl);
-      }, 40);
-      return;
-    }
-    started = true;
-    logLoaderStep("Launch requested");
-    loadingScreen.classList.add("is-loading");
-    clearLaunchPanelHideTimer();
-    launchPanel.style.display = "";
-    launchPanel.classList.add("is-hidden");
-    launchPanelHideTimer = window.setTimeout(function () {
-      if (launchPanel.classList.contains("is-hidden")) {
-        launchPanel.style.display = "none";
+    return confirmAlternateEmbedVariant("frame").then(function (shouldContinue) {
+      if (!shouldContinue) {
+        return;
       }
-      launchPanelHideTimer = 0;
-    }, 240);
-    setProgressVisibility(true);
-    setProgress(0);
-    setStatus("Loading 0%");
-    startFakeProgress();
-
-    Promise.resolve()
-      .then(function () {
-        return ensureStorageAccess(document);
-      })
-      .then(function () {
-        if (startMain) {
-          logLoaderStep("Invoking inline bootstrap");
-          return startMain();
+      if (remoteLaunchOnly) {
+        started = true;
+        logLoaderStep("Remote stream handoff starting");
+        setStatus("Opening remote stream");
+        window.setTimeout(function () {
+          window.location.assign(remoteUrl);
+        }, 40);
+        return;
+      }
+      started = true;
+      logLoaderStep("Launch requested");
+      loadingScreen.classList.add("is-loading");
+      clearLaunchPanelHideTimer();
+      launchPanel.style.display = "";
+      launchPanel.classList.add("is-hidden");
+      launchPanelHideTimer = window.setTimeout(function () {
+        if (launchPanel.classList.contains("is-hidden")) {
+          launchPanel.style.display = "none";
         }
-        return startEmbeddedGame();
-      })
-      .then(function () {
-        waitForGameHandoff();
-      })
-      .catch(function (err) {
-        console.error(err);
-        resetLaunchState();
-        setStatus("Failed to load game");
-        alert("Game failed to load: " + err);
-      });
+        launchPanelHideTimer = 0;
+      }, 240);
+      setProgressVisibility(true);
+      setProgress(0);
+      setStatus("Loading 0%");
+      startFakeProgress();
+
+      return Promise.resolve()
+        .then(function () {
+          return ensureStorageAccess(document);
+        })
+        .then(function () {
+          if (startMain) {
+            logLoaderStep("Invoking inline bootstrap");
+            return startMain();
+          }
+          return startEmbeddedGame();
+        })
+        .then(function () {
+          waitForGameHandoff();
+        })
+        .catch(function (err) {
+          console.error(err);
+          resetLaunchState();
+          setStatus("Failed to load game");
+          showDecisionDialog({
+            title: "Load failed",
+            body: "Game failed to load.\n\n" + String(err && err.message ? err.message : err),
+            buttons: [{ label: "Back to launcher", value: "dismiss", primary: true }],
+            cancelValue: "dismiss",
+          });
+        });
+    });
   }
 
   setProgressVisibility(false);
@@ -1254,6 +1384,23 @@
   window.addEventListener("wheel", preventFullscreenScroll, { passive: false });
   window.addEventListener("touchmove", preventFullscreenScroll, { passive: false });
   window.addEventListener("keydown", preventFullscreenScroll, { passive: false });
+  decisionDialog.overlay.addEventListener("click", function (event) {
+    if (event.target !== decisionDialog.overlay) {
+      return;
+    }
+    closeDecisionDialog(activeDecisionCancelValue);
+  });
+  window.addEventListener(
+    "keydown",
+    function (event) {
+      if (event.key !== "Escape" || decisionDialog.overlay.hidden || !activeDecisionResolve) {
+        return;
+      }
+      event.preventDefault();
+      closeDecisionDialog(activeDecisionCancelValue);
+    },
+    { capture: true }
+  );
   window.addEventListener("scroll", enforceFullscreenScrollTop, { passive: true });
   window.addEventListener("fullscreenchange", syncFullscreenScrollLock);
   window.addEventListener("webkitfullscreenchange", syncFullscreenScrollLock);

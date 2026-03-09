@@ -3351,6 +3351,7 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
         "countdown_guarded": 0,
         "countdown_autostart_injected": 0,
         "mobile_autolaunch_injected": 0,
+        "device_pixel_ratio_guarded": 0,
     }
 
     patched, guarded_count = re.subn(
@@ -3358,7 +3359,8 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
         (
             'var __oceanLaunchCountdown = document.getElementById("launch_countdown_screen"); '
             'if (__oceanLaunchCountdown) { __oceanLaunchCountdown.remove(); } '
-            'if (typeof main === "function") { main(); }'
+            'if (!window.__oceanEaglerMainStarted && typeof main === "function") { '
+            'window.__oceanEaglerMainStarted = true; main(); }'
         ),
         patched,
         flags=re.IGNORECASE,
@@ -3374,6 +3376,12 @@ def patch_inline_eagler_wrapper_html(document_html: str) -> tuple[str, dict[str,
         flags=re.IGNORECASE,
     )
     patch_counts["countdown_guarded"] = guarded_count + remove_child_guarded_count
+    patched, guarded_dpr_count = re.subn(
+        r"""\bA\.ElB\.devicePixelRatio\b""",
+        "((A.ElB || A.Eg_ || $rt_globals.window).devicePixelRatio || 1)",
+        patched,
+    )
+    patch_counts["device_pixel_ratio_guarded"] = guarded_dpr_count
 
     needs_countdown_autostart = (
         "launch_countdown_screen" in patched and "launchCountdownNumber" in patched
@@ -8385,8 +8393,7 @@ def export_html_entry(
         alternate_embed_filename=mobile_embedded_entry_name,
         alternate_embed_label="Mobile controls",
         alternate_embed_prompt=(
-            "Use the Eagler Mobile controls version for this build?\n\n"
-            "OK = Mobile version\nCancel = Standard version"
+            "Use the Eagler Mobile controls version for this build?"
         )
         if eagler_mobile_option_enabled
         else "",
@@ -8671,7 +8678,8 @@ html, body {{
 
   window.eaglercraftXOpts.container = "game_frame";
   window.eaglercraftXOpts.assetsURI = {assets_path_js};
-{locales_override}  if (typeof window.main === "function") {{
+{locales_override}  if (!window.__oceanEaglerMainStarted && typeof window.main === "function") {{
+    window.__oceanEaglerMainStarted = true;
     window.main();
   }}
 }})();
@@ -8802,8 +8810,7 @@ def export_eagler_entry(
         alternate_embed_filename=mobile_embedded_entry_name,
         alternate_embed_label="Mobile controls",
         alternate_embed_prompt=(
-            "Use the Eagler Mobile controls version for this build?\n\n"
-            "OK = Mobile version\nCancel = Standard version"
+            "Use the Eagler Mobile controls version for this build?"
         ),
         allowed_launch_modes=allowed_launch_modes,
         recommended_launch_mode=recommended_launch_mode,
