@@ -39,7 +39,8 @@
     "eagler_wrapper_patches": {
       "countdown_guarded": 1,
       "countdown_autostart_injected": 1,
-      "mobile_autolaunch_injected": 0
+      "mobile_autolaunch_injected": 0,
+      "device_pixel_ratio_guarded": 5
     },
     "eagler_mobile_option_enabled": true,
     "eagler_mobile_script_file": "eaglermobile.user.js",
