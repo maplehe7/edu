@@ -6329,7 +6329,7 @@ def generate_index_html(
         overlay.hidden = true;
         overlay.setAttribute("aria-hidden", "true");
         overlay.style.cssText =
-          "position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;" +
+          "position:absolute;inset:0;z-index:12;display:none;align-items:center;justify-content:center;" +
           "padding:24px;background:rgba(2,6,23,0.58);backdrop-filter:blur(10px);";
         overlay.innerHTML =
           '<div role="dialog" aria-modal="true" aria-labelledby="oceanDecisionTitle" ' +
@@ -6480,6 +6480,7 @@ def generate_index_html(
         activeDecisionResolve = null;
         activeDecisionCancelValue = "";
         decisionDialog.overlay.hidden = true;
+        decisionDialog.overlay.style.display = "none";
         decisionDialog.overlay.setAttribute("aria-hidden", "true");
         decisionDialog.actions.textContent = "";
         resolve(String(value || ""));
@@ -6531,6 +6532,7 @@ def generate_index_html(
           }}
         }});
         decisionDialog.overlay.hidden = false;
+        decisionDialog.overlay.style.display = "flex";
         decisionDialog.overlay.setAttribute("aria-hidden", "false");
         window.setTimeout(function () {{
           if (firstButton && typeof firstButton.focus === "function") {{
@@ -6675,6 +6677,8 @@ def generate_index_html(
             return "[shell.init] launcher-ready kind=" + BUILD_KIND + " mode=" + buildLaunchModeLabel() + " embed=" + (isEmbeddedFrame ? "1" : "0") + " proto=" + window.location.protocol.replace(":", "") + " loader=" + safeFileName(LOADER_FILE);
           case "Launch requested":
             return "[launch] user-activation accepted mode=" + buildLaunchModeLabel();
+          case "Storage access not needed":
+            return "[storage] not needed for this launch path";
           case "Storage access API unavailable":
             return "[storage] API unavailable; continuing";
           case "Checking storage access":
@@ -7466,6 +7470,17 @@ def generate_index_html(
       }}
 
       function ensureStorageAccess() {{
+        const topLevelContext = (function () {{
+          try {{
+            return window.top === window.self;
+          }} catch (err) {{
+            return false;
+          }}
+        }})();
+        if (topLevelContext) {{
+          logLoaderStep("Storage access not needed");
+          return Promise.resolve();
+        }}
         const hasApi =
           typeof document.hasStorageAccess === "function" &&
           typeof document.requestStorageAccess === "function";
@@ -7474,7 +7489,9 @@ def generate_index_html(
           return Promise.resolve();
         }}
         logLoaderStep("Checking storage access");
-        return document.hasStorageAccess()
+        const timeoutMs = 1800;
+        const timeoutToken = {{}};
+        const storageFlow = document.hasStorageAccess()
           .then(function (hasAccess) {{
             if (hasAccess) {{
               logLoaderStep("Storage access already granted");
@@ -7490,6 +7507,18 @@ def generate_index_html(
             // Continue without hard-failing game load.
             logLoaderStep("Storage access check failed");
           }});
+        return Promise.race([
+          storageFlow,
+          new Promise(function (resolve) {{
+            window.setTimeout(function () {{
+              resolve(timeoutToken);
+            }}, timeoutMs);
+          }}),
+        ]).then(function (result) {{
+          if (result === timeoutToken) {{
+            logLoaderStep("Storage access check failed");
+          }}
+        }});
       }}
 
       function buildLegacyConfig() {{
@@ -8087,22 +8116,22 @@ def generate_index_html(
         if (loadingScreen) {{
           loadingScreen.classList.add("is-loading");
         }}
-        if (launchPanel) {{
-          clearLaunchPanelHideTimer();
-          launchPanel.style.display = "";
-          launchPanel.classList.add("is-hidden");
-          launchPanelHideTimer = window.setTimeout(function () {{
-            if (launchPanel && launchPanel.classList.contains("is-hidden")) {{
-              launchPanel.style.display = "none";
-            }}
-            launchPanelHideTimer = 0;
-          }}, 240);
-        }}
         setProgressVisibility(true);
         setProgress(0);
         setStatus("Loading 0%");
 
         ensureStorageAccess().finally(function () {{
+          if (launchPanel) {{
+            clearLaunchPanelHideTimer();
+            launchPanel.style.display = "";
+            launchPanel.classList.add("is-hidden");
+            launchPanelHideTimer = window.setTimeout(function () {{
+              if (launchPanel && launchPanel.classList.contains("is-hidden")) {{
+                launchPanel.style.display = "none";
+              }}
+              launchPanelHideTimer = 0;
+            }}, 240);
+          }}
           const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
           maybeSpoofSourcePageUrl();
           if (BUILD_KIND === "legacy_json") {{

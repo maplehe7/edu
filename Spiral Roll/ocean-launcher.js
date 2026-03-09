@@ -683,6 +683,8 @@
         );
       case "Launch requested":
         return "[launch] user-activation accepted target=" + launcherTargetKind();
+      case "Storage access not needed":
+        return "[storage] not needed for this launch path";
       case "Storage access API unavailable":
         return "[storage] API unavailable; continuing";
       case "Checking storage access":
@@ -716,6 +718,28 @@
 
   function ensureStorageAccess(targetDocument) {
     const storageDocument = targetDocument || document;
+    const topLevelContext = (function () {
+      try {
+        return window.top === window.self;
+      } catch (err) {
+        return false;
+      }
+    })();
+    const activeUrl = resolveActiveEmbedUrl();
+    const sameOriginEmbed = (function () {
+      if (!activeUrl) {
+        return true;
+      }
+      try {
+        return new URL(activeUrl, window.location.href).origin === window.location.origin;
+      } catch (err) {
+        return false;
+      }
+    })();
+    if (startMain || topLevelContext || sameOriginEmbed) {
+      logLoaderStep("Storage access not needed");
+      return Promise.resolve();
+    }
     const hasApi =
       storageDocument &&
       typeof storageDocument.hasStorageAccess === "function" &&
@@ -725,7 +749,9 @@
       return Promise.resolve();
     }
     logLoaderStep("Checking storage access");
-    return Promise.resolve(storageDocument.hasStorageAccess())
+    const timeoutMs = 1800;
+    const timeoutToken = {};
+    const storageFlow = Promise.resolve(storageDocument.hasStorageAccess())
       .then(function (hasAccess) {
         if (hasAccess) {
           logLoaderStep("Storage access already granted");
@@ -741,6 +767,18 @@
         logLoaderStep("Storage access check failed");
         // Continue without blocking launch.
       });
+    return Promise.race([
+      storageFlow,
+      new Promise(function (resolve) {
+        window.setTimeout(function () {
+          resolve(timeoutToken);
+        }, timeoutMs);
+      }),
+    ]).then(function (result) {
+      if (result === timeoutToken) {
+        logLoaderStep("Storage access check failed");
+      }
+    });
   }
 
   function logLoaderStep(message) {

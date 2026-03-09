@@ -71,7 +71,7 @@
     "source_url_spoof_enabled": true,
     "original_folder_url": "",
     "streaming_assets_url": "https://cdn.jsdelivr.net/gh/familiapablo/hayna@main/StreamingAssets",
-    "asset_cache_buster": "0be4b1a0c8e8",
+    "asset_cache_buster": "7dd45dda1da3",
     "launch_options": "both",
     "recommended_launch_mode": "none",
     "gmsoft_like_build": false,

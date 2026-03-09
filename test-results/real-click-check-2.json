@@ -1,0 +1,29 @@
+[
+  {
+    "game": "GD Lite",
+    "url": "http://127.0.0.1:8774/GD%20Lite/?click2=1773073844151",
+    "button_text": "LAUNCH HERE",
+    "clicked_launch_here": true,
+    "confirm_text": null,
+    "status": "Runtime ready; canvas attached",
+    "panel_display": "none"
+  },
+  {
+    "game": "Ragdoll Archers",
+    "url": "http://127.0.0.1:8774/Ragdoll%20Archers/?click2=1773073848333",
+    "button_text": "LAUNCH HERE",
+    "clicked_launch_here": true,
+    "confirm_text": null,
+    "status": "Runtime ready; canvas attached",
+    "panel_display": "none"
+  },
+  {
+    "game": "99 Nights in the Forest",
+    "url": "http://127.0.0.1:8774/99%20Nights%20in%20the%20Forest/?click2=1773073852852",
+    "button_text": "LAUNCH HERE",
+    "clicked_launch_here": true,
+    "confirm_text": "CONFIRM",
+    "status": "Runtime ready; canvas attached",
+    "panel_display": "none"
+  }
+]
