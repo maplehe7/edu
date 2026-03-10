@@ -1,0 +1,320 @@
+[
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"Merging Build/GeometryDashLite.data.unityweb from 2 parts...\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"Merging Build/GeometryDashLite.wasm.code.unityweb from 1 parts...\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"Merging Build/GeometryDashLite.wasm.framework.unityweb from 1 parts...\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"\u2705 Build/GeometryDashLite.wasm.framework.unityweb merged successfully: 0.08 MB\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"Intercepting XHR for:\" \"GeometryDashLite.wasm.code.unityweb\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"Intercepting XHR for:\" \"GeometryDashLite.wasm.framework.unityweb\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"Intercepting XHR for:\" \"GeometryDashLite.data.unityweb\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 170:306 \"You can reduce your startup time if you configure your web server to host .unityweb files using gzip compression.\"",
+    "source": "console-api",
+    "timestamp": 1773158255057
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"\u2705 Build/GeometryDashLite.wasm.code.unityweb merged successfully: 5.52 MB\"",
+    "source": "console-api",
+    "timestamp": 1773158257127
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 194:427 Uint8Array(514597)",
+    "source": "console-api",
+    "timestamp": 1773158257127
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/merge.js 14:30 \"[FileMerger]\" \"\u2705 Build/GeometryDashLite.data.unityweb merged successfully: 23.94 MB\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Loading player data from data.unity3d\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Initialize engine version: 2019.4.24f1 (5da6f0345e82)\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 200:596 \"Creating WebGL 2.0 context.\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Renderer: WebKit WebGL\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Vendor:   WebKit\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"GLES:     3\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \" EXT_clip_control GL_EXT_clip_control EXT_color_buffer_float GL_EXT_color_buffer_float EXT_color_buffer_half_float GL_EXT_color_buffer_half_float EXT_conservative_depth GL_EXT_conservative_depth EXT_depth_clamp GL_EXT_depth_clamp EXT_disjoint_timer_query_webgl2 GL_EXT_disjoint_timer_query_webgl2 EXT_float_blend GL_EXT_float_blend EXT_polygon_offset_clamp GL_EXT_polygon_offset_clamp EXT_render_snorm GL_EXT_render_snorm EXT_texture_compression_bptc GL_EXT_texture_compression_bptc EXT_texture_compression_rgtc GL_EXT_texture_compression_rgtc EXT_texture_filter_anisotropic GL_EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge GL_EXT_texture_mirror_clamp_to_edge EXT_texture_norm16 GL_EXT_texture_norm16 KHR_parallel_shader_compile GL_KHR_parallel_shader_compile NV_shader_noperspective_interpolation GL_NV_shader_noperspective_interpolation OES_draw_buffers_indexed GL_OES_draw_buffers_indexed OES_sample_variables GL_OES_sample_variables OES_shader_multisample_interpolation GL_OES_shader_multisample_inter\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"polation OES_texture_float_linear GL_OES_texture_float_linear OVR_multiview2 GL_OVR_multiview2 WEBGL_blend_func_extended GL_WEBGL_blend_func_extended WEBGL_clip_cull_distance GL_WEBGL_clip_cull_distance WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info GL_WEBGL_debug_renderer_info WEBGL_debug_shaders GL_WEBGL_debug_shaders WEBGL_lose_context GL_WEBGL_lose_context WEBGL_multi_draw GL_WEBGL_multi_draw WEBGL_polygon_mode GL_WEBGL_polygon_mode WEBGL_provoking_vertex GL_WEBGL_provoking_vertex WEBGL_stencil_texturing GL_WEBGL_stencil_texturing\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258136
+  },
+  {
+    "level": "WARNING",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+    "source": "rendering",
+    "timestamp": 1773158258137
+  },
+  {
+    "level": "WARNING",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+    "source": "rendering",
+    "timestamp": 1773158258137
+  },
+  {
+    "level": "WARNING",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+    "source": "rendering",
+    "timestamp": 1773158258137
+  },
+  {
+    "level": "WARNING",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+    "source": "rendering",
+    "timestamp": 1773158258137
+  },
+  {
+    "level": "WARNING",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+    "source": "rendering",
+    "timestamp": 1773158258137
+  },
+  {
+    "level": "WARNING",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+    "source": "rendering",
+    "timestamp": 1773158258137
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  \\u003COpenGL ES 3.0> ; Context handle 21257024\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158258137
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"UnloadTime: 2.400001 ms\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158259078
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Input Manager initialize...\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158261198
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"LOAD DEFAULT \\n(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 39)\\n\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158261303
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 205:55 \"[UnityCache] 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/audios/endStart.mp3' successfully downloaded and stored in the indexedDB cache\"",
+    "source": "console-api",
+    "timestamp": 1773158261399
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 205:55 \"[UnityCache] 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/audios/explode.mp3' successfully downloaded and stored in the indexedDB cache\"",
+    "source": "console-api",
+    "timestamp": 1773158261407
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 205:55 \"[UnityCache] 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/audios/quitSound.mp3' successfully downloaded and stored in the indexedDB cache\"",
+    "source": "console-api",
+    "timestamp": 1773158261414
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 205:55 \"[UnityCache] 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/audios/playSound.mp3' successfully downloaded and stored in the indexedDB cache\"",
+    "source": "console-api",
+    "timestamp": 1773158261419
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 205:55 \"[UnityCache] 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/audios/menuLoop.mp3' successfully downloaded and stored in the indexedDB cache\"",
+    "source": "console-api",
+    "timestamp": 1773158261448
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 205:55 \"[UnityCache] 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/audios/StayInsideMe.mp3' successfully downloaded and stored in the indexedDB cache\"",
+    "source": "console-api",
+    "timestamp": 1773158261653
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"UnloadTime: 1.900000 ms\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158263661
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158263661
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"\\nUnloading 16 unused Assets to reduce memory usage. Loaded Objects now: 2541.\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158263661
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Total: 5.700001 ms (FindLiveObjects: 0.100001 ms CreateObjectMapping: 0.100000 ms MarkObjects: 5.400000 ms  DeleteObjects: 0.100000 ms)\\n\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158263661
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:98222 \"warning: 2 FS.syncfs operations in flight at once, probably just doing extra work\"",
+    "source": "console-api",
+    "timestamp": 1773158263661
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"UnloadTime: 3.899999 ms\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158267206
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Unloading 1 Unused Serialized files (Serialized files now loaded: 0)\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158267206
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"\\nUnloading 340 unused Assets to reduce memory usage. Loaded Objects now: 1523.\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158267206
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Total: 2.500000 ms (FindLiveObjects: 0.099999 ms CreateObjectMapping: 0.000000 ms MarkObjects: 1.200000 ms  DeleteObjects: 1.200001 ms)\\n\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158267206
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"UnloadTime: 2.899999 ms\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158270283
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Unloading 3 Unused Serialized files (Serialized files now loaded: 0)\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158270283
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"\\nUnloading 149 unused Assets to reduce memory usage. Loaded Objects now: 1863.\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158270283
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"Total: 1.900000 ms (FindLiveObjects: 0.099999 ms CreateObjectMapping: 0.000000 ms MarkObjects: 1.600001 ms  DeleteObjects: 0.200000 ms)\\n\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158270283
+  },
+  {
+    "level": "INFO",
+    "message": "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/Build/UnityLoader.js 205:55 \"[UnityCache] 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/audios/Stereo%20Madness.mp3' successfully downloaded and stored in the indexedDB cache\"",
+    "source": "console-api",
+    "timestamp": 1773158270283
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"RespawnCharacterOFFAutocheckPoints \\n(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 39)\\n\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158277488
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"RespawnCharacterOFFAutocheckPoints \\n(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 39)\\n\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158277488
+  },
+  {
+    "level": "INFO",
+    "message": "blob:http://127.0.0.1:8765/76f48083-1e4d-4c31-a363-3e65f2cf9c7d 7:42704 \"RespawnCharacterOFFAutocheckPoints \\n(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 39)\\n\\n\"",
+    "source": "console-api",
+    "timestamp": 1773158282695
+  }
+]

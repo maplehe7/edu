@@ -1,0 +1,130 @@
+[
+  {
+    "candidate": [
+      0.5,
+      0.22
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  },
+  {
+    "candidate": [
+      0.5,
+      0.32
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  },
+  {
+    "candidate": [
+      0.5,
+      0.42
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  },
+  {
+    "candidate": [
+      0.5,
+      0.55
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  },
+  {
+    "candidate": [
+      0.5,
+      0.72
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  },
+  {
+    "candidate": [
+      0.28,
+      0.42
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  },
+  {
+    "candidate": [
+      0.72,
+      0.42
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  },
+  {
+    "candidate": [
+      0.5,
+      0.84
+    ],
+    "stereo": [],
+    "tail": [
+      "http://127.0.0.1:52428/GD%20Lite//game.txt",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/explode.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+      "http://127.0.0.1:52428/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+    ]
+  }
+]

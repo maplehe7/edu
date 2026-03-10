@@ -1,0 +1,44 @@
+[
+  {
+    "level": "INFO",
+    "message": "http://127.0.0.1:8817/GD%20Lite/Build/UnityLoader.js?v=6f0b5ab2b1d6 170:306 \"You can reduce your startup time if you configure your web server to host .unityweb files using gzip compression.\"",
+    "source": "console-api",
+    "timestamp": 1773155139623
+  },
+  {
+    "level": "INFO",
+    "message": "http://127.0.0.1:8817/GD%20Lite/Build/UnityLoader.js?v=6f0b5ab2b1d6 187:2461 \"Invoking error handler due to\\nUncaught RangeError: Maximum call stack size exceeded\"",
+    "source": "console-api",
+    "timestamp": 1773155139623
+  },
+  {
+    "level": "SEVERE",
+    "message": "http://127.0.0.1:8817/GD%20Lite/Build/UnityLoader.js?v=6f0b5ab2b1d6 187:3653 \"An error occurred running the Unity content on this page. See your browser JavaScript console for more info. The error was:\\nUncaught RangeError: Maximum call stack size exceeded\"",
+    "source": "console-api",
+    "timestamp": 1773155139623
+  },
+  {
+    "level": "SEVERE",
+    "message": "http://127.0.0.1:8817/GD%20Lite/Build/UnityLoader.js?v=6f0b5ab2b1d6 195:1898 Uncaught RangeError: Maximum call stack size exceeded",
+    "source": "javascript",
+    "timestamp": 1773155139623
+  },
+  {
+    "level": "WARNING",
+    "message": "http://127.0.0.1:8817/GD%20Lite/game-root.html?autostart=1 - The resource http://127.0.0.1:8817/GD%20Lite/Build/GeometryDashLite.data.unityweb?v=6f0b5ab2b1d6 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+    "source": "javascript",
+    "timestamp": 1773155139623
+  },
+  {
+    "level": "WARNING",
+    "message": "http://127.0.0.1:8817/GD%20Lite/game-root.html?autostart=1 - The resource http://127.0.0.1:8817/GD%20Lite/Build/GeometryDashLite.wasm.framework.js?v=6f0b5ab2b1d6 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+    "source": "javascript",
+    "timestamp": 1773155139623
+  },
+  {
+    "level": "WARNING",
+    "message": "http://127.0.0.1:8817/GD%20Lite/game-root.html?autostart=1 - The resource http://127.0.0.1:8817/GD%20Lite/Build/GeometryDashLite.wasm.code.unityweb?v=6f0b5ab2b1d6 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+    "source": "javascript",
+    "timestamp": 1773155139623
+  }
+]

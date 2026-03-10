@@ -1,0 +1,958 @@
+{
+  "browser": [
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.data?v=9be4ffbd9ca5' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:4992 \"navigator.mediaDevices support available\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"[UnityMemory] Configuration Parameters - Can be set up in boot.config\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-allocator-temp-initial-block-size-main=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-allocator-temp-initial-block-size-worker=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-temp-allocator-size-audio-worker=65536\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-temp-allocator-size-background-worker=32768\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-bucket-allocator-granularity=16\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776387
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-bucket-allocator-bucket-count=8\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-bucket-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-bucket-allocator-block-count=1\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-main-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-thread-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-gfx-main-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-gfx-thread-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-cache-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-typetree-allocator-block-size=2097152\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-granularity=16\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-bucket-count=8\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776388
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-block-count=1\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-profiler-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-profiler-editor-allocator-block-size=1048576\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-temp-allocator-size-main=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-job-temp-allocator-block-size=2097152\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-job-temp-allocator-block-size-background=1048576\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"    \\\"memorysetup-job-temp-allocator-reduction-small-platforms=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Loading player data from data.unity3d\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Initialize engine version: 2022.3.42f1 (2dcb6a0abc42)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:1271 \"Creating WebGL 2.0 context.\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Renderer: WebKit WebGL\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Vendor:   WebKit\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"GLES:     3\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \" EXT_clip_control EXT_color_buffer_float EXT_color_buffer_half_float EXT_conservative_depth EXT_depth_clamp EXT_disjoint_timer_query_webgl2 EXT_float_blend EXT_polygon_offset_clamp EXT_render_snorm EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge EXT_texture_norm16 KHR_parallel_shader_compile NV_shader_noperspective_interpolation OES_draw_buffers_indexed OES_sample_variables OES_shader_multisample_interpolation OES_texture_float_linear OVR_multiview2 WEBGL_blend_func_extended WEBGL_clip_cull_distance WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode WEBGL_provoking_vertex WEBGL_stencil_texturing GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_depth_clamp GL_EXT_disjoint_timer_query_webgl2 GL_EXT_float_blend GL_EXT_polygon_offset_clamp GL_EXT_render_snorm GL_EXT_\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776389
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"texture_compression_bptc GL_EXT_texture_compression_rgtc GL_EXT_texture_filter_anisotropic GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_KHR_parallel_shader_compile GL_NV_shader_noperspective_interpolation GL_OES_draw_buffers_indexed GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_texture_float_linear GL_OVR_multiview2 GL_WEBGL_blend_func_extended GL_WEBGL_clip_cull_distance GL_WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_debug_renderer_info GL_WEBGL_debug_shaders GL_WEBGL_lose_context GL_WEBGL_multi_draw GL_WEBGL_polygon_mode GL_WEBGL_provoking_vertex GL_WEBGL_stencil_texturing\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  \\u003COpenGL ES 3.0> ; Context handle 1\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Input Manager initialize...\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"UnloadTime: 2.800000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Odin Serializer ArchitectureInfo initialization with defaults (all unaligned read/writes disabled).\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Odin Serializer detected whitelisted runtime platform WebGLPlayer and memory read test succeeded; enabling all unaligned memory read/writes.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776390
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'http://127.0.0.1:8765/GD%20Lite//game.txt' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"UnloadTime: 1.300000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Unloading 5 Unused Serialized files (Serialized files now loaded: 0)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Unloading 4 unused Assets to reduce memory usage. Loaded Objects now: 1020.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Total: 1.900001 ms (FindLiveObjects: 0.100001 ms CreateObjectMapping: 0.000000 ms MarkObjects: 1.800000 ms  DeleteObjects: 0.000000 ms)\\n\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'https://geometrydashlite.io/setting.txt' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776391
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:48599 \"Trying to get length of sound which is not loaded.\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:48599 \"Trying to get length of sound which is not loaded.\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:48599 \"Trying to get length of sound which is not loaded.\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:48599 \"Trying to get length of sound which is not loaded.\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'https://geometrydashlite.io/geometry-dash-game/StreamingAssets/audios/quitSound.mp3' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'https://geometrydashlite.io/geometry-dash-game/StreamingAssets/audios/playSound.mp3' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'https://geometrydashlite.io/geometry-dash-game/StreamingAssets/audios/endStart.mp3' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:48599 \"Trying to get length of sound which is not loaded.\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'https://geometrydashlite.io/geometry-dash-game/StreamingAssets/audios/explode.mp3' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:48599 \"Trying to get length of sound which is not loaded.\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'https://geometrydashlite.io/geometry-dash-game/StreamingAssets/audios/menuLoop.mp3' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5 0:5823 \"[UnityCache] 'https://geometrydashlite.io/geometry-dash-game/StreamingAssets/audios/StayInsideMe.mp3' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37810 \"The referenced script on this Behaviour (Game Object 'Admob') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776393
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37810 \"The referenced script on this Behaviour (Game Object 'Firebase') is missing!\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776394
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776446
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"UnloadTime: 1.700000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776446
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Unloading 3 Unused Serialized files (Serialized files now loaded: 0)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776451
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Unloading 23 unused Assets to reduce memory usage. Loaded Objects now: 2691.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776455
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9:37849 \"Total: 3.699999 ms (FindLiveObjects: 0.099999 ms CreateObjectMapping: 0.100000 ms MarkObjects: 3.400000 ms  DeleteObjects: 0.100000 ms)\\n\\n\"",
+      "source": "console-api",
+      "timestamp": 1773086776455
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776458
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776517
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086776532
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086777069
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/game-root.html?v=4cf935d55164 - The resource http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.data?v=9be4ffbd9ca5 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "source": "javascript",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/game-root.html?v=4cf935d55164 - The resource http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "source": "javascript",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/game-root.html?v=4cf935d55164 - The resource http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.wasm?v=9be4ffbd9ca5 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "source": "javascript",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782108
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782109
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782109
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782109
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782109
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782109
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782109
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782109
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086782632
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086787687
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086788232
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793275
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086793834
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086798879
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086799414
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804457
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086804458
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.framework.js?v=9be4ffbd9ca5 9 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+      "source": "other",
+      "timestamp": 1773086805004
+    }
+  ]
+}

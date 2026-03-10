@@ -1,0 +1,119 @@
+[
+  {
+    "type": "request",
+    "url": "http://127.0.0.1:8765/setting.txt",
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 21,
+            "functionName": "window.fetch",
+            "lineNumber": 2673,
+            "scriptId": "9",
+            "url": "http://127.0.0.1:8765/GD%20Lite/game-root.html?v=4cf935d55164"
+          },
+          {
+            "columnNumber": 17522,
+            "functionName": "u",
+            "lineNumber": 0,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5"
+          },
+          {
+            "columnNumber": 19916,
+            "functionName": "",
+            "lineNumber": 0,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5"
+          }
+        ]
+      },
+      "type": "script"
+    }
+  },
+  {
+    "type": "response",
+    "url": "http://127.0.0.1:8765/setting.txt",
+    "status": 200,
+    "fromDiskCache": false,
+    "fromServiceWorker": false
+  },
+  {
+    "type": "request",
+    "url": "http://127.0.0.1:8765/GD%20Lite/StreamingAssets/audios/explode.mp3",
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 21,
+            "functionName": "window.fetch",
+            "lineNumber": 2673,
+            "scriptId": "9",
+            "url": "http://127.0.0.1:8765/GD%20Lite/game-root.html?v=4cf935d55164"
+          },
+          {
+            "columnNumber": 17522,
+            "functionName": "u",
+            "lineNumber": 0,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5"
+          },
+          {
+            "columnNumber": 19916,
+            "functionName": "",
+            "lineNumber": 0,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5"
+          }
+        ]
+      },
+      "type": "script"
+    }
+  },
+  {
+    "type": "request",
+    "url": "http://127.0.0.1:8765/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 21,
+            "functionName": "window.fetch",
+            "lineNumber": 2673,
+            "scriptId": "9",
+            "url": "http://127.0.0.1:8765/GD%20Lite/game-root.html?v=4cf935d55164"
+          },
+          {
+            "columnNumber": 17522,
+            "functionName": "u",
+            "lineNumber": 0,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5"
+          },
+          {
+            "columnNumber": 19916,
+            "functionName": "",
+            "lineNumber": 0,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:8765/GD%20Lite/Build/geometry-dash-lite.loader.js?v=9be4ffbd9ca5"
+          }
+        ]
+      },
+      "type": "script"
+    }
+  },
+  {
+    "type": "response",
+    "url": "http://127.0.0.1:8765/GD%20Lite/StreamingAssets/audios/explode.mp3",
+    "status": 200,
+    "fromDiskCache": false,
+    "fromServiceWorker": false
+  },
+  {
+    "type": "response",
+    "url": "http://127.0.0.1:8765/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+    "status": 200,
+    "fromDiskCache": false,
+    "fromServiceWorker": false
+  }
+]

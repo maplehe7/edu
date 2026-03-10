@@ -1,0 +1,30 @@
+[
+  {
+    "error": {
+      "code": 4,
+      "message": "MEDIA_ELEMENT_ERROR: Format error"
+    },
+    "file": "/GD%20Lite/StreamingAssets/audios/Stereo%20Madness.mp3"
+  },
+  {
+    "error": {
+      "code": 4,
+      "message": "MEDIA_ELEMENT_ERROR: Format error"
+    },
+    "file": "/GD%20Lite/StreamingAssets/audio/StereoMadness.mp3"
+  },
+  {
+    "error": {
+      "code": 4,
+      "message": "MEDIA_ELEMENT_ERROR: Format error"
+    },
+    "file": "/GD%20Lite/StreamingAssets/audios/menuLoop.mp3"
+  },
+  {
+    "error": {
+      "code": 4,
+      "message": "MEDIA_ELEMENT_ERROR: Format error"
+    },
+    "file": "/GD%20Lite/StreamingAssets/audios/playSound.mp3"
+  }
+]

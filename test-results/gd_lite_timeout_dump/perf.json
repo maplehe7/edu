@@ -1,0 +1,29 @@
+[
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:50779/GD%20Lite/Build/geometry-dash-lite.loader.js?v=0cf978ecd477"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:50779/GD%20Lite/Build/geometry-dash-lite.framework.js?v=0cf978ecd477"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:50779/GD%20Lite/Build/geometry-dash-lite.wasm?v=0cf978ecd477"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:50779/GD%20Lite/Build/geometry-dash-lite.loader.js?v=0cf978ecd477",
+    "status": 200
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:50779/GD%20Lite/Build/geometry-dash-lite.framework.js?v=0cf978ecd477",
+    "status": 200
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:50779/GD%20Lite/Build/geometry-dash-lite.wasm?v=0cf978ecd477",
+    "status": 200
+  }
+]

@@ -1,0 +1,293 @@
+[
+  {
+    "path": "/GD%20Lite/game-root.html?autostart=1",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "Upgrade-Insecure-Requests": "1",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-Mode": "navigate",
+      "Sec-Fetch-User": "?1",
+      "Sec-Fetch-Dest": "document",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/Build/geometry-dash-lite.loader.js?v=571c7953cf31",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "no-cors",
+      "Sec-Fetch-Dest": "script",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/Build/geometry-dash-lite.framework.js?v=571c7953cf31",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "no-cors",
+      "Sec-Fetch-Dest": "script",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/Build/geometry-dash-lite.wasm?v=571c7953cf31",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/Build/geometry-dash-lite.data?v=571c7953cf31",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/Build/geometry-dash-lite.wasm?v=571c7953cf31",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "Origin": "http://127.0.0.1:8813",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/Build/geometry-dash-lite.data?v=571c7953cf31",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "Origin": "http://127.0.0.1:8813",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite//game.txt",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/setting.txt",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/StreamingAssets/audios/explode.mp3",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  },
+  {
+    "path": "/GD%20Lite/StreamingAssets/audios/Stereo%20Madness.mp3",
+    "headers": {
+      "Host": "127.0.0.1:8813",
+      "Connection": "keep-alive",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "Accept": "*/*",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Dest": "empty",
+      "Referer": "http://127.0.0.1:8813/GD%20Lite/game-root.html?autostart=1",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "colno": 1899,
+    "filename": "http://127.0.0.1:8818/GD%20Lite/Build/UnityLoader.js?v=6f0b5ab2b1d6",
+    "lineno": 196,
+    "message": "Uncaught RangeError: Maximum call stack size exceeded",
+    "stack": "RangeError: Maximum call stack size exceeded\n    at processDataJob (http://127.0.0.1:8818/GD%20Lite/Build/UnityLoader.js?v=6f0b5ab2b1d6:196:1899)\n    at i.callback (http://127.0.0.1:8818/GD%20Lite/Build/UnityLoader.js?v=6f0b5ab2b1d6:189:464)"
+  }
+]

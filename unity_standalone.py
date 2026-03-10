@@ -80,6 +80,7 @@ class DetectedBuild:
     loader_url: str
     candidates: dict[str, list[str]]
     legacy_config: dict[str, Any] = field(default_factory=dict)
+    legacy_split_files: dict[str, dict[str, Any]] = field(default_factory=dict)
     original_folder_url: str = ""
     streaming_assets_url: str = ""
     page_config: dict[str, Any] = field(default_factory=dict)
@@ -445,6 +446,92 @@ def patch_sendmessage_value_compat(framework_path: Path) -> bool:
     try:
         framework_path.write_bytes(
             encode_bytes_like_source(patched_text.encode("utf-8"), original_raw, framework_path)
+        )
+    except (OSError, RuntimeError):
+        return False
+    return True
+
+
+GEOMETRY_DASH_LITE_RUNTIME_URL_PATCHES: tuple[tuple[bytes, bytes], ...] = (
+    (b"https://geometrydashlite.io/", b"https://gd.localhost.local//"),
+    (b"https://geometrydashlite.io", b"https://gd.localhost.local/"),
+    (b"geometrydashlite.io", b"gd.localhost.local/"),
+)
+
+
+def patch_geometry_dash_lite_runtime_data(data_path: Path) -> bool:
+    if not data_path.exists():
+        return False
+
+    try:
+        original_raw = data_path.read_bytes()
+    except OSError:
+        return False
+
+    decoded = maybe_decompress_bytes(original_raw, data_path)
+    patched = decoded
+    for source_value, replacement_value in GEOMETRY_DASH_LITE_RUNTIME_URL_PATCHES:
+        if source_value in patched:
+            patched = patched.replace(source_value, replacement_value)
+
+    if patched == decoded:
+        return False
+
+    try:
+        data_path.write_bytes(encode_bytes_like_source(patched, original_raw, data_path))
+    except (OSError, RuntimeError):
+        return False
+    return True
+
+
+def patch_unity_loader_inline_redirect_hack(loader_path: Path) -> bool:
+    if not loader_path.exists():
+        return False
+
+    try:
+        original_raw = loader_path.read_bytes()
+    except OSError:
+        return False
+
+    decoded_bytes = maybe_decompress_bytes(original_raw, loader_path)
+    try:
+        decoded_text = decoded_bytes.decode("utf-8", errors="ignore")
+    except UnicodeDecodeError:
+        return False
+
+    patched_text = decoded_text
+
+    inline_hack_pattern = re.compile(
+        r"""n\.isModularized\?function\(e\)\{"""
+        r"""(?:console\.log\(e\);)?"""
+        r"""let decoder=new TextDecoder\('utf-8'\);"""
+        r"""let jsString=decoder\.decode\(e\);"""
+        r"""let modifiedString=jsString\.replace\("""
+        r"""'document\.location=redirect_domain_string;return true','return false'"""
+        r"""\);"""
+        r"""let encoder=new TextEncoder\(\);"""
+        r"""let modifiedUint8Array=encoder\.encode\(modifiedString\);"""
+        r"""e=modifiedUint8Array;"""
+        r"""return new Blob\(\[e\],\{type:"application/javascript"\}\)\}"""
+        r""":function\(e,t\)\{"""
+    )
+    patched_text, inline_count = inline_hack_pattern.subn(
+        'n.isModularized?function(e){return new Blob([e],{type:"application/javascript"})}:function(e,t){',
+        patched_text,
+        count=1,
+    )
+
+    patched_text = patched_text.replace(
+        'alert(r),this.didShowErrorMessage=!0',
+        'console.error(r),this.didShowErrorMessage=!0',
+    )
+
+    if patched_text == decoded_text:
+        return False
+
+    try:
+        loader_path.write_bytes(
+            encode_bytes_like_source(patched_text.encode("utf-8"), original_raw, loader_path)
         )
     except (OSError, RuntimeError):
         return False
@@ -834,6 +921,16 @@ def looks_like_custom_unity_html_bootstrap(index_html: str) -> bool:
         and "startunitybr" in lower
         and ("innerloaderurl" in lower or "dataparturls" in lower or "buildurl" in lower)
         and "unityloader.instantiate" not in lower
+    )
+
+
+def looks_like_legacy_split_unity_wrapper_html(index_html: str) -> bool:
+    lower = index_html.lower()
+    return (
+        "<html" in lower
+        and "unityloader.instantiate" in lower
+        and "filemergerconfig" in lower
+        and ("merge.js" in lower or "basepath" in lower)
     )
 
 
@@ -1271,8 +1368,10 @@ def detect_supported_entry_kind(index_html: str) -> str:
         return ""
     if looks_like_custom_unity_html_bootstrap(index_html):
         return "html"
-    if looks_like_inline_legacy_unity_wrapper_html(index_html):
+    if looks_like_legacy_split_unity_wrapper_html(index_html):
         return "html"
+    if looks_like_inline_legacy_unity_wrapper_html(index_html):
+        return "unity"
     if looks_like_unity_entry_html(index_html):
         return "unity"
     if looks_like_eagler_entry_html(index_html):
@@ -1365,12 +1464,116 @@ def discover_crazygames_entry_url(index_html: str, index_url: str) -> str:
     return ""
 
 
-def discover_gamecomets_entry_url(index_url: str) -> str:
+def discover_google_sites_apps_script_game_url(index_html: str, index_url: str) -> str:
+    parsed = urllib.parse.urlparse(index_url)
+    if parsed.netloc.lower() != "sites.google.com":
+        return ""
+
+    candidate_urls: list[str] = []
+    seen_urls: set[str] = set()
+    embedded_snippets = [index_html] + extract_embedded_html_snippets(index_html)
+
+    def add_candidate_url(candidate_url: str) -> None:
+        normalized_candidate_url = normalize_url(candidate_url)
+        if not normalized_candidate_url or normalized_candidate_url in seen_urls:
+            return
+        seen_urls.add(normalized_candidate_url)
+        candidate_urls.append(normalized_candidate_url)
+
+    for match in re.finditer(
+        r"""https://script\.google\.com/macros/s/[^"'&<>\s]+/exec""",
+        index_html,
+        re.IGNORECASE,
+    ):
+        add_candidate_url(match.group(0))
+
+    for snippet in embedded_snippets:
+        for match in re.finditer(
+            r"""(?i)\b(?:FILE_URL|DEFAULT_URL)\b\s*=\s*["']([^"']+)["']""",
+            snippet,
+        ):
+            add_candidate_url(match.group(1))
+        for match in re.finditer(
+            r"""https://cdn\.jsdelivr\.net/gh/[^"'&<>\s]+/StreamingAssets/1\.xml""",
+            snippet,
+            re.IGNORECASE,
+        ):
+            add_candidate_url(match.group(0))
+        for match in re.finditer(
+            r"""https://script\.google\.com/macros/s/[^"'&<>\s]+/exec""",
+            snippet,
+            re.IGNORECASE,
+        ):
+            add_candidate_url(match.group(0))
+
+    best_url = ""
+    best_score = -10**9
+    for candidate_url in candidate_urls:
+        parsed_candidate = urllib.parse.urlparse(candidate_url)
+        lower_candidate = candidate_url.lower()
+        resolved_url = candidate_url
+        candidate_html = ""
+        score = 0
+        if lower_candidate.endswith("/streamingassets/1.xml"):
+            score += 1200
+        if parsed_candidate.netloc.lower() == "cdn.jsdelivr.net":
+            score += 400
+        if parsed_candidate.netloc.lower() == "script.google.com":
+            score += 120
+        if "papamamia/gonzales" in lower_candidate:
+            score += 260
+        if "menufiyatlarim.net" in lower_candidate:
+            score -= 2000
+
+        try:
+            resolved_url, raw, _, _ = fetch_url(candidate_url, referer_url=index_url)
+        except FetchError:
+            continue
+        if not raw:
+            continue
+        candidate_html = decode_html_body(raw)
+        for snippet in [candidate_html] + extract_embedded_html_snippets(candidate_html):
+            lower = snippet.lower()
+            if "geometry dash" in lower or "gd lite" in lower:
+                score += 500
+            if "unityloader.instantiate" in lower:
+                score += 260
+            if "geometrydashlite.json" in lower:
+                score += 220
+            if "geometrydashlite" in lower:
+                score += 160
+            if "rawcdn.githack.com" in lower or "githack.com" in lower:
+                score += 140
+            if "src=\"data:" in lower or "src='data:" in lower:
+                score += 100
+            if "filemergerconfig" in lower:
+                score += 80
+            if "merge.js" in lower:
+                score += 120
+            if "menufiyatlarim.net" in lower or "documents.html" in lower or "77.html" in lower:
+                score -= 1000
+            detected_kind = detect_supported_entry_kind(snippet)
+            if detected_kind == "unity":
+                score += 120
+            elif detected_kind == "html":
+                score += 60
+            elif detected_kind == "remote_stream":
+                score -= 400
+        if score > best_score:
+            best_score = score
+            best_url = resolved_url
+
+    if best_score >= 200:
+        return best_url
+    return ""
+
+
+def discover_gamecomets_entry_url(index_html: str, index_url: str) -> str:
     parsed = urllib.parse.urlparse(index_url)
     host = parsed.netloc.lower()
     path = parsed.path.rstrip("/").lower()
     if host == "sites.google.com" and path.endswith("/new-games/gd-lite"):
-        return "https://geometrydashlite.io/geometry-dash-game/"
+        return "https://cdn.jsdelivr.net/gh/papamamia/gonzales@main/StreamingAssets/1.xml"
 
     if not host.endswith("gamecomets.com"):
         return ""
@@ -1379,6 +1582,19 @@ def discover_gamecomets_entry_url(index_url: str) -> str:
         return "https://geometrydashlite.io/geometry-dash-game/"
 
     return ""
+
+
+def preserve_source_page_url(entry: DetectedEntry, source_page_url: str) -> DetectedEntry:
+    if not source_page_url:
+        return entry
+    normalized_source_page_url = normalize_url(source_page_url)
+    return DetectedEntry(
+        entry_kind=entry.entry_kind,
+        index_url=entry.index_url,
+        index_html=entry.index_html,
+        source_page_url=normalized_source_page_url,
+        metadata=dict(entry.metadata),
+    )
 
 
 def discover_eagler_entry_override_url(index_html: str, index_url: str) -> str:
@@ -1614,23 +1830,23 @@ def find_supported_entry(input_url: str, root_url: str) -> DetectedEntry:
             if detected_kind == "html":
                 inline_html_snippets.append(snippet)
 
-        gamecomets_entry_url = discover_gamecomets_entry_url(index_url)
+        gamecomets_entry_url = discover_gamecomets_entry_url(index_html, index_url)
         if gamecomets_entry_url:
             result = inspect_url(gamecomets_entry_url, depth + 1, referer_url=index_url)
             if result:
-                return result
+                return preserve_source_page_url(result, index_url)
 
         crazygames_entry_url = discover_crazygames_entry_url(index_html, index_url)
         if crazygames_entry_url:
             result = inspect_url(crazygames_entry_url, depth + 1, referer_url=index_url)
             if result:
-                return result
+                return preserve_source_page_url(result, index_url)
 
         eagler_override_entry_url = discover_eagler_entry_override_url(index_html, index_url)
         if eagler_override_entry_url:
             result = inspect_url(eagler_override_entry_url, depth + 1, referer_url=index_url)
             if result:
-                return result
+                return preserve_source_page_url(result, index_url)
 
         nowgg_entry = discover_nowgg_entry(index_html, index_url)
         if nowgg_entry is not None:
@@ -2679,7 +2895,22 @@ def extract_loader_url(index_html: str, index_url: str) -> str:
     raise FetchError("No Unity loader file URL (*.loader.js) found in index HTML.")
 
 
+def extract_html_base_url(index_html: str, index_url: str) -> str:
+    base_match = re.search(
+        r"""<base\b[^>]*\bhref=["']([^"']+)["'][^>]*>""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if not base_match:
+        return normalize_url(index_url)
+    candidate = html.unescape(base_match.group(1)).replace("\\/", "/").strip()
+    if not candidate:
+        return normalize_url(index_url)
+    return normalize_url(urllib.parse.urljoin(index_url, candidate))
+
+
 def extract_legacy_config_url(index_html: str, index_url: str) -> str:
+    base_url = extract_html_base_url(index_html, index_url)
     build_prefix = extract_build_url_prefix(index_html).strip("/")
 
     def absolutize(candidate: str) -> str:
@@ -2689,7 +2920,7 @@ def extract_legacy_config_url(index_html: str, index_url: str) -> str:
                 raw_value = raw_value.lstrip("/")
             else:
                 raw_value = build_prefix + raw_value
-        return normalize_url(urllib.parse.urljoin(index_url, raw_value))
+        return normalize_url(urllib.parse.urljoin(base_url, raw_value))
 
     concat_match = re.search(
         r"""UnityLoader\.instantiate\(\s*[^,]+,\s*buildUrl\s*\+\s*["']([^"']+?\.json(?:\?[^"']*)?)["']""",
@@ -2702,7 +2933,7 @@ def extract_legacy_config_url(index_html: str, index_url: str) -> str:
             candidate = build_prefix + candidate
         else:
             candidate = build_prefix + "/" + candidate.lstrip("/")
-        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+        return normalize_url(urllib.parse.urljoin(base_url, candidate))
 
     direct_match = re.search(
         r"""UnityLoader\.instantiate\(\s*[^,]+,\s*["']([^"']+?\.json(?:\?[^"']*)?)["']""",
@@ -2730,7 +2961,7 @@ def extract_legacy_config_url(index_html: str, index_url: str) -> str:
                 candidate = build_prefix + candidate
             else:
                 candidate = build_prefix + "/" + candidate.lstrip("/")
-            return normalize_url(urllib.parse.urljoin(index_url, candidate))
+            return normalize_url(urllib.parse.urljoin(base_url, candidate))
 
         direct_variable_match = re.search(
             rf"""{variable_name}\s*=\s*["']([^"']+?\.json(?:\?[^"']*)?)["']""",
@@ -2744,6 +2975,7 @@ def extract_legacy_config_url(index_html: str, index_url: str) -> str:
 
 
 def extract_legacy_loader_url(index_html: str, index_url: str, config_url: str) -> str:
+    base_url = extract_html_base_url(index_html, index_url)
     script_pattern = re.compile(
         r"""<script[^>]+src=["']([^"']+?UnityLoader\.js(?:\?[^"']*)?)["']""",
         re.IGNORECASE,
@@ -2751,7 +2983,7 @@ def extract_legacy_loader_url(index_html: str, index_url: str, config_url: str) 
     script_matches = script_pattern.findall(index_html)
     if script_matches:
         candidate = html.unescape(script_matches[0]).replace("\\/", "/")
-        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+        return normalize_url(urllib.parse.urljoin(base_url, candidate))
 
     quoted_matches = re.findall(
         r"""["']([^"']+?UnityLoader\.js(?:\?[^"']*)?)["']""",
@@ -2760,10 +2992,51 @@ def extract_legacy_loader_url(index_html: str, index_url: str, config_url: str) 
     )
     if quoted_matches:
         candidate = html.unescape(quoted_matches[0]).replace("\\/", "/")
-        return normalize_url(urllib.parse.urljoin(index_url, candidate))
+        return normalize_url(urllib.parse.urljoin(base_url, candidate))
 
     config_base_url = remove_query_and_fragment(config_url).rsplit("/", 1)[0] + "/"
     return normalize_url(urllib.parse.urljoin(config_base_url, "UnityLoader.js"))
+
+
+def extract_legacy_split_file_config(index_html: str, index_url: str) -> dict[str, dict[str, Any]]:
+    if "fileMergerConfig" not in index_html:
+        return {}
+
+    files_block_match = re.search(
+        r"""fileMergerConfig\s*=\s*\{[\s\S]*?\bfiles\s*:\s*\[([\s\S]*?)\][\s\S]*?\}""",
+        index_html,
+        re.IGNORECASE,
+    )
+    if not files_block_match:
+        return {}
+    base_url = extract_html_base_url(index_html, index_url)
+    base_path_match = re.search(
+        r"""fileMergerConfig\s*=\s*\{[\s\S]*?\bbasePath\s*:\s*["']([^"']+)["']""",
+        index_html,
+        re.IGNORECASE,
+    )
+    base_path = base_path_match.group(1).strip() if base_path_match else ""
+
+    split_files: dict[str, dict[str, Any]] = {}
+    for item_match in re.finditer(
+        r"""\{\s*name\s*:\s*["']([^"']+)["']\s*,\s*parts\s*:\s*(\d+)\s*\}""",
+        files_block_match.group(1),
+        re.IGNORECASE,
+    ):
+        file_name = item_match.group(1).strip()
+        parts = int(item_match.group(2))
+        if not file_name or parts <= 0:
+            continue
+        resolved_url = normalize_url(
+            urllib.parse.urljoin(base_url, (base_path + file_name).lstrip("/"))
+        )
+        split_files[file_name] = {
+            "name": file_name,
+            "parts": parts,
+            "url": resolved_url,
+        }
+
+    return split_files
 
 
 def fetch_json_payload(url: str, referer_url: str = "") -> dict[str, Any]:
@@ -2943,6 +3216,23 @@ def detect_entry_build(index_url: str, index_html: str) -> DetectedBuild:
         legacy_config = fetch_json_payload(config_url, referer_url=index_url)
         loader_url = extract_legacy_loader_url(index_html, index_url, config_url)
         candidates = build_legacy_asset_candidate_urls(loader_url, legacy_config, config_url)
+        legacy_split_files = extract_legacy_split_file_config(index_html, index_url)
+        original_folder_url = ""
+        loader_lower = loader_url.lower()
+        config_lower = config_url.lower()
+        product_name = str(legacy_config.get("productName") or "").lower()
+        base_url = extract_html_base_url(index_html, index_url)
+        base_parts = urllib.parse.urlparse(base_url)
+        if (
+            "geometrydashlite" in loader_lower
+            or "gdlite" in loader_lower
+            or "geometrydashlite" in config_lower
+            or product_name == "geometrydashlife"
+        ):
+            if base_parts.netloc.lower() == "cdn.jsdelivr.net" and "/gdlite/" in base_parts.path.lower():
+                original_folder_url = normalize_url(base_url)
+            else:
+                original_folder_url = "https://slope3.com/gamep/geometry-dash-lite/"
         return DetectedBuild(
             build_kind="legacy_json",
             index_url=index_url,
@@ -2950,6 +3240,8 @@ def detect_entry_build(index_url: str, index_html: str) -> DetectedBuild:
             loader_url=loader_url,
             candidates=candidates,
             legacy_config=legacy_config,
+            legacy_split_files=legacy_split_files,
+            original_folder_url=original_folder_url,
         )
 
     loader_url = extract_loader_url(index_html, index_url)
@@ -3507,6 +3799,7 @@ def infer_display_title(
 def absolutize_markup_urls(document_html: str, source_url: str) -> str:
     if not source_url:
         return document_html
+    base_url = extract_html_base_url(document_html, source_url)
 
     attr_pattern = re.compile(
         r"(\b(?:src|href|action|poster)\s*=\s*)(['\"])([^\"']+)\2",
@@ -3527,7 +3820,7 @@ def absolutize_markup_urls(document_html: str, source_url: str) -> str:
             or lowered.startswith(("#", "data:", "javascript:", "mailto:", "tel:", "blob:"))
         ):
             return match.group(0)
-        absolute = normalize_url(urllib.parse.urljoin(source_url, decode_js_string_literal(value)))
+        absolute = normalize_url(urllib.parse.urljoin(base_url, decode_js_string_literal(value)))
         return f"{prefix}{quote}{html.escape(absolute, quote=True)}{quote}"
 
     def rewrite_tag_attributes(fragment: str) -> str:
@@ -6350,6 +6643,7 @@ def generate_index_html(
             : "";
         }}
       }})();
+      const LOCAL_SITE_ROOT_URL = new URL("./", LOCAL_PAGE_URL).toString();
       const LOCAL_BUILD_ROOT_URL = new URL(BUILD_DIR + "/", LOCAL_PAGE_URL).toString();
       const ROOT = document.documentElement;
 
@@ -6413,8 +6707,10 @@ def generate_index_html(
       let activeDecisionResolve = null;
       let activeDecisionCancelValue = "";
       if (ORIGINAL_FOLDER_URL) {{
-        window.originalFolder = ORIGINAL_FOLDER_URL;
+        window.__unityStandaloneOriginalFolderUrl = ORIGINAL_FOLDER_URL;
+        globalThis.__unityStandaloneOriginalFolderUrl = ORIGINAL_FOLDER_URL;
       }}
+      window.originalFolder = LOCAL_SITE_ROOT_URL;
       window.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
       globalThis.__unityStandaloneLocalHostName = LOCAL_HOST_NAME;
       const requestedLaunchMode = (function () {{
@@ -7020,6 +7316,7 @@ def generate_index_html(
           BUILD_KIND === "modern" &&
           typeof window.createUnityInstance === "function"
         ) {{
+          patchUnityLoaderAuxiliaryCache();
           logLoaderStep("Unity loader script already ready");
           return Promise.resolve();
         }}
@@ -7028,6 +7325,7 @@ def generate_index_html(
           window.UnityLoader &&
           typeof window.UnityLoader.instantiate === "function"
         ) {{
+          patchUnityLoaderAuxiliaryCache();
           logLoaderStep("Legacy Unity loader already ready");
           return Promise.resolve();
         }}
@@ -7040,6 +7338,7 @@ def generate_index_html(
           const existing = document.querySelector("script[data-ocean-unity-loader='1']");
           if (existing) {{
             if (existing.getAttribute("data-ocean-loader-ready") === "1") {{
+              patchUnityLoaderAuxiliaryCache();
               logLoaderStep("Unity loader script loaded");
               resolve();
               return;
@@ -7051,6 +7350,7 @@ def generate_index_html(
               return;
             }}
             existing.addEventListener("load", function () {{
+              patchUnityLoaderAuxiliaryCache();
               logLoaderStep("Unity loader script loaded");
               resolve();
             }}, {{ once: true }});
@@ -7068,6 +7368,7 @@ def generate_index_html(
           script.setAttribute("data-ocean-unity-loader", "1");
           script.onload = function () {{
             script.setAttribute("data-ocean-loader-ready", "1");
+            patchUnityLoaderAuxiliaryCache();
             logLoaderStep("Unity loader script loaded");
             resolve();
           }};
@@ -7084,19 +7385,158 @@ def generate_index_html(
       }}
 
       function buildUnityCacheControl(url) {{
+        if (
+          typeof window.__unityStandaloneShouldBypassCacheForUrl === "function" &&
+          window.__unityStandaloneShouldBypassCacheForUrl(url)
+        ) {{
+          return "no-cache";
+        }}
         const cleanUrl = String(url || "").split("?")[0].toLowerCase();
         const fileName = cleanUrl.split("/").pop() || "";
         const hashedFile =
           /^[0-9a-f]{8,}[._-]/i.test(fileName) ||
           /(?:^|[._-])[0-9a-f]{8,}(?:[._-]|$)/i.test(fileName);
-        if (
-          hashedFile ||
-          cleanUrl.includes("/streamingassets/") ||
-          cleanUrl.endsWith(".unityweb")
-        ) {{
+        if (hashedFile || cleanUrl.endsWith(".unityweb")) {{
           return "immutable";
         }}
         return "must-revalidate";
+      }}
+
+      function getUnityCacheVersionTag() {{
+        const baseVersion =
+          ENTRY_PAGE_CONFIG &&
+          typeof ENTRY_PAGE_CONFIG.productVersion === "string" &&
+          ENTRY_PAGE_CONFIG.productVersion
+            ? ENTRY_PAGE_CONFIG.productVersion
+            : "1.0.0";
+        if (BUILD_CACHE_BUSTER) {{
+          return baseVersion + "+" + BUILD_CACHE_BUSTER;
+        }}
+        return baseVersion;
+      }}
+
+      function getUnityCacheVersionStorageKey() {{
+        return "__unity_standalone_ls__:unity-cache-version:" + PRODUCT_NAME;
+      }}
+
+      function canPersistUnityCacheVersion() {{
+        try {{
+          const probeKey = "__unity_standalone_ls__:unity-cache-probe";
+          window.localStorage.setItem(probeKey, "1");
+          const ok = window.localStorage.getItem(probeKey) === "1";
+          window.localStorage.removeItem(probeKey);
+          return ok;
+        }} catch (err) {{
+          return false;
+        }}
+      }}
+
+      function clearIndexedDbDatabase(name) {{
+        return new Promise(function (resolve) {{
+          if (
+            typeof indexedDB === "undefined" ||
+            !indexedDB ||
+            typeof indexedDB.deleteDatabase !== "function"
+          ) {{
+            resolve();
+            return;
+          }}
+          let settled = false;
+          function finish() {{
+            if (settled) {{
+              return;
+            }}
+            settled = true;
+            resolve();
+          }}
+          try {{
+            const request = indexedDB.deleteDatabase(name);
+            request.onsuccess = finish;
+            request.onerror = finish;
+            request.onblocked = finish;
+            window.setTimeout(finish, 1800);
+          }} catch (err) {{
+            finish();
+          }}
+        }});
+      }}
+
+      function clearUnityCacheNamespaces() {{
+        const tasks = [];
+        if (
+          typeof window.caches !== "undefined" &&
+          window.caches &&
+          typeof window.caches.keys === "function"
+        ) {{
+          tasks.push(
+            window.caches
+              .keys()
+              .then(function (names) {{
+                return Promise.all(
+                  names
+                    .filter(function (name) {{
+                      return typeof name === "string" && name.indexOf("UnityCache") === 0;
+                    }})
+                    .map(function (name) {{
+                      return window.caches.delete(name).catch(function () {{
+                        return false;
+                      }});
+                    }})
+                );
+              }})
+              .catch(function () {{
+                return [];
+              }})
+          );
+        }}
+        tasks.push(clearIndexedDbDatabase("UnityCache"));
+        return Promise.all(tasks).then(function () {{
+          return undefined;
+        }});
+      }}
+
+      let unityCachePrepPromise = null;
+      function ensureUnityCacheVersion() {{
+        if (unityCachePrepPromise) {{
+          return unityCachePrepPromise;
+        }}
+        const versionTag = getUnityCacheVersionTag();
+        if (!versionTag) {{
+          unityCachePrepPromise = Promise.resolve();
+          return unityCachePrepPromise;
+        }}
+        const storageKey = getUnityCacheVersionStorageKey();
+        let previousVersion = "";
+        if (canPersistUnityCacheVersion()) {{
+          try {{
+            previousVersion = window.localStorage.getItem(storageKey) || "";
+          }} catch (err) {{
+            previousVersion = "";
+          }}
+        }}
+        if (previousVersion === versionTag) {{
+          unityCachePrepPromise = Promise.resolve();
+          return unityCachePrepPromise;
+        }}
+        logLoaderStep(
+          previousVersion
+            ? "Clearing stale Unity cache for updated build"
+            : "Preparing fresh Unity cache namespace"
+        );
+        unityCachePrepPromise = clearUnityCacheNamespaces()
+          .catch(function (err) {{
+            console.warn("Failed to clear Unity cache namespace:", err);
+          }})
+          .then(function () {{
+            if (canPersistUnityCacheVersion()) {{
+              try {{
+                window.localStorage.setItem(storageKey, versionTag);
+              }} catch (err) {{
+                // Ignore storage persistence failures.
+              }}
+            }}
+          }});
+        return unityCachePrepPromise;
       }}
 
       function computeUnityDevicePixelRatio() {{
@@ -7229,6 +7669,25 @@ def generate_index_html(
           }}
         }}
 
+        function shouldBypassCacheForUrl(value) {{
+          if (typeof value !== "string" || !value) {{
+            return false;
+          }}
+          const normalized = String(value).toLowerCase();
+          if (
+            normalized.indexOf("/streamingassets/") !== -1 ||
+            /^\.?\/?streamingassets\//i.test(value) ||
+            /(?:^|[/?#])(game|setting)\.txt(?:[?#]|$)/i.test(normalized)
+          ) {{
+            return true;
+          }}
+          const rewritten = rewriteUrlValue(value);
+          return typeof rewritten === "string" && rewritten !== value;
+        }}
+
+        window.__unityStandaloneRewriteUrlValue = rewriteUrlValue;
+        window.__unityStandaloneShouldBypassCacheForUrl = shouldBypassCacheForUrl;
+
         if (typeof window.fetch === "function") {{
           const originalFetch = window.fetch.bind(window);
           window.fetch = function (input, init) {{
@@ -7249,6 +7708,118 @@ def generate_index_html(
             return originalOpen.apply(this, arguments);
           }};
         }}
+
+        function patchSrcDescriptor(prototype) {{
+          if (!prototype) {{
+            return;
+          }}
+          const descriptor = Object.getOwnPropertyDescriptor(prototype, "src");
+          if (
+            !descriptor ||
+            typeof descriptor.get !== "function" ||
+            typeof descriptor.set !== "function"
+          ) {{
+            return;
+          }}
+          try {{
+            Object.defineProperty(prototype, "src", {{
+              configurable: true,
+              enumerable: descriptor.enumerable,
+              get: function () {{
+                return descriptor.get.call(this);
+              }},
+              set: function (value) {{
+                return descriptor.set.call(this, rewriteUrlValue(value));
+              }},
+            }});
+          }} catch (err) {{
+            // Ignore descriptor patch failures.
+          }}
+        }}
+
+        if (typeof HTMLMediaElement !== "undefined") {{
+          patchSrcDescriptor(HTMLMediaElement.prototype);
+        }}
+        if (typeof HTMLSourceElement !== "undefined") {{
+          patchSrcDescriptor(HTMLSourceElement.prototype);
+        }}
+        if (typeof window.Audio === "function" && !window.__unityStandaloneAudioPatched) {{
+          const OriginalAudio = window.Audio;
+          window.Audio = function (src) {{
+            const audio = new OriginalAudio();
+            if (arguments.length && typeof src !== "undefined") {{
+              audio.src = rewriteUrlValue(String(src));
+            }}
+            return audio;
+          }};
+          window.Audio.prototype = OriginalAudio.prototype;
+          window.__unityStandaloneAudioPatched = true;
+        }}
+      }}
+
+      function patchUnityLoaderAuxiliaryCache() {{
+        const rewriteUrlValue = window.__unityStandaloneRewriteUrlValue;
+        const shouldBypassCacheForUrl = window.__unityStandaloneShouldBypassCacheForUrl;
+        if (
+          typeof rewriteUrlValue !== "function" ||
+          typeof shouldBypassCacheForUrl !== "function"
+        ) {{
+          return;
+        }}
+        const unityLoader = window.UnityLoader;
+        const unityCache = unityLoader && unityLoader.UnityCache;
+        const CachedXmlHttpRequest = unityCache && unityCache.XMLHttpRequest;
+        if (
+          !CachedXmlHttpRequest ||
+          !CachedXmlHttpRequest.prototype ||
+          CachedXmlHttpRequest.prototype.__unityStandaloneAuxiliaryCachePatched
+        ) {{
+          return;
+        }}
+        const originalOpen = CachedXmlHttpRequest.prototype.open;
+        const originalSend = CachedXmlHttpRequest.prototype.send;
+        if (typeof originalOpen !== "function") {{
+          return;
+        }}
+        CachedXmlHttpRequest.prototype.open = function (method, url) {{
+          const originalUrl = typeof url === "string" ? url : String(url || "");
+          const rewrittenUrl = rewriteUrlValue(originalUrl);
+          this.__unityStandaloneOriginalRequestUrl = originalUrl;
+          this.__unityStandaloneRewrittenRequestUrl = rewrittenUrl;
+          arguments[1] = rewrittenUrl;
+          if (this.cache && shouldBypassCacheForUrl(originalUrl)) {{
+            this.cache.control = "no-cache";
+          }}
+          return originalOpen.apply(this, arguments);
+        }};
+        if (typeof originalSend === "function") {{
+          CachedXmlHttpRequest.prototype.send = function () {{
+            if (this.cache) {{
+              const originalUrl =
+                typeof this.__unityStandaloneOriginalRequestUrl === "string"
+                  ? this.__unityStandaloneOriginalRequestUrl
+                  : "";
+              const rewrittenUrl =
+                typeof this.__unityStandaloneRewrittenRequestUrl === "string"
+                  ? this.__unityStandaloneRewrittenRequestUrl
+                  : "";
+              const cacheUrl =
+                this.cache.result && typeof this.cache.result.url === "string"
+                  ? this.cache.result.url
+                  : "";
+              if (
+                shouldBypassCacheForUrl(originalUrl) ||
+                shouldBypassCacheForUrl(rewrittenUrl) ||
+                shouldBypassCacheForUrl(cacheUrl)
+              ) {{
+                this.cache.enabled = false;
+                this.cache.control = "no-cache";
+              }}
+            }}
+            return originalSend.apply(this, arguments);
+          }};
+        }}
+        CachedXmlHttpRequest.prototype.__unityStandaloneAuxiliaryCachePatched = true;
       }}
 
       function maybeSpoofSourcePageUrl() {{
@@ -7578,6 +8149,21 @@ def generate_index_html(
         }});
       }}
 
+      function resolveStreamingAssetsUrl(value) {{
+        if (typeof value !== "string" || !value) {{
+          return value;
+        }}
+        try {{
+          if (/^[a-z][a-z0-9+.-]*:/i.test(value)) {{
+            return value.replace(/\/?$/, "/");
+          }}
+          const normalized = value.replace(/^\\.?\\//, "").replace(/\/?$/, "/");
+          return new URL(normalized, LOCAL_PAGE_URL).toString();
+        }} catch (err) {{
+          return value;
+        }}
+      }}
+
       function buildLegacyConfig() {{
         const config = JSON.parse(JSON.stringify(LEGACY_CONFIG || {{}}));
         Object.keys(config).forEach(function (key) {{
@@ -7586,6 +8172,10 @@ def generate_index_html(
             return;
           }}
           if (!key.endsWith("Url")) {{
+            return;
+          }}
+          if (key === "streamingAssetsUrl") {{
+            config[key] = resolveStreamingAssetsUrl(value);
             return;
           }}
           if (/^[a-z][a-z0-9+.-]*:/i.test(value)) {{
@@ -7597,6 +8187,18 @@ def generate_index_html(
             key !== "wasmCodeUrl"
           );
         }});
+        if (!config.streamingAssetsUrl && STREAMING_ASSETS_URL) {{
+          config.streamingAssetsUrl = resolveStreamingAssetsUrl(STREAMING_ASSETS_URL);
+        }}
+        if (
+          AUXILIARY_ASSET_REWRITES &&
+          typeof AUXILIARY_ASSET_REWRITES === "object" &&
+          Object.keys(AUXILIARY_ASSET_REWRITES).length
+        ) {{
+          // Legacy UnityCache is a common source of stale mirrored-asset fetches.
+          // Force direct local requests for builds that rely on auxiliary rewrites.
+          config.cacheControl = {{ default: "no-cache" }};
+        }}
         return config;
       }}
 
@@ -7882,8 +8484,11 @@ def generate_index_html(
         if (extractedConfig.gdHost === "__standalone_isHostOnGD__") {{
           extractedConfig.gdHost = window.isHostOnGD();
         }}
+        if (typeof extractedConfig.streamingAssetsUrl === "string" && extractedConfig.streamingAssetsUrl) {{
+          extractedConfig.streamingAssetsUrl = resolveStreamingAssetsUrl(extractedConfig.streamingAssetsUrl);
+        }}
         if (!extractedConfig.streamingAssetsUrl && STREAMING_ASSETS_URL) {{
-          extractedConfig.streamingAssetsUrl = STREAMING_ASSETS_URL;
+          extractedConfig.streamingAssetsUrl = resolveStreamingAssetsUrl(STREAMING_ASSETS_URL);
         }}
         extractedConfig.enableAds = false;
         if (Object.prototype.hasOwnProperty.call(extractedConfig, "eventLog")) {{
@@ -7918,7 +8523,7 @@ def generate_index_html(
         mergedConfig.promotion = mergedConfig.promotion || null;
         mergedConfig.companyName = mergedConfig.companyName || PRODUCT_NAME;
         mergedConfig.productName = mergedConfig.productName || PRODUCT_NAME;
-        mergedConfig.productVersion = mergedConfig.productVersion || "1.0.0";
+        mergedConfig.productVersion = getUnityCacheVersionTag();
         if (!mergedConfig.pub_id && typeof mergedConfig.pubId === "string") {{
           mergedConfig.pub_id = mergedConfig.pubId;
         }}
@@ -8042,10 +8647,10 @@ def generate_index_html(
           dataUrl: buildBuildAssetUrl(DATA_FILE),
           frameworkUrl: buildBuildAssetUrl(FRAMEWORK_FILE),
           codeUrl: buildBuildAssetUrl(WASM_FILE),
-          streamingAssetsUrl: STREAMING_ASSETS_URL || buildBuildAssetUrl("StreamingAssets"),
+          streamingAssetsUrl: resolveStreamingAssetsUrl(STREAMING_ASSETS_URL) || buildBuildAssetUrl("StreamingAssets"),
           companyName: PRODUCT_NAME,
           productName: PRODUCT_NAME,
-          productVersion: "1.0.0",
+          productVersion: getUnityCacheVersionTag(),
           cacheControl: buildUnityCacheControl,
           devicePixelRatio: computeUnityDevicePixelRatio(),
           matchWebGLToCanvasSize: true,
@@ -8178,24 +8783,26 @@ def generate_index_html(
         setStatus("Loading 0%");
 
         ensureStorageAccess().finally(function () {{
-          if (launchPanel) {{
-            clearLaunchPanelHideTimer();
-            launchPanel.style.display = "";
-            launchPanel.classList.add("is-hidden");
-            launchPanelHideTimer = window.setTimeout(function () {{
-              if (launchPanel && launchPanel.classList.contains("is-hidden")) {{
-                launchPanel.style.display = "none";
-              }}
-              launchPanelHideTimer = 0;
-            }}, 240);
-          }}
-          const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
-          maybeSpoofSourcePageUrl();
-          if (BUILD_KIND === "legacy_json") {{
-            startLegacyGame(loaderUrl);
-            return;
-          }}
-          startModernGame(loaderUrl);
+          ensureUnityCacheVersion().finally(function () {{
+            if (launchPanel) {{
+              clearLaunchPanelHideTimer();
+              launchPanel.style.display = "";
+              launchPanel.classList.add("is-hidden");
+              launchPanelHideTimer = window.setTimeout(function () {{
+                if (launchPanel && launchPanel.classList.contains("is-hidden")) {{
+                  launchPanel.style.display = "none";
+                }}
+                launchPanelHideTimer = 0;
+              }}, 240);
+            }}
+            const loaderUrl = buildBuildAssetUrl(LOADER_FILE);
+            maybeSpoofSourcePageUrl();
+            if (BUILD_KIND === "legacy_json") {{
+              startLegacyGame(loaderUrl);
+              return;
+            }}
+            startModernGame(loaderUrl);
+          }});
         }});
       }}
 
@@ -8239,8 +8846,11 @@ def download_assets(
     output_build_dir: Path,
     candidates: dict[str, list[str]],
     progress_file: Path,
+    legacy_split_files: dict[str, dict[str, Any]] | None = None,
     referer_url: str = "",
 ) -> DownloadedAssets:
+    if legacy_split_files is None:
+        legacy_split_files = {}
     progress = load_json_file(progress_file)
     if progress.get("candidate_urls") != candidates:
         progress = {
@@ -8266,11 +8876,27 @@ def download_assets(
 
         possible_names = [basename_from_url(url) for url in candidates[kind]]
         destination = output_build_dir / possible_names[0]
-        resolved_url, _, compression_kind = download_first_valid(
-            candidates[kind],
-            destination,
-            referer_url=referer_url,
-        )
+        split_config = None
+        for possible_name in possible_names:
+            split_config = legacy_split_files.get(possible_name)
+            if split_config:
+                break
+
+        try:
+            resolved_url, _, compression_kind = download_first_valid(
+                candidates[kind],
+                destination,
+                referer_url=referer_url,
+            )
+        except FetchError:
+            if not split_config:
+                raise
+            resolved_url, compression_kind = download_and_merge_split_asset(
+                split_config["url"],
+                int(split_config["parts"]),
+                destination,
+                referer_url=referer_url,
+            )
 
         resolved_name = basename_from_url(resolved_url)
         if kind != "loader":
@@ -8320,10 +8946,34 @@ def download_assets(
     )
 
 
+def download_and_merge_split_asset(
+    asset_url: str,
+    parts: int,
+    destination: Path,
+    referer_url: str = "",
+) -> tuple[str, str]:
+    if parts <= 0:
+        raise FetchError(f"{asset_url} -> invalid split part count: {parts}")
+
+    merged = bytearray()
+    for index in range(1, parts + 1):
+        part_url = f"{asset_url}.part{index}"
+        resolved_url, raw, _, _ = fetch_url(part_url, referer_url=referer_url)
+        if not raw:
+            raise FetchError(f"{part_url} -> empty response")
+        if looks_like_html(raw):
+            raise FetchError(f"{part_url} -> returned HTML instead of split asset")
+        merged.extend(raw)
+
+    destination.write_bytes(bytes(merged))
+    return asset_url, detect_asset_compression(asset_url, "")
+
+
 def download_legacy_assets(
     output_build_dir: Path,
     candidates: dict[str, list[str]],
     legacy_config: dict[str, Any],
+    legacy_split_files: dict[str, dict[str, Any]],
     progress_file: Path,
     referer_url: str = "",
 ) -> DownloadedAssets:
@@ -8332,16 +8982,19 @@ def download_legacy_assets(
         "build_kind": "legacy_json",
         "candidate_urls": candidates,
         "legacy_config": legacy_config,
+        "legacy_split_files": legacy_split_files,
     }
     if (
         progress.get("build_kind") != "legacy_json"
         or progress.get("candidate_urls") != candidates
         or progress.get("legacy_config") != legacy_config
+        or progress.get("legacy_split_files") != legacy_split_files
     ):
         progress = {
             "build_kind": "legacy_json",
             "candidate_urls": candidates,
             "legacy_config": legacy_config,
+            "legacy_split_files": legacy_split_files,
             "assets": {},
             "completed": False,
         }
@@ -8365,11 +9018,27 @@ def download_legacy_assets(
 
         possible_names = [basename_from_url(url) for url in candidates[kind]]
         destination = output_build_dir / possible_names[0]
-        resolved_url, _, compression_kind = download_first_valid(
-            candidates[kind],
-            destination,
-            referer_url=referer_url,
-        )
+        split_config = None
+        for possible_name in possible_names:
+            split_config = legacy_split_files.get(possible_name)
+            if split_config:
+                break
+
+        try:
+            resolved_url, _, compression_kind = download_first_valid(
+                candidates[kind],
+                destination,
+                referer_url=referer_url,
+            )
+        except FetchError:
+            if not split_config:
+                raise
+            resolved_url, compression_kind = download_and_merge_split_asset(
+                split_config["url"],
+                int(split_config["parts"]),
+                destination,
+                referer_url=referer_url,
+            )
 
         resolved_name = basename_from_url(resolved_url)
         if kind != "loader":
@@ -8587,10 +9256,15 @@ def download_raw_asset(source_url: str, destination: Path, referer_url: str = ""
     return resolved
 
 
-def maybe_download_optional_asset(source_url: str, destination: Path, referer_url: str = "") -> str:
+def maybe_download_optional_asset(
+    source_url: str,
+    destination: Path,
+    referer_url: str = "",
+    timeout: int = 30,
+) -> str:
     try:
-        resolved, raw, _, _ = fetch_url(source_url, referer_url=referer_url)
-    except FetchError:
+        resolved, raw, _, _ = fetch_url(source_url, timeout=timeout, referer_url=referer_url)
+    except (FetchError, TimeoutError, OSError):
         return ""
     if not raw or looks_like_html(raw):
         return ""
@@ -8691,6 +9365,194 @@ def collect_auxiliary_asset_rewrites(
     return rewrites
 
 
+GEOMETRY_DASH_LITE_AUDIO_FILES = (
+    "Back On Track.mp3",
+    "Base After Base.mp3",
+    "Cant Let Go.mp3",
+    "Clubstep.mp3",
+    "Clutterfunk.mp3",
+    "Cycles.mp3",
+    "Dry Out.mp3",
+    "Electrodynamix.mp3",
+    "Electroman Adventures.mp3",
+    "Jumper.mp3",
+    "Polargeist.mp3",
+    "StayInsideMe.mp3",
+    "Stereo Madness.mp3",
+    "Theory of Everything.mp3",
+    "Time Machine.mp3",
+    "endStart.mp3",
+    "explode.mp3",
+    "menuLoop.mp3",
+    "playSound.mp3",
+    "quitSound.mp3",
+    "xStep.mp3",
+)
+GEOMETRY_DASH_LITE_PRIMARY_STREAMING_ASSETS_URL = (
+    "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/"
+)
+GEOMETRY_DASH_LITE_EXTRA_REMOTE_BASES = (
+    "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/gdlite/StreamingAssets/",
+    "https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@ac5cdfc0042aca584e72619375b4aca948a9243c/gdlite/StreamingAssets/",
+)
+
+
+def should_prepare_geometry_dash_lite_streaming_assets(
+    source_page_url: str,
+    original_folder_url: str,
+) -> bool:
+    canonical_source_page_url = canonicalize_source_page_url(source_page_url, original_folder_url)
+    source_parts = urllib.parse.urlparse(canonical_source_page_url)
+    original_parts = urllib.parse.urlparse(original_folder_url)
+    return (
+        (
+            source_parts.netloc.lower() == "geometrydashlite.io"
+            and source_parts.path.rstrip("/") == "/geometry-dash-game"
+        )
+        or (
+            source_parts.netloc.lower() == "sites.google.com"
+            and source_parts.path.rstrip("/").lower().endswith("/new-games/gd-lite")
+        )
+        or (
+            source_parts.netloc.lower() == "cdn.jsdelivr.net"
+            and source_parts.path.rstrip("/").lower().endswith("/papamamia/gonzales@main/streamingassets/1.xml")
+        )
+        or (
+            original_parts.netloc.lower() == "slope3.com"
+            and original_parts.path.rstrip("/").lower().endswith("/geometry-dash-lite")
+        )
+    )
+
+
+def prepare_geometry_dash_lite_streaming_assets(
+    output_dir: Path,
+    source_page_url: str,
+    original_folder_url: str,
+) -> tuple[str, dict[str, str], dict[str, Any]]:
+    if not should_prepare_geometry_dash_lite_streaming_assets(source_page_url, original_folder_url):
+        return "", {}, {}
+
+    canonical_source_page_url = canonicalize_source_page_url(source_page_url, original_folder_url)
+    streaming_assets_url = GEOMETRY_DASH_LITE_PRIMARY_STREAMING_ASSETS_URL
+
+    remote_bases: list[str] = []
+    if original_folder_url:
+        remote_bases.append(normalize_url(urllib.parse.urljoin(original_folder_url.rstrip("/") + "/", "StreamingAssets/")))
+    if canonical_source_page_url:
+        parsed = urllib.parse.urlparse(canonical_source_page_url)
+        site_root = f"{parsed.scheme}://{parsed.netloc}/"
+        remote_bases.append(normalize_url(urllib.parse.urljoin(site_root, "StreamingAssets/")))
+        remote_bases.append(normalize_url(urllib.parse.urljoin(canonical_source_page_url.rstrip("/") + "/", "StreamingAssets/")))
+    remote_bases.extend(
+        [
+            "https://slope3.com/gamep/geometry-dash-lite/StreamingAssets/",
+            "https://geometrydashlite.io/StreamingAssets/",
+            "https://geometrydashlite.io/geometry-dash-game/StreamingAssets/",
+            "https://gd.localhost.local/StreamingAssets/",
+            "https://gd.localhost.local//StreamingAssets/",
+        ]
+    )
+    remote_bases.extend(GEOMETRY_DASH_LITE_EXTRA_REMOTE_BASES)
+    remote_bases = list(dict.fromkeys(normalize_url(base) for base in remote_bases if base))
+
+    rewrite_map: dict[str, str] = {}
+    redirected_audio_count = 0
+    root_asset_count = 0
+
+    for file_name in GEOMETRY_DASH_LITE_AUDIO_FILES:
+        alias_name = file_name.replace(" ", "")
+        canonical_remote_original = normalize_url(
+            urllib.parse.urljoin(
+                streaming_assets_url,
+                "audios/" + urllib.parse.quote(file_name),
+            )
+        )
+        canonical_remote_alias = normalize_url(
+            urllib.parse.urljoin(
+                streaming_assets_url,
+                "audio/" + urllib.parse.quote(alias_name),
+            )
+        )
+        relative_original = "StreamingAssets/audios/" + file_name
+        relative_alias = "StreamingAssets/audio/" + alias_name
+        rewrite_map[relative_original] = canonical_remote_original
+        rewrite_map["./" + relative_original] = canonical_remote_original
+        rewrite_map[relative_alias] = canonical_remote_alias
+        rewrite_map["./" + relative_alias] = canonical_remote_alias
+        redirected_audio_count += 1
+        for remote_base in remote_bases:
+            if normalize_url(remote_base) == normalize_url(streaming_assets_url):
+                continue
+            remote_original = normalize_url(urllib.parse.urljoin(remote_base, "audios/" + urllib.parse.quote(file_name)))
+            remote_alias = normalize_url(urllib.parse.urljoin(remote_base, "audio/" + urllib.parse.quote(alias_name)))
+            rewrite_map[remote_original] = canonical_remote_original
+            rewrite_map[remote_alias] = canonical_remote_alias
+
+    game_txt_source_candidates: list[str] = []
+    if original_folder_url:
+        game_txt_source_candidates.append(
+            normalize_url(urllib.parse.urljoin(original_folder_url.rstrip("/") + "/", "game.txt"))
+        )
+    game_txt_source_candidates.extend(
+        [
+            "https://slope3.com/gamep/geometry-dash-lite/game.txt",
+            "https://gd.localhost.local/game.txt",
+            "https://gd.localhost.local//game.txt",
+        ]
+    )
+    resolved_game_txt = ""
+    resolved_game_txt_source = ""
+    for game_txt_source_url in dict.fromkeys(candidate for candidate in game_txt_source_candidates if candidate):
+        resolved_game_txt = maybe_download_optional_asset(
+            game_txt_source_url,
+            output_dir / "game.txt",
+            referer_url=canonical_source_page_url or original_folder_url,
+        )
+        if resolved_game_txt:
+            resolved_game_txt_source = game_txt_source_url
+            break
+    if resolved_game_txt:
+        root_asset_count += 1
+        for game_txt_source_url in dict.fromkeys(candidate for candidate in game_txt_source_candidates if candidate):
+            rewrite_map[game_txt_source_url] = "game.txt"
+        if resolved_game_txt_source:
+            rewrite_map[resolved_game_txt_source] = "game.txt"
+        log("auxiliary: downloaded GD Lite game.txt")
+
+    setting_txt_source_candidates = [
+        "https://geometrydashlite.io/setting.txt",
+        "https://gd.localhost.local/setting.txt",
+        "https://gd.localhost.local//setting.txt",
+    ]
+    resolved_setting_txt = ""
+    for setting_txt_source_url in setting_txt_source_candidates:
+        resolved_setting_txt = maybe_download_optional_asset(
+            setting_txt_source_url,
+            output_dir / "setting.txt",
+            referer_url=canonical_source_page_url or original_folder_url,
+        )
+        if resolved_setting_txt:
+            root_asset_count += 1
+            for candidate in setting_txt_source_candidates:
+                rewrite_map[candidate] = "setting.txt"
+            log("auxiliary: downloaded GD Lite setting.txt")
+            break
+
+    if redirected_audio_count:
+        log(f"auxiliary: redirected GD Lite audio files to canonical remote base ({redirected_audio_count})")
+
+    return (
+        streaming_assets_url,
+        rewrite_map,
+        {
+            "streaming_assets_audio_mirrored": 0,
+            "streaming_assets_audio_alias_count": redirected_audio_count,
+            "streaming_assets_audio_redirected_remote": redirected_audio_count,
+            "gd_lite_root_assets_mirrored": root_asset_count,
+        },
+    )
+
+
 def copy_eagler_support_files(output_dir: Path) -> list[str]:
     script_dir = Path(__file__).resolve().parent
     copied: list[str] = []
@@ -8740,6 +9602,109 @@ def suppress_known_html_alert_calls(document_html: str) -> str:
     )
 
 
+def looks_like_cached_iframe_wrapper_html(document_html: str) -> bool:
+    lower = document_html.lower()
+    return (
+        "getfilefromcache" in lower
+        and "contentdocument.write" in lower
+        and "file_url" in lower
+        and ('id="fr"' in lower or "id='fr'" in lower)
+    )
+
+
+def extract_cached_iframe_wrapper_file_url(document_html: str, index_url: str) -> str:
+    match = re.search(
+        r"""(?i)\b(?:const|let|var)\s+FILE_URL\s*=\s*["']([^"']+)["']""",
+        document_html,
+    )
+    if not match:
+        return ""
+    raw_url = decode_js_string_literal(html.unescape(match.group(1))).strip()
+    if not raw_url:
+        return ""
+    return normalize_url(urllib.parse.urljoin(index_url, raw_url))
+
+
+def fetch_cached_iframe_wrapper_html(source_page_url: str) -> str:
+    if not source_page_url:
+        return ""
+    try:
+        _, raw, _, _ = fetch_url(source_page_url, referer_url=source_page_url)
+    except FetchError:
+        return ""
+    if not raw:
+        return ""
+    source_html = decode_html_body(raw)
+    for snippet in extract_embedded_html_snippets(source_html):
+        if looks_like_cached_iframe_wrapper_html(snippet):
+            return snippet
+    return ""
+
+
+def build_cached_iframe_wrapper_html(
+    wrapper_html: str,
+    local_runtime_url: str,
+) -> str:
+    patched = re.sub(
+        r"""(?i)(\b(?:const|let|var)\s+FILE_URL\s*=\s*)(["']).*?\2(\s*;)""",
+        lambda match: f"{match.group(1)}{json.dumps(local_runtime_url, ensure_ascii=False)}{match.group(3)}",
+        wrapper_html,
+        count=1,
+    )
+    patched += f"""
+<style>
+#container, #fr {{
+  width: 100%;
+  height: 100%;
+}}
+#fr {{
+  display: block !important;
+  border: 0;
+}}
+.play-button,
+.fullscreen-button,
+#unblocked-text {{
+  display: none !important;
+}}
+</style>
+<script>
+(function() {{
+  let oceanWrapperStarted = false;
+
+  function oceanStartCachedWrapper() {{
+    if (oceanWrapperStarted) {{
+      return;
+    }}
+    oceanWrapperStarted = true;
+    const frame = document.getElementById("fr");
+    const hiddenButton = document.querySelector(".play-button");
+    if (frame) {{
+      frame.style.display = "block";
+      frame.setAttribute("tabindex", "-1");
+      try {{ frame.focus(); }} catch (_e) {{}}
+    }}
+    if (typeof PlayTo === "function") {{
+      try {{
+        PlayTo(hiddenButton || {{ style: {{ display: "none" }} }});
+      }} catch (error) {{
+        oceanWrapperStarted = false;
+        throw error;
+      }}
+    }}
+  }}
+
+  window.addEventListener("load", function() {{
+    setTimeout(oceanStartCachedWrapper, 0);
+  }});
+  document.addEventListener("DOMContentLoaded", function() {{
+    setTimeout(oceanStartCachedWrapper, 0);
+  }});
+}})();
+</script>
+"""
+    return patched
+
+
 def disable_known_html_console_muting(document_html: str) -> str:
     patched = re.sub(
         r"""\b(?:const|let|var)\s+muteConsole\s*=\s*true\s*;""",
@@ -8780,12 +9745,20 @@ def download_eagler_mobile_script(output_dir: Path) -> dict[str, str]:
 
 def generate_html_entry_index_html(title: str, source_html: str) -> str:
     document = source_html.lstrip("\ufeff").strip()
+    document = re.sub(
+        r"^\s*!doctype\s+html\s*>",
+        "<!DOCTYPE html>",
+        document,
+        count=1,
+        flags=re.IGNORECASE,
+    )
     document = suppress_known_html_alert_calls(document)
     document = disable_known_html_console_muting(document)
     document = re.sub(r"(?im)^[ \t]*/body>\s*$", "", document)
     document = re.sub(r"(?im)^[ \t]*body>\s*$", "", document)
     if not document:
         raise FetchError("Detected HTML entry was empty.")
+    preserve_absolute_base_href = looks_like_legacy_split_unity_wrapper_html(document)
 
     title_tag = f"<title>{html.escape(title)}</title>"
     viewport_tag = (
@@ -8811,11 +9784,23 @@ def generate_html_entry_index_html(title: str, source_html: str) -> str:
     def strip_base_tag(match: re.Match[str]) -> str:
         nonlocal preserved_base_tag
         if not preserved_base_tag:
+            href_match = re.search(r"\bhref\s*=\s*(['\"])(.*?)\1", match.group(0), re.IGNORECASE)
             target_match = re.search(r"\btarget\s*=\s*(['\"])(.*?)\1", match.group(0), re.IGNORECASE)
+            preserved_parts: list[str] = []
+            if preserve_absolute_base_href and href_match:
+                href_value = html.unescape(href_match.group(2)).strip()
+                if href_value:
+                    parsed_href = urllib.parse.urlparse(href_value)
+                    if parsed_href.scheme in {"http", "https"}:
+                        preserved_parts.append(
+                            f'href="{html.escape(normalize_url(href_value), quote=True)}"'
+                        )
             if target_match:
-                preserved_base_tag = (
-                    f'<base target="{html.escape(target_match.group(2), quote=True)}" />'
+                preserved_parts.append(
+                    f'target="{html.escape(target_match.group(2), quote=True)}"'
                 )
+            if preserved_parts:
+                preserved_base_tag = f"<base {' '.join(preserved_parts)} />"
         return ""
 
     document = re.sub(r"<base\b[^>]*>", strip_base_tag, document, flags=re.IGNORECASE)
@@ -9173,6 +10158,17 @@ def export_custom_split_unity_entry(
             build_dir / assets.data_name,
         ),
     )
+    special_streaming_assets_url, special_streaming_asset_rewrites, special_streaming_asset_summary = (
+        prepare_geometry_dash_lite_streaming_assets(
+            output_dir,
+            source_page_url,
+            original_folder_url,
+        )
+    )
+    if special_streaming_assets_url:
+        streaming_assets_url = special_streaming_assets_url
+    if special_streaming_asset_rewrites:
+        auxiliary_asset_rewrites.update(special_streaming_asset_rewrites)
     gmsoft_like_build = looks_like_gmsoft_page_config(page_config)
     source_url_spoof_patterns = [
         b"SiteLock",
@@ -9192,6 +10188,11 @@ def export_custom_split_unity_entry(
         )
         if path.name
     )
+    if should_prepare_geometry_dash_lite_streaming_assets(
+        source_page_url,
+        original_folder_url,
+    ):
+        enable_source_url_spoof = False
     asset_cache_buster = compute_asset_cache_buster(build_dir, assets)
     product_name = title
     launcher_support_files = copy_eagler_support_files(output_dir)
@@ -9282,6 +10283,7 @@ def export_custom_split_unity_entry(
         "wasm_url": wasm_resolved_url,
         "progress_file": str(progress_file),
     }
+    summary.update(special_streaming_asset_summary)
     (output_dir / "standalone-build-info.json").write_text(
         json.dumps(summary, indent=2),
         encoding="utf-8",
@@ -9345,12 +10347,23 @@ def export_html_entry(
     )
     save_json_file(progress_file, progress_payload)
 
+    source_page_url = detected_entry.source_page_url or input_url
+    wrapper_source_html = ""
+    if source_page_url and normalize_url(source_page_url) != normalize_url(detected_entry.index_url):
+        wrapper_source_html = fetch_cached_iframe_wrapper_html(source_page_url)
+
     normalized_source_html = absolutize_markup_urls(
         detected_entry.index_html,
         detected_entry.index_url,
     )
     sanitized_source_html, ad_removal_counts = strip_known_embedded_ad_markup(normalized_source_html)
-    original_external_links = extract_html_external_links(sanitized_source_html)
+    wrapper_entry_source_html = wrapper_source_html
+    if wrapper_entry_source_html:
+        wrapper_entry_source_html = absolutize_markup_urls(wrapper_entry_source_html, source_page_url)
+        wrapper_entry_source_html, _ = strip_known_embedded_ad_markup(wrapper_entry_source_html)
+    original_external_links = extract_html_external_links(
+        wrapper_entry_source_html or sanitized_source_html
+    )
     mirrored_html_summary: dict[str, Any] = {}
     localized_source_html = sanitized_source_html
     if looks_like_construct2_entry_html(sanitized_source_html):
@@ -9366,13 +10379,41 @@ def export_html_entry(
         localized_source_html
     )
     eagler_mobile_option_enabled = looks_like_eagler_entry_html(localized_source_html)
-    external_links = extract_html_external_links(localized_source_html)
     embedded_entry_name = "game-root.html"
-    embedded_entry_content = generate_html_entry_index_html(
-        title=title,
-        source_html=localized_source_html,
-    )
+    embedded_runtime_name = ""
+    wrapper_runtime_summary: dict[str, Any] = {}
+    if wrapper_entry_source_html and looks_like_cached_iframe_wrapper_html(wrapper_entry_source_html):
+        embedded_runtime_name = "game-runtime.html"
+        embedded_runtime_content = generate_html_entry_index_html(
+            title=title,
+            source_html=localized_source_html,
+        )
+        (output_dir / embedded_runtime_name).write_text(embedded_runtime_content, encoding="utf-8")
+        runtime_cache_buster = compute_output_file_cache_buster(output_dir, [embedded_runtime_name])
+        wrapper_entry_source_html = build_cached_iframe_wrapper_html(
+            wrapper_entry_source_html,
+            f"./{embedded_runtime_name}?v={runtime_cache_buster}",
+        )
+        embedded_entry_content = generate_html_entry_index_html(
+            title=title,
+            source_html=wrapper_entry_source_html,
+        )
+        wrapper_runtime_summary = {
+            "wrapper_mode": "cached_iframe_runtime",
+            "cached_wrapper_source_url": source_page_url,
+            "cached_runtime_source_url": detected_entry.index_url,
+            "cached_runtime_file": embedded_runtime_name,
+            "cached_runtime_cache_buster": runtime_cache_buster,
+        }
+    else:
+        embedded_entry_content = generate_html_entry_index_html(
+            title=title,
+            source_html=localized_source_html,
+        )
     (output_dir / embedded_entry_name).write_text(embedded_entry_content, encoding="utf-8")
+    external_links = extract_html_external_links(
+        wrapper_entry_source_html or localized_source_html
+    )
     eagler_mobile_script: dict[str, str] | None = None
     mobile_embedded_entry_name = ""
     if eagler_mobile_option_enabled:
@@ -9388,7 +10429,7 @@ def export_html_entry(
         )
     embed_cache_buster = compute_output_file_cache_buster(
         output_dir,
-        [embedded_entry_name, mobile_embedded_entry_name],
+        [embedded_entry_name, mobile_embedded_entry_name, embedded_runtime_name],
     )
 
     index_content = generate_html_launcher_index_html(
@@ -9434,6 +10475,7 @@ def export_html_entry(
         "title": title,
         "input_url": input_url,
         "root_url": root_url,
+        "source_page_url": source_page_url,
         "resolved_entry_url": detected_entry.index_url,
         "html_source_mode": "absolutized_embed_root",
         "launcher": "ocean-launcher",
@@ -9460,6 +10502,7 @@ def export_html_entry(
         "external_other_urls": external_links["other_links"],
         "progress_file": str(progress_file),
     }
+    summary.update(wrapper_runtime_summary)
     (output_dir / "standalone-build-info.json").write_text(
         json.dumps(summary, indent=2),
         encoding="utf-8",
@@ -9964,15 +11007,26 @@ def main(argv: Sequence[str]) -> int:
 
         if entry_kind == "unity":
             if looks_like_inline_legacy_unity_wrapper_html(detected_entry.index_html):
-                entry_kind = "html"
-                detected_html_entry = DetectedEntry(
-                    entry_kind="html",
-                    index_url=detected_entry.index_url,
-                    index_html=detected_entry.index_html,
-                    source_page_url=detected_entry.source_page_url or detected_entry.index_url,
-                )
-                log("Falling back to HTML wrapper export for inline legacy Unity bootstrap page")
-                log(f"Resolved HTML entry URL: {detected_html_entry.index_url}")
+                try:
+                    detected_build = detect_entry_build(detected_entry.index_url, detected_entry.index_html)
+                except FetchError as exc:
+                    entry_kind = "html"
+                    detected_html_entry = DetectedEntry(
+                        entry_kind="html",
+                        index_url=detected_entry.index_url,
+                        index_html=detected_entry.index_html,
+                        source_page_url=detected_entry.source_page_url or detected_entry.index_url,
+                    )
+                    log(f"Falling back to HTML wrapper export for inline legacy Unity bootstrap page: {exc}")
+                    log(f"Resolved HTML entry URL: {detected_html_entry.index_url}")
+                else:
+                    build_kind = detected_build.build_kind
+                    legacy_config = detected_build.legacy_config
+                    loader_url = detected_build.loader_url
+                    candidates = detected_build.candidates
+                    log("Extracted direct Unity build from inline legacy wrapper page")
+                    log(f"Detected build kind: {build_kind}")
+                    log(f"Resolved loader URL: {loader_url}")
             elif looks_like_split_unity_bootstrap_page(detected_entry.index_html):
                 entry_kind = "html"
                 detected_html_entry = DetectedEntry(
@@ -10139,6 +11193,8 @@ def main(argv: Sequence[str]) -> int:
     )
     if legacy_config:
         progress_payload["legacy_config"] = legacy_config
+    if detected_build is not None and detected_build.legacy_split_files:
+        progress_payload["legacy_split_files"] = detected_build.legacy_split_files
     save_json_file(progress_file, progress_payload)
 
     if build_kind == "legacy_json":
@@ -10146,6 +11202,7 @@ def main(argv: Sequence[str]) -> int:
             build_dir,
             candidates,
             legacy_config,
+            detected_build.legacy_split_files if detected_build is not None else {},
             progress_file,
             referer_url=detected_build.index_url if detected_build is not None else "",
         )
@@ -10155,6 +11212,21 @@ def main(argv: Sequence[str]) -> int:
             candidates,
             progress_file,
             referer_url=detected_build.index_url if detected_build is not None else "",
+        )
+
+    unity_loader_inline_redirect_hack_patched = False
+    if assets.loader_name:
+        unity_loader_inline_redirect_hack_patched = patch_unity_loader_inline_redirect_hack(
+            build_dir / assets.loader_name
+        )
+
+    gd_lite_runtime_data_patched = False
+    if assets.data_name and should_prepare_geometry_dash_lite_streaming_assets(
+        detected_entry.source_page_url if (not direct_mode and detected_entry is not None) else root_url,
+        detected_build.original_folder_url if (not direct_mode and detected_build is not None) else "",
+    ):
+        gd_lite_runtime_data_patched = patch_geometry_dash_lite_runtime_data(
+            build_dir / assets.data_name
         )
 
     downloaded_support_scripts = download_unity_support_scripts(
@@ -10228,6 +11300,17 @@ def main(argv: Sequence[str]) -> int:
             if path.name
         ),
     )
+    special_streaming_assets_url, special_streaming_asset_rewrites, special_streaming_asset_summary = (
+        prepare_geometry_dash_lite_streaming_assets(
+            output_dir,
+            source_page_url,
+            original_folder_url,
+        )
+    )
+    if special_streaming_assets_url:
+        streaming_assets_url = special_streaming_assets_url
+    if special_streaming_asset_rewrites:
+        auxiliary_asset_rewrites.update(special_streaming_asset_rewrites)
     gmsoft_like_build = looks_like_gmsoft_page_config(page_config)
     source_url_spoof_patterns = [
         b"SiteLock",
@@ -10247,6 +11330,11 @@ def main(argv: Sequence[str]) -> int:
         )
         if path.name
     )
+    if should_prepare_geometry_dash_lite_streaming_assets(
+        source_page_url,
+        original_folder_url,
+    ):
+        enable_source_url_spoof = False
 
     asset_cache_buster = compute_asset_cache_buster(build_dir, assets)
     product_name = (
@@ -10321,9 +11409,11 @@ def main(argv: Sequence[str]) -> int:
         "used_br_assets": assets.used_br_assets,
         "used_compressed_assets": assets.used_br_assets,
         "site_lock_framework_patched": site_lock_framework_patched,
+        "unity_loader_inline_redirect_hack_patched": unity_loader_inline_redirect_hack_patched,
         "gmsoft_host_bridge_patched": gmsoft_host_bridge_patched,
         "gmsoft_sendmessage_defaults_patched": gmsoft_sendmessage_defaults_patched,
         "sendmessage_value_compat_patched": sendmessage_value_compat_patched,
+        "gd_lite_runtime_data_patched": gd_lite_runtime_data_patched,
         "build_kind": build_kind,
         "mode": "direct_urls" if direct_mode else "entry_auto",
         "source_page_url": source_page_url,
@@ -10344,6 +11434,7 @@ def main(argv: Sequence[str]) -> int:
         "support_script_urls": [item["resolved_url"] for item in downloaded_support_scripts],
         "progress_file": str(progress_file),
     }
+    summary.update(special_streaming_asset_summary)
     if assets.build_kind == "legacy_json":
         summary["legacy_asset_names"] = assets.legacy_asset_names
     (output_dir / "standalone-build-info.json").write_text(

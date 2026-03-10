@@ -1,0 +1,617 @@
+{
+  "state": {
+    "canvasCount": 1,
+    "dataState": null,
+    "loadingClass": null,
+    "loadingDisplay": null,
+    "title": "Slope"
+  },
+  "logs": [
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:4992 \"navigator.mediaDevices support available\"",
+      "source": "console-api",
+      "timestamp": 1773118065288
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"[UnityMemory] Configuration Parameters - Can be set up in boot.config\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065288
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-allocator-temp-initial-block-size-main=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065288
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-allocator-temp-initial-block-size-worker=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065289
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-temp-allocator-size-audio-worker=65536\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065289
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-temp-allocator-size-background-worker=32768\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065289
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-bucket-allocator-granularity=16\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065289
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-bucket-allocator-bucket-count=8\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065290
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-bucket-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065290
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-bucket-allocator-block-count=1\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065290
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-main-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-thread-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-gfx-main-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-gfx-thread-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-cache-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-typetree-allocator-block-size=2097152\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-granularity=16\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-bucket-count=8\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-block-size=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065291
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-profiler-bucket-allocator-block-count=1\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065292
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-profiler-allocator-block-size=16777216\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065292
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-profiler-editor-allocator-block-size=1048576\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065292
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-temp-allocator-size-main=4194304\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065292
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-job-temp-allocator-block-size=2097152\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065292
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-job-temp-allocator-block-size-background=1048576\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065292
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"    \\\"memorysetup-job-temp-allocator-reduction-small-platforms=262144\\\"\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065293
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065293
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Loading player data from data.unity3d\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065293
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Initialize engine version: 2022.3.42f1 (2dcb6a0abc42)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065293
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.loader.js?v=39b1f9adc2c6 0:1271 \"Creating WebGL 2.0 context.\"",
+      "source": "console-api",
+      "timestamp": 1773118065294
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Renderer: WebKit WebGL\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065294
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Vendor:   WebKit\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065294
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065295
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"GLES:     3\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065295
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \" EXT_clip_control EXT_color_buffer_float EXT_color_buffer_half_float EXT_conservative_depth EXT_depth_clamp EXT_disjoint_timer_query_webgl2 EXT_float_blend EXT_polygon_offset_clamp EXT_render_snorm EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge EXT_texture_norm16 KHR_parallel_shader_compile NV_shader_noperspective_interpolation OES_draw_buffers_indexed OES_sample_variables OES_shader_multisample_interpolation OES_texture_float_linear OVR_multiview2 WEBGL_blend_func_extended WEBGL_clip_cull_distance WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode WEBGL_provoking_vertex WEBGL_stencil_texturing GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_depth_clamp GL_EXT_disjoint_timer_query_webgl2 GL_EXT_float_blend GL_EXT_polygon_offset_clamp GL_EXT_render_snorm GL_EXT_\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065295
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"texture_compression_bptc GL_EXT_texture_compression_rgtc GL_EXT_texture_filter_anisotropic GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_KHR_parallel_shader_compile GL_NV_shader_noperspective_interpolation GL_OES_draw_buffers_indexed GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_texture_float_linear GL_OVR_multiview2 GL_WEBGL_blend_func_extended GL_WEBGL_clip_cull_distance GL_WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_debug_renderer_info GL_WEBGL_debug_shaders GL_WEBGL_lose_context GL_WEBGL_multi_draw GL_WEBGL_polygon_mode GL_WEBGL_provoking_vertex GL_WEBGL_stencil_texturing\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065295
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065295
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065296
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065296
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065296
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065296
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065296
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  \\u003COpenGL ES 3.0> ; Context handle 1\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065296
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Input Manager initialize...\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065297
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"[PhysX] Initialized SinglethreadedTaskDispatcher.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065297
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"UnloadTime: 2.900000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065297
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Odin Serializer ArchitectureInfo initialization with defaults (all unaligned read/writes disabled).\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065297
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.framework.js?v=39b1f9adc2c6 9:37849 \"Odin Serializer detected whitelisted runtime platform WebGLPlayer and memory read test succeeded; enabling all unaligned memory read/writes.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065298
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.loader.js?v=39b1f9adc2c6 0:5823 \"[UnityCache] 'http://127.0.0.1:53101/_gd_geomdirect/Build/geometry-dash-lite.data?v=39b1f9adc2c6' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773118065298
+    },
+    {
+      "level": "SEVERE",
+      "message": "http://127.0.0.1:53101/_gd_geomdirect/game-root.html?autostart=1 - Access to fetch at 'https://sites.google.com/view/drive-u-7-home-10/new-games/setting.txt' from origin 'http://127.0.0.1:53101' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "source": "javascript",
+      "timestamp": 1773118065298
+    },
+    {
+      "level": "SEVERE",
+      "message": "https://sites.google.com/view/drive-u-7-home-10/new-games/setting.txt - Failed to load resource: net::ERR_FAILED",
+      "source": "network",
+      "timestamp": 1773118065298
+    },
+    {
+      "level": "INFO",
+      "message": "console-api 2:123 \"domain_name: undefined\"",
+      "source": "console-api",
+      "timestamp": 1773118065298
+    },
+    {
+      "level": "INFO",
+      "message": "https://slope3.com/gamep/slope3/Build/UnityLoader.js 3:13558 \"[UnityCache] 'https://slope3.com/gamep/slope3/Build/slope3.wasm.framework.unityweb' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773118065305
+    },
+    {
+      "level": "INFO",
+      "message": "https://slope3.com/gamep/slope3/Build/UnityLoader.js 3:13558 \"[UnityCache] 'https://slope3.com/gamep/slope3/Build/slope3.wasm.code.unityweb' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773118065315
+    },
+    {
+      "level": "INFO",
+      "message": "https://slope3.com/gamep/slope3/Build/UnityLoader.js 3:13558 \"[UnityCache] 'https://slope3.com/gamep/slope3/Build/slope3.data.unityweb' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773118065316
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Loading player data from data.unity3d\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065316
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Initialize engine version: 2019.4.24f1 (5da6f0345e82)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065316
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"[Subsystems] Discovering subsystems at path UnitySubsystems\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065317
+    },
+    {
+      "level": "INFO",
+      "message": "https://slope3.com/gamep/slope3/Build/UnityLoader.js 3:11333 \"Creating WebGL 2.0 context.\"",
+      "source": "console-api",
+      "timestamp": 1773118065317
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Renderer: WebKit WebGL\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065317
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Vendor:   WebKit\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065317
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065317
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"GLES:     3\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065317
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \" EXT_clip_control GL_EXT_clip_control EXT_color_buffer_float GL_EXT_color_buffer_float EXT_color_buffer_half_float GL_EXT_color_buffer_half_float EXT_conservative_depth GL_EXT_conservative_depth EXT_depth_clamp GL_EXT_depth_clamp EXT_disjoint_timer_query_webgl2 GL_EXT_disjoint_timer_query_webgl2 EXT_float_blend GL_EXT_float_blend EXT_polygon_offset_clamp GL_EXT_polygon_offset_clamp EXT_render_snorm GL_EXT_render_snorm EXT_texture_compression_bptc GL_EXT_texture_compression_bptc EXT_texture_compression_rgtc GL_EXT_texture_compression_rgtc EXT_texture_filter_anisotropic GL_EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge GL_EXT_texture_mirror_clamp_to_edge EXT_texture_norm16 GL_EXT_texture_norm16 KHR_parallel_shader_compile GL_KHR_parallel_shader_compile NV_shader_noperspective_interpolation GL_NV_shader_noperspective_interpolation OES_draw_buffers_indexed GL_OES_draw_buffers_indexed OES_sample_variables GL_OES_sample_variables OES_shader_multisample_interpolation GL_OES_shader_multisample_inter\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065317
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"polation OES_texture_float_linear GL_OES_texture_float_linear OVR_multiview2 GL_OVR_multiview2 WEBGL_blend_func_extended GL_WEBGL_blend_func_extended WEBGL_clip_cull_distance GL_WEBGL_clip_cull_distance WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info GL_WEBGL_debug_renderer_info WEBGL_debug_shaders GL_WEBGL_debug_shaders WEBGL_lose_context GL_WEBGL_lose_context WEBGL_multi_draw GL_WEBGL_multi_draw WEBGL_polygon_mode GL_WEBGL_polygon_mode WEBGL_provoking_vertex GL_WEBGL_provoking_vertex WEBGL_stencil_texturing GL_WEBGL_stencil_texturing\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "WARNING",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "WARNING",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "WARNING",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "WARNING",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "WARNING",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "WARNING",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7 WebGL: INVALID_ENUM: getInternalformatParameter: invalid internalformat",
+      "source": "rendering",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  \\u003COpenGL ES 3.0> ; Context handle 20288024\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"UnloadTime: 2.500000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065318
+    },
+    {
+      "level": "INFO",
+      "message": "https://slope3.com/gamep/slope3/Build/UnityLoader.js 3:13558 \"[UnityCache] 'https://slope3.com/gamep/slope3/game.txt' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773118065319
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Input Manager initialize...\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065323
+    },
+    {
+      "level": "INFO",
+      "message": "https://slope3.com/gamep/slope3/Build/UnityLoader.js 3:13558 \"[UnityCache] 'https://slope3.com/setting.txt' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773118065323
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"UnloadTime: 0.500000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065323
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Unloading 4 Unused Serialized files (Serialized files now loaded: 0)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065323
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"\\nUnloading 3 unused Assets to reduce memory usage. Loaded Objects now: 594.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065323
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Total: 0.900001 ms (FindLiveObjects: 0.000000 ms CreateObjectMapping: 0.000000 ms MarkObjects: 0.800000 ms  DeleteObjects: 0.000000 ms)\\n\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065324
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"ERROR: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065324
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Hidden/PostProcessing/Debug/LightMeter shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065324
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"ERROR: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065324
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Hidden/PostProcessing/ScreenSpaceReflections shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"ERROR: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Hidden/PostProcessing/MultiScaleVO shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"ERROR: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Hidden/PostProcessing/Debug/Histogram shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"ERROR: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Hidden/PostProcessing/Debug/Waveform shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"ERROR: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065325
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Hidden/PostProcessing/Debug/Vectorscope shader is not supported on this GPU (none of subshaders/fallbacks are suitable)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065326
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"UnloadTime: 0.900000 ms\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065326
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Unloading 3 Unused Serialized files (Serialized files now loaded: 0)\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065326
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"\\nUnloading 4 unused Assets to reduce memory usage. Loaded Objects now: 2189.\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065326
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Total: 1.800000 ms (FindLiveObjects: 0.100000 ms CreateObjectMapping: 0.000000 ms MarkObjects: 1.600001 ms  DeleteObjects: 0.099999 ms)\\n\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065326
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"WARNING: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065327
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Unsupported: 'Hidden/MK/Glow/MKGlowSM40' - All passes removed\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065328
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"WARNING: Shader \"",
+      "source": "console-api",
+      "timestamp": 1773118065329
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:44232 \"Did you use #pragma only_renderers and omit this platform?\\n\"",
+      "source": "console-api",
+      "timestamp": 1773118065329
+    },
+    {
+      "level": "INFO",
+      "message": "blob:https://slope3.com/6755381e-db13-4e3f-970d-17ed2ec2bdf4 7:101594 \"warning: 2 FS.syncfs operations in flight at once, probably just doing extra work\"",
+      "source": "console-api",
+      "timestamp": 1773118065330
+    }
+  ]
+}

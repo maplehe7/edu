@@ -1,0 +1,132 @@
+[
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.loader.js?v=19edbef98e75"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.loader.js?v=19edbef98e75",
+    "status": 200,
+    "mime": "text/javascript"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.framework.js?v=19edbef98e75"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.framework.js?v=19edbef98e75",
+    "status": 200,
+    "mime": "text/javascript"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.wasm?v=19edbef98e75"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.wasm?v=19edbef98e75",
+    "status": 200,
+    "mime": "application/wasm"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.data?v=19edbef98e75"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.data?v=19edbef98e75",
+    "status": 200,
+    "mime": "application/octet-stream"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.framework.js?v=19edbef98e75"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.wasm?v=19edbef98e75"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.framework.js?v=19edbef98e75",
+    "status": 200,
+    "mime": "text/javascript"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/Build/geometry-dash-lite.wasm?v=19edbef98e75",
+    "status": 200,
+    "mime": "application/wasm"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "https://slope3.com/gamep/geometry-dash-lite/game.txt"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "https://slope3.com/gamep/geometry-dash-lite/game.txt",
+    "status": 200,
+    "mime": "text/plain"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/quitSound.mp3"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/playSound.mp3"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/endStart.mp3"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/explode.mp3"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/menuLoop.mp3"
+  },
+  {
+    "method": "Network.requestWillBeSent",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/quitSound.mp3",
+    "status": 200,
+    "mime": "audio/mpeg"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/playSound.mp3",
+    "status": 200,
+    "mime": "audio/mpeg"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/endStart.mp3",
+    "status": 200,
+    "mime": "audio/mpeg"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/explode.mp3",
+    "status": 200,
+    "mime": "audio/mpeg"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/menuLoop.mp3",
+    "status": 200,
+    "mime": "audio/mpeg"
+  },
+  {
+    "method": "Network.responseReceived",
+    "url": "http://127.0.0.1:64626/GD%20Lite/StreamingAssets/audios/StayInsideMe.mp3",
+    "status": 200,
+    "mime": "audio/mpeg"
+  }
+]

@@ -1,0 +1,66 @@
+{
+  "browser_logs": [
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:61624/GD%20Lite/Build/UnityLoader.js?v=be0a03644922 170:306 \"You can reduce your startup time if you configure your web server to host .unityweb files using gzip compression.\"",
+      "source": "console-api",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:61624/GD%20Lite/Build/UnityLoader.js?v=be0a03644922 205:55 \"[UnityCache] 'http://127.0.0.1:61624/GD%20Lite/Build/GeometryDashLite.wasm.framework.unityweb?v=be0a03644922' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:61624/GD%20Lite/Build/UnityLoader.js?v=be0a03644922 205:55 \"[UnityCache] 'http://127.0.0.1:61624/GD%20Lite/Build/GeometryDashLite.wasm.code.unityweb' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:61624/GD%20Lite/Build/UnityLoader.js?v=be0a03644922 205:55 \"[UnityCache] 'http://127.0.0.1:61624/GD%20Lite/Build/GeometryDashLite.data.unityweb?v=be0a03644922' successfully downloaded and stored in the indexedDB cache\"",
+      "source": "console-api",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:61624/GD%20Lite/Build/UnityLoader.js?v=be0a03644922 194:427 Uint8Array(514597)",
+      "source": "console-api",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "INFO",
+      "message": "http://127.0.0.1:61624/GD%20Lite/Build/UnityLoader.js?v=be0a03644922 187:2461 \"Invoking error handler due to\\nUncaught RangeError: Maximum call stack size exceeded\"",
+      "source": "console-api",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "SEVERE",
+      "message": "console-api 0:35 \"ALERT_SUPPRESSED\" \"An error occurred running the Unity content on this page. See your browser JavaScript console for more info. The error was:\\nUncaught RangeError: Maximum call stack size exceeded\"",
+      "source": "console-api",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "SEVERE",
+      "message": "http://127.0.0.1:61624/GD%20Lite/Build/UnityLoader.js?v=be0a03644922 195:1898 Uncaught RangeError: Maximum call stack size exceeded",
+      "source": "javascript",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:61624/GD%20Lite/game-root.html?v=26f2ae32453d - The resource http://127.0.0.1:61624/GD%20Lite/Build/GeometryDashLite.wasm.framework.js?v=be0a03644922 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "source": "javascript",
+      "timestamp": 1773114514781
+    },
+    {
+      "level": "WARNING",
+      "message": "http://127.0.0.1:61624/GD%20Lite/game-root.html?v=26f2ae32453d - The resource http://127.0.0.1:61624/GD%20Lite/Build/GeometryDashLite.wasm.code.unityweb?v=be0a03644922 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "source": "javascript",
+      "timestamp": 1773114514781
+    }
+  ],
+  "status": null,
+  "state": null
+}
